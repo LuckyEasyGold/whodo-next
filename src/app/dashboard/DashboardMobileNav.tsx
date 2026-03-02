@@ -2,22 +2,24 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, UserCircle, Briefcase, Image as ImageIcon, MessageSquare } from 'lucide-react'
+import { BarChart3, UserCircle, Briefcase, Image as ImageIcon, MessageSquare, Calendar, Wallet } from 'lucide-react'
 
 export default function DashboardMobileNav() {
     const pathname = usePathname()
 
     const mobileItems = [
-        { icon: BarChart3, label: 'Dashboard', href: '/dashboard' },
-        { icon: UserCircle, label: 'Perfil', href: '/dashboard/perfil' },
-        { icon: ImageIcon, label: 'Portfólio', href: '/dashboard/portfolio' },
+        { icon: BarChart3, label: 'Home', href: '/dashboard' },
         { icon: Briefcase, label: 'Serviços', href: '/dashboard/servicos' },
-        { icon: MessageSquare, label: 'Mensagens', href: '/dashboard/mensagens' },
+        { icon: Calendar, label: 'Agenda', href: '/dashboard/agendamentos' },
+        { icon: Wallet, label: 'Financeiro', href: '/dashboard/financeiro' },
+        { icon: ImageIcon, label: 'Portfólio', href: '/dashboard/portfolio' },
+        { icon: UserCircle, label: 'Perfil', href: '/dashboard/perfil' },
     ]
 
     return (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-4 py-2 flex justify-around z-50 h-16">
-            {mobileItems.map((item) => {
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-2 py-2 overflow-x-auto z-50 h-16">
+            <div className="flex justify-start gap-1 min-w-max">
+                {mobileItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
                     <Link
@@ -30,6 +32,7 @@ export default function DashboardMobileNav() {
                     </Link>
                 )
             })}
+            </div>
         </div>
     )
 }

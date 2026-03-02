@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, MapPin, CheckCircle, Clock, MessageSquare, Calendar, Settings, Grid3X3, Play, Briefcase, ExternalLink, X, Trash2, Globe, Linkedin, Facebook, Instagram, Youtube, UserCheck, MessageCircle, ArrowLeft, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import ContratarModal from './ContratarModal'
 
 type MediaItem = {
     id: number
@@ -69,6 +70,7 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
     const [activeTab, setActiveTab] = useState<Tab>('portfolio')
     const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
     const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null)
+    const [showContratarModal, setShowContratarModal] = useState(false)
 
     const p = usuario
     const rating = Number(p.avaliacao_media || 0)
@@ -205,7 +207,7 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                                 </>
                             ) : (
                                 <>
-                                    <button className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all">
+                                    <button onClick={() => setShowContratarModal(true)} className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all">
                                         <Calendar size={14} className="inline mr-1.5 -mt-0.5" /> Contratar
                                     </button>
                                     <button className="px-5 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-all">
@@ -433,6 +435,13 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                     </div>
                 )}
             </div>
+
+            {/* Modal de Contratar */}
+            <ContratarModal
+                usuario={usuario}
+                isOpen={showContratarModal}
+                onClose={() => setShowContratarModal(false)}
+            />
         </div>
     )
 }

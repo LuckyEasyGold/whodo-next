@@ -40,5 +40,19 @@
 - [x] Atualizar Dashboard (`/dashboard/perfil`) para o novo formulário completo.
 
 ## Fase 7: Agendamento e Módulos Finais
-- [ ] Financeiro: Visão agrupada de ganhos baseada em serviços concluídos.
-- [ ] Mensageria: Sistema de chat próprio usando Polling e banco de dados.
+- [x] Financeiro: Visão agrupada de ganhos baseada em serviços concluídos.
+- [x] Agendamento: Criar, confirmar, concluir e cancelar agendamentos.
+- [x] Mensageria: Sistema de chat próprio usando Polling e banco de dados.
+- [x] Botão "Contratar" funcional no perfil dos prestadores.
+- [x] Modal de agendamento com seleção de serviço e data/hora.
+- [x] Página de finanças com depósito, saque e dados bancários.
+- [x] Sistema de carteira com saldo disponível e pendente.
+- [x] Transações com status (pendente, concluído, falhado).
+
+## Próximos Passos (Para Melhorias Futuras)
+- [ ] Sistema de avaliações pós-serviço.
+- [ ] Notificações em tempo real com WebSockets.
+- [ ] Sistema de recomendações baseado em IA.
+- [ ] Integração com gateway de pagamento (Stripe, MercadoPago).
+- [ ] Testes automatizados (Jest, Cypress).
+- [ ] Deploy em produção (Vercel, AWS, etc).

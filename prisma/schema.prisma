@@ -65,6 +65,11 @@ model Usuario {
   
   solicitacoesEnviadas  Solicitacao[] @relation("SolicitacaoCliente")
   orcamentosEnviados    Orcamento[]   @relation("OrcamentoPrestador")
+  
+  agendamentosCliente   Agendamento[] @relation("AgendamentoCliente")
+  agendamentosPrestador Agendamento[] @relation("AgendamentoPrestador")
+  carteira              Carteira?
+  dadosBancarios        DadosBancarios?
 
   @@map("usuarios")
 }
@@ -129,6 +134,7 @@ model Servico {
   categoria      Categoria @relation(fields: [categoria_id], references: [id])
   avaliacoes     Avaliacao[]
   solicitacoes   Solicitacao[]
+  agendamentos   Agendamento[]
 
   @@map("servicos")
 }
@@ -209,4 +215,90 @@ model Notificacao {
   usuario     Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@map("notificacoes")
+}
+
+model Agendamento {
+  id                  Int      @id @default(autoincrement())
+  cliente_id          Int
+  prestador_id        Int
+  servico_id          Int
+  solicitacao_id      Int?
+  status              String   @default("pendente") @db.VarChar(30) // pendente, confirmado, cancelado, concluido
+  data_agendamento    DateTime
+  data_conclusao      DateTime?
+  descricao           String?  @db.Text
+  endereco_servico    String?  @db.VarChar(255)
+  valor_total         Decimal  @db.Decimal(10, 2)
+  valor_pago          Boolean  @default(false)
+  avaliacao_feita     Boolean  @default(false)
+  motivo_cancelamento String?  @db.Text
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  cliente             Usuario      @relation("AgendamentoCliente", fields: [cliente_id], references: [id])
+  prestador           Usuario      @relation("AgendamentoPrestador", fields: [prestador_id], references: [id])
+  servico             Servico      @relation(fields: [servico_id], references: [id])
+  transacoes          Transacao[]
+
+  @@map("agendamentos")
+}
+
+model Carteira {
+  id                Int      @id @default(autoincrement())
+  usuario_id        Int      @unique
+  saldo              Decimal  @default(0) @db.Decimal(12, 2)
+  saldo_pendente     Decimal  @default(0) @db.Decimal(12, 2) // Earned by not yet settled
+  total_ganho        Decimal  @default(0) @db.Decimal(12, 2)
+  total_gasto        Decimal  @default(0) @db.Decimal(12, 2)
+  updated_at         DateTime @updatedAt
+  created_at         DateTime @default(now())
+
+  usuario            Usuario        @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  transacoes         Transacao[]
+
+  @@map("carteiras")
+}
+
+model Transacao {
+  id                  Int      @id @default(autoincrement())
+  carteira_id         Int
+  agendamento_id      Int?
+  tipo                String   @db.VarChar(30) // deposito, saque, pagamento, recebimento
+  valor               Decimal  @db.Decimal(12, 2)
+  status              String   @default("pendente") @db.VarChar(30) // pendente, concluido, falhado
+  data_solicitacao    DateTime @default(now())
+  data_processamento  DateTime?
+  descricao           String?  @db.Text
+  chave_pix           String?  @db.VarChar(255)
+  banco_agencia       String?  @db.VarChar(50)
+  banco_conta         String?  @db.VarChar(50)
+  tipo_conta          String?  @db.VarChar(30) // corrente, poupanca
+  metodo_pagamento    String?  @db.VarChar(30) // pix, transferencia, cartao
+  comprovante_url     String?  @db.VarChar(255)
+  updated_at          DateTime @updatedAt
+
+  carteira            Carteira    @relation(fields: [carteira_id], references: [id], onDelete: Cascade)
+  agendamento         Agendamento? @relation(fields: [agendamento_id], references: [id], onDelete: SetNull)
+
+  @@map("transacoes")
+}
+
+model DadosBancarios {
+  id                  Int      @id @default(autoincrement())
+  usuario_id          Int      @unique
+  chave_pix           String?  @db.VarChar(255)
+  banco_nome          String?  @db.VarChar(100)
+  banco_codigo        String?  @db.VarChar(10)
+  agencia             String?  @db.VarChar(20)
+  conta               String?  @db.VarChar(20)
+  tipo_conta          String?  @db.VarChar(30) // corrente, poupanca
+  titular_nome        String?  @db.VarChar(255)
+  cpf_cnpj            String?  @db.VarChar(20)
+  verificado          Boolean  @default(false)
+  updated_at          DateTime @updatedAt
+  created_at          DateTime @default(now())
+
+  usuario             Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("dados_bancarios")
 }
