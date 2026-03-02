@@ -267,7 +267,7 @@ export default function FinanceiroContent() {
         <div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             {/* Saldo */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow-lg">
+            <div className="bg-linear-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium opacity-80">
                   Saldo Disponível

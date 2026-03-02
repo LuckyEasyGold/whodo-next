@@ -25,7 +25,7 @@ export default function DashboardMobileNav() {
                     <Link
                         key={item.label}
                         href={item.href}
-                        className={`flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                        className={`flex flex-col items-center justify-center gap-1 min-w-16 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                     >
                         <item.icon size={20} />
                         <span className="text-[10px] font-medium">{item.label}</span>
