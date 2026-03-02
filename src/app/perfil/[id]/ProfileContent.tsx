@@ -3,16 +3,25 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, MapPin, CheckCircle, Clock, MessageSquare, Calendar, Settings, Grid3X3, Play, Briefcase, ExternalLink, X, Trash2, Globe, Linkedin, Facebook, Instagram, Youtube, UserCheck, MessageCircle } from 'lucide-react'
+import { Star, MapPin, CheckCircle, Clock, MessageSquare, Calendar, Settings, Grid3X3, Play, Briefcase, ExternalLink, X, Trash2, Globe, Linkedin, Facebook, Instagram, Youtube, UserCheck, MessageCircle, ArrowLeft, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-type PortfolioMedia = {
+type MediaItem = {
     id: number
     url: string
     tipo: string
     titulo: string | null
     descricao: string | null
     citacao: string | null
+}
+
+type Album = {
+    id: number
+    nome: string
+    descricao: string | null
+    capa_url: string | null
+    _count: { medias: number }
+    medias: MediaItem[]
 }
 
 type Props = {
@@ -44,7 +53,7 @@ type Props = {
         kwai: string | null
         perfil_academico: string | null
 
-        portfolio: PortfolioMedia[]
+        portfolioAlbuns: Album[]
         servicos: { id: number; titulo: string; descricao: string | null; preco_base: any; unidade_medida: string | null; categoria: { nome: string } }[]
         avaliacoesRecebidas: { id: number; nota: any; comentario: string | null; data_avaliacao: string; cliente: { nome: string; foto_perfil: string | null }; servico: { titulo: string } }[]
     }
@@ -54,19 +63,12 @@ type Props = {
 
 type Tab = 'portfolio' | 'servicos' | 'avaliacoes'
 
-const highlights = [
-    { img: 'https://images.unsplash.com/photo-1621544402532-22c6b1d667c5?w=200', title: 'Antes/Depois' },
-    { img: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=200', title: 'Reformas' },
-    { img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200', title: 'Manutenção' },
-    { img: 'https://images.unsplash.com/photo-1613497644182-913b0f7898fa?w=200', title: 'Dicas' },
-]
+
 
 export default function ProfileContent({ usuario, isOwner, stats }: Props) {
-    const router = useRouter()
     const [activeTab, setActiveTab] = useState<Tab>('portfolio')
-    const [selectedMedia, setSelectedMedia] = useState<PortfolioMedia | null>(null)
-    const [isDeleting, setIsDeleting] = useState(false)
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
+    const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null)
 
     const p = usuario
     const rating = Number(p.avaliacao_media || 0)
@@ -77,26 +79,13 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
         { key: 'avaliacoes', label: 'Avaliações', icon: Star },
     ]
 
-    const handleDelete = async (id: number) => {
-        setIsDeleting(true)
-        try {
-            const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE' })
-            if (!res.ok) throw new Error('Erro ao deletar')
-
-            setSelectedMedia(null)
-            setShowDeleteConfirm(false)
-            router.refresh()
-        } catch (error) {
-            alert('Falha ao excluir item')
-        } finally {
-            setIsDeleting(false)
-        }
-    }
-
-    const openModal = (item: PortfolioMedia) => {
+    const openMedia = (item: MediaItem) => {
         setSelectedMedia(item)
-        setShowDeleteConfirm(false)
         document.body.style.overflow = 'hidden'
+    }
+    const closeMedia = () => {
+        setSelectedMedia(null)
+        document.body.style.overflow = 'auto'
     }
 
     const closeModal = () => {
@@ -115,7 +104,7 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 sm:p-8"
                     >
-                        <button onClick={closeModal} className="absolute top-4 right-4 p-2 text-white/70 hover:text-white bg-black/50 rounded-full">
+                        <button onClick={closeMedia} className="absolute top-4 right-4 p-2 text-white/70 hover:text-white bg-black/50 rounded-full">
                             <X size={24} />
                         </button>
 
@@ -155,37 +144,7 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                                         )}
                                     </div>
 
-                                    {/* Ações do Dono */}
-                                    {isOwner && (
-                                        <div className="mt-8 pt-4 border-t border-slate-100">
-                                            {showDeleteConfirm ? (
-                                                <div className="bg-red-50 p-4 rounded-xl">
-                                                    <p className="text-sm text-red-800 font-medium mb-3 text-center">Tem certeza que deseja excluir esta mídia para sempre?</p>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            disabled={isDeleting}
-                                                            onClick={() => handleDelete(selectedMedia.id)}
-                                                            className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition-colors"
-                                                        >
-                                                            {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
-                                                        </button>
-                                                        <button
-                                                            disabled={isDeleting}
-                                                            onClick={() => setShowDeleteConfirm(false)}
-                                                            className="flex-1 py-2 bg-white border border-slate-300 text-slate-700 font-semibold rounded-lg text-sm hover:bg-slate-50 transition-colors"
-                                                        >
-                                                            Cancelar
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <button onClick={() => setShowDeleteConfirm(true)} className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold p-2 rounded-lg hover:bg-red-50 transition-colors w-full justify-center">
-                                                    <Trash2 size={18} />
-                                                    Remover do Portfólio
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
+                                    {/* Owner lightbox actions removed — manage from Dashboard Portfólio */}
                                 </div>
                             </div>
                         </div>
@@ -317,30 +276,6 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                 </div>
             </motion.section>
 
-            {/* Highlights */}
-            <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-4 overflow-x-auto">
-                <div className="flex gap-4">
-                    {highlights.map((h) => (
-                        <div key={h.title} className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
-                            <div className="p-0.5 rounded-full bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500">
-                                <div className="p-0.5 rounded-full bg-white">
-                                    <img src={h.img} alt={h.title} className="w-16 h-16 rounded-full object-cover group-hover:scale-105 transition-transform" />
-                                </div>
-                            </div>
-                            <span className="text-xs text-slate-600 mt-1.5 max-w-[70px] truncate text-center">{h.title}</span>
-                        </div>
-                    ))}
-                    {isOwner && (
-                        <div className="flex flex-col items-center flex-shrink-0 cursor-pointer group">
-                            <div className="w-[68px] h-[68px] rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center hover:border-indigo-500 transition-colors">
-                                <span className="text-2xl text-slate-400 group-hover:text-indigo-500">+</span>
-                            </div>
-                            <span className="text-xs text-slate-500 mt-1.5">Novo</span>
-                        </div>
-                    )}
-                </div>
-            </section>
-
             {/* Tabs */}
             <div className="bg-white rounded-t-2xl border border-slate-100 border-b-0">
                 <div className="flex justify-center">
@@ -348,13 +283,13 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-semibold border-b-2 transition-all ${activeTab === tab.key
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-xs sm:text-sm font-semibold border-b-2 transition-all ${activeTab === tab.key
                                 ? 'text-indigo-600 border-indigo-600'
                                 : 'text-slate-400 border-transparent hover:text-slate-600'
                                 }`}
                         >
                             <tab.icon size={16} />
-                            <span className="hidden sm:inline">{tab.label}</span>
+                            <span>{tab.label}</span>
                         </button>
                     ))}
                 </div>
@@ -363,44 +298,83 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
             {/* Tab Content */}
             <div className="bg-white rounded-b-2xl shadow-sm border border-slate-100 border-t-0 p-4 sm:p-6 mb-6">
                 {activeTab === 'portfolio' && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {p.portfolio?.length ? (
-                            p.portfolio.map((item, i) => (
-                                <motion.div
-                                    key={item.id}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    onClick={() => openModal(item)}
-                                    className="relative group rounded-xl overflow-hidden cursor-pointer aspect-square bg-slate-100"
-                                >
-                                    {item.tipo === 'video' ? (
-                                        <video
-                                            src={item.url}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                            muted
-                                            playsInline
-                                            onMouseOver={e => (e.target as HTMLVideoElement).play()}
-                                            onMouseOut={e => {
-                                                const v = e.target as HTMLVideoElement;
-                                                v.pause();
-                                                v.currentTime = 0;
-                                            }}
-                                        />
-                                    ) : (
-                                        <img src={item.url} alt={item.titulo || 'Portfolio'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                    )}
-                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8 opacity-0 group-hover:opacity-100 transition-all">
-                                        {item.titulo && <span className="block text-white text-xs font-bold truncate">{item.titulo}</span>}
-                                    </div>
-                                    <div className="absolute top-2 left-2 p-1.5 bg-black/50 rounded-lg text-white backdrop-blur-sm pointer-events-none">
-                                        {item.tipo === 'video' ? <Play size={14} className="fill-white" /> : <Grid3X3 size={14} />}
-                                    </div>
-                                </motion.div>
-                            ))
+                    <div>
+                        {!selectedAlbum ? (
+                            // Album grid
+                            p.portfolioAlbuns?.length ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    {p.portfolioAlbuns.map((album: Album, i: number) => (
+                                        <motion.div
+                                            key={album.id}
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: i * 0.05 }}
+                                            onClick={() => setSelectedAlbum(album)}
+                                            className="cursor-pointer group rounded-xl overflow-hidden border border-slate-100 hover:border-indigo-200 hover:shadow-md transition-all bg-white"
+                                        >
+                                            <div className="aspect-square bg-gradient-to-br from-indigo-50 to-purple-50 relative overflow-hidden">
+                                                {album.capa_url ? (
+                                                    <img src={album.capa_url} alt={album.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <Grid3X3 className="text-indigo-200" size={32} />
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
+                                            </div>
+                                            <div className="p-3">
+                                                <p className="font-bold text-slate-900 text-sm truncate">{album.nome}</p>
+                                                <p className="text-xs text-slate-400 mt-0.5">{album._count.medias} {album._count.medias === 1 ? 'item' : 'itens'}</p>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-10">
+                                    <p className="text-slate-400">Nenhum trabalho no portfólio ainda.</p>
+                                </div>
+                            )
                         ) : (
-                            <div className="col-span-full text-center py-10">
-                                <p className="text-slate-400">Nenhum item no portfólio ainda.</p>
+                            // Album content view
+                            <div>
+                                <button onClick={() => setSelectedAlbum(null)} className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 text-sm font-semibold mb-4 transition-colors">
+                                    <ArrowLeft size={16} /> Voltar
+                                </button>
+                                <div className="mb-4">
+                                    <h3 className="text-xl font-extrabold text-slate-900">{selectedAlbum.nome}</h3>
+                                    {selectedAlbum.descricao && <p className="text-sm text-slate-500 mt-1">{selectedAlbum.descricao}</p>}
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {selectedAlbum.medias.map((item: MediaItem, i: number) => (
+                                        <motion.div
+                                            key={item.id}
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: i * 0.05 }}
+                                            onClick={() => item.tipo !== 'documento' && openMedia(item)}
+                                            className={`relative group rounded-xl overflow-hidden aspect-square bg-slate-100 ${item.tipo !== 'documento' ? 'cursor-pointer' : ''}`}
+                                        >
+                                            {item.tipo === 'video' ? (
+                                                <video src={item.url} className="w-full h-full object-cover" muted playsInline
+                                                    onMouseOver={e => (e.target as HTMLVideoElement).play()}
+                                                    onMouseOut={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
+                                                />
+                                            ) : item.tipo === 'documento' ? (
+                                                <a href={item.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center gap-2 h-full p-4">
+                                                    <FileText size={32} className="text-blue-400" />
+                                                    <span className="text-xs text-slate-600 text-center font-medium">{item.titulo || 'Documento'}</span>
+                                                </a>
+                                            ) : (
+                                                <img src={item.url} alt={item.titulo || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            )}
+                                            {item.tipo !== 'documento' && (
+                                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-6 opacity-0 group-hover:opacity-100 transition-all">
+                                                    {item.titulo && <span className="block text-white text-xs font-bold truncate">{item.titulo}</span>}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

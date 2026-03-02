@@ -55,6 +55,7 @@ model Usuario {
   patrocinados      Usuario[] @relation("Patrocinador")
 
   portfolio         PortfolioMedia[]
+  portfolioAlbuns   PortfolioAlbum[]
   servicos          Servico[]
   avaliacoesFeitas  Avaliacao[] @relation("AvaliacaoCliente")
   avaliacoesRecebidas Avaliacao[] @relation("AvaliacaoPrestador")
@@ -71,16 +72,33 @@ model Usuario {
 model PortfolioMedia {
   id               Int      @id @default(autoincrement())
   usuario_id       Int
+  album_id         Int?
   url              String   @db.VarChar(255)
-  tipo             String   @default("imagem") @db.VarChar(20) // 'imagem' ou 'video'
+  tipo             String   @default("imagem") @db.VarChar(20) // 'imagem', 'video' ou 'documento'
   titulo           String?  @db.VarChar(255)
-  descricao        String?  @db.Text // Contexto detalhado
-  citacao          String?  @db.Text // Citacao do cliente
+  descricao        String?  @db.Text
+  citacao          String?  @db.Text
   created_at       DateTime @default(now())
 
-  usuario          Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  usuario          Usuario         @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  album            PortfolioAlbum? @relation(fields: [album_id], references: [id], onDelete: SetNull)
 
   @@map("portfolio_media")
+}
+
+model PortfolioAlbum {
+  id          Int      @id @default(autoincrement())
+  usuario_id  Int
+  nome        String   @db.VarChar(255)
+  descricao   String?  @db.Text
+  capa_url    String?  @db.VarChar(255)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  usuario  Usuario          @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  medias   PortfolioMedia[]
+
+  @@map("portfolio_albums")
 }
 
 model Categoria {

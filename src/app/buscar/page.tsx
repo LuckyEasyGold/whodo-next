@@ -21,31 +21,39 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         if (me?.cidade) defaultCity = me.cidade
     }
 
+    // Base: show all users that are not explicitly blocked/inactive
     const where: any = {
-        // In the unified model, anyone with at least one service is a "provider"
-        servicos: { some: {} },
-        status: 'ativo',
+        NOT: { status: 'inativo' }
     }
 
     if (params.q) {
-        where.OR = [
-            { nome: { contains: params.q } },
-            { especialidade: { contains: params.q } },
-            { servicos: { some: { titulo: { contains: params.q } } } },
+        where.AND = [
+            {
+                OR: [
+                    { nome: { contains: params.q } },
+                    { especialidade: { contains: params.q } },
+                    { nome_fantasia: { contains: params.q } },
+                    { servicos: { some: { titulo: { contains: params.q } } } },
+                ]
+            }
         ]
     }
 
     if (params.categoria) {
-        where.servicos = { some: { categoria_id: parseInt(params.categoria) } }
+        const catFilter = { servicos: { some: { categoria_id: parseInt(params.categoria) } } }
+        if (where.AND) where.AND.push(catFilter)
+        else where.AND = [catFilter]
     }
 
     if (params.loc) {
-        const currentOR = where.OR || []
-        where.OR = [
-            ...currentOR,
-            { cidade: { contains: params.loc } },
-            { estado: { contains: params.loc } }
-        ]
+        const locFilter = {
+            OR: [
+                { cidade: { contains: params.loc } },
+                { estado: { contains: params.loc } }
+            ]
+        }
+        if (where.AND) where.AND.push(locFilter)
+        else where.AND = [locFilter]
     }
 
     if (params.verificado === 'true') {
@@ -57,9 +65,9 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
     }
 
     if (params.preco) {
-        if (!where.servicos) where.servicos = { some: {} }
-        else if (!where.servicos.some) where.servicos.some = {}
-        where.servicos.some.preco_base = { lte: parseFloat(params.preco) }
+        const precoFilter = { servicos: { some: { preco_base: { lte: parseFloat(params.preco) } } } }
+        if (where.AND) where.AND.push(precoFilter)
+        else where.AND = [precoFilter]
     }
 
     const profissionais = await prisma.usuario.findMany({
@@ -68,7 +76,7 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
             servicos: { include: { categoria: true }, take: 3 },
             avaliacoesRecebidas: { select: { nota: true } },
         },
-        take: 30,
+        take: 100,
     })
 
     return (

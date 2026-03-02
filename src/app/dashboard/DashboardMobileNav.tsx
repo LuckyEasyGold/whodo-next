@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, UserCircle, Briefcase, MessageSquare, Settings } from 'lucide-react'
+import { BarChart3, UserCircle, Briefcase, Image as ImageIcon, MessageSquare } from 'lucide-react'
 
 export default function DashboardMobileNav() {
     const pathname = usePathname()
@@ -10,9 +10,9 @@ export default function DashboardMobileNav() {
     const mobileItems = [
         { icon: BarChart3, label: 'Dashboard', href: '/dashboard' },
         { icon: UserCircle, label: 'Perfil', href: '/dashboard/perfil' },
+        { icon: ImageIcon, label: 'Portfólio', href: '/dashboard/portfolio' },
         { icon: Briefcase, label: 'Serviços', href: '/dashboard/servicos' },
         { icon: MessageSquare, label: 'Mensagens', href: '/dashboard/mensagens' },
-        { icon: Settings, label: 'Config', href: '/dashboard/configuracoes' },
     ]
 
     return (

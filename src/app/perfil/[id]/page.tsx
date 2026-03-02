@@ -18,7 +18,13 @@ export default async function PerfilPage({ params }: { params: Promise<{ id: str
     const usuario = await prisma.usuario.findUnique({
         where: { id: parseInt(id) },
         include: {
-            portfolio: { orderBy: { created_at: 'desc' } },
+            portfolioAlbuns: {
+                orderBy: { created_at: 'desc' },
+                include: {
+                    medias: { orderBy: { created_at: 'asc' } },
+                    _count: { select: { medias: true } },
+                },
+            },
             servicos: { include: { categoria: true }, orderBy: { created_at: 'desc' } },
             avaliacoesRecebidas: {
                 include: {
@@ -39,7 +45,7 @@ export default async function PerfilPage({ params }: { params: Promise<{ id: str
     const totalServicos = usuario.servicos.length
     const totalAvaliacoes = usuario.avaliacoesRecebidas.length
     const mediaAvaliacao = totalAvaliacoes > 0
-        ? usuario.avaliacoesRecebidas.reduce((acc, a) => acc + Number(a.nota), 0) / totalAvaliacoes
+        ? usuario.avaliacoesRecebidas.reduce((acc: number, a: { nota: number | string }) => acc + Number(a.nota), 0) / totalAvaliacoes
         : 0
 
     return (
