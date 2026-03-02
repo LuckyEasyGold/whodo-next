@@ -258,6 +258,209 @@ async function main() {
       },
     })
 
+    // Criar portfólios e mídia
+    console.log('Criando portfólios e portfólios...')
+    
+    // Portfólio 1 - Carlos
+    const album1Carlos = await prisma.portfolioAlbum.create({
+      data: {
+        usuario_id: carlos.id,
+        nome: 'Reparos de Encanamento Residencial',
+        descricao: 'Galeria de projetos de reparos completos em encanamento residencial. Inclui desentupimentos, trocas de tubulação e instalação de novos equipamentos.',
+        capa_url: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&h=400&fit=crop',
+      },
+    })
+
+    // Imagens do portfólio 1 - Carlos
+    await Promise.all([
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album1Carlos.id,
+          url: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Instalação de cano de cobre em cozinha com acabamento profissional',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album1Carlos.id,
+          url: 'https://images.unsplash.com/photo-1584622181563-430f63602d4b?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Reparo de vazamento em tubulação antiga com substituição por PVC moderno',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album1Carlos.id,
+          url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Instalação completa de banheiro com chuveiro, torneira e acessórios',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album1Carlos.id,
+          url: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Desentupimento de cano profundo com equipamento especializado',
+        },
+      }),
+    ])
+
+    // Portfólio 2 - Carlos
+    const album2Carlos = await prisma.portfolioAlbum.create({
+      data: {
+        usuario_id: carlos.id,
+        nome: 'Instalações de Sistemas Hidráulicos',
+        descricao: 'Projetos de sistemas hidráulicos completos para residências e pequenos comércios. Includes distribuição de água, aquecimento e drenagem.',
+        capa_url: 'https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=600&h=400&fit=crop',
+      },
+    })
+
+    // Imagens do portfólio 2 - Carlos
+    await Promise.all([
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album2Carlos.id,
+          url: 'https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Sistema de aquecimento de água instantâneo instalado e funcionando',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album2Carlos.id,
+          url: 'https://images.unsplash.com/photo-1578500040211-cd5982105016?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Rede de tubulação de água com isolamento térmico em área externa',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album2Carlos.id,
+          url: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Sistema de drenagem de piscina com filtro e bomba instalados',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: carlos.id,
+          album_id: album2Carlos.id,
+          url: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Ponto de saída de água quente em cozinha com válvula de controle',
+        },
+      }),
+    ])
+
+    // Portfólio 1 - Ana
+    const album1Ana = await prisma.portfolioAlbum.create({
+      data: {
+        usuario_id: ana.id,
+        nome: 'Instalações Elétricas Residenciais',
+        descricao: 'Projetos de adequação e atualização de sistemas elétricos em residências. Certificado NR10, com cálculos de carga e distribuição profissional.',
+        capa_url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&h=400&fit=crop',
+      },
+    })
+
+    // Imagens do portfólio 1 - Ana
+    await Promise.all([
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album1Ana.id,
+          url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Painel elétrico moderno com disjuntores bipolares e DPS',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album1Ana.id,
+          url: 'https://images.unsplash.com/photo-1581077282552-8fcb1865a756?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Fiação de energia com canaleta de proteção passando por escritório',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album1Ana.id,
+          url: 'https://images.unsplash.com/photo-1581076288629-fc50b2c6ad1f?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Instalação de luminárias LED com sensor de movimento em corredor',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album1Ana.id,
+          url: 'https://images.unsplash.com/photo-1581077282553-8d5d604b1a36?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Tomadas e interruptores em acabamento branco com localização ergonômica',
+        },
+      }),
+    ])
+
+    // Portfólio 2 - Ana
+    const album2Ana = await prisma.portfolioAlbum.create({
+      data: {
+        usuario_id: ana.id,
+        nome: 'Manutenção de Circuitos Elétricos',
+        descricao: 'Serviços de manutenção preventiva e corretiva em circuitos elétricos. Testes de continuidade, isolação e segurança em conformidade com normas.',
+        capa_url: 'https://images.unsplash.com/photo-1581077286945-8f63e324b1a0?w=600&h=400&fit=crop',
+      },
+    })
+
+    // Imagens do portfólio 2 - Ana
+    await Promise.all([
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album2Ana.id,
+          url: 'https://images.unsplash.com/photo-1581077286945-8f63e324b1a0?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Teste de isolação em fios usando multímetro digital',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album2Ana.id,
+          url: 'https://images.unsplash.com/photo-1621905251919-48416bd8575a?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Substituição de condutor queimado em circuito de cozinha',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album2Ana.id,
+          url: 'https://images.unsplash.com/photo-1581077282552-8fcb1865a756?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Instalação de diferencial residual para proteção contra choques',
+        },
+      }),
+      prisma.portfolioMedia.create({
+        data: {
+          usuario_id: ana.id,
+          album_id: album2Ana.id,
+          url: 'https://images.unsplash.com/photo-1581076288629-fc50b2c6ad1f?w=600&h=400&fit=crop',
+          tipo: 'imagem',
+          descricao: 'Aferição de voltagem em painel elétrico com equipamento certificado',
+        },
+      }),
+    ])
+
     console.log('✅ Seed completo!')
     console.log('📧 Teste com:')
     console.log('   Email: carlos@whodo.com')
