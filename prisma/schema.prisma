@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                Int       @id @default(autoincrement())
+  nome              String    @db.VarChar(100)
+  email             String    @unique @db.VarChar(100)
+  senha             String    @db.VarChar(255)
+  telefone          String?   @db.VarChar(20)
+  documento         String?   @unique @db.VarChar(20)
+  tipo              String    @default("cliente") @db.VarChar(20)
+  foto_perfil       String?   @db.VarChar(255)
+  endereco          String?   @db.VarChar(255)
+  cidade            String?   @db.VarChar(100)
+  estado            String?   @db.VarChar(2)
+  cep               String?   @db.VarChar(10)
+  latitude          Decimal?  @db.Decimal(10, 8)
+  longitude         Decimal?  @db.Decimal(11, 8)
+  status            String    @default("ativo") @db.VarChar(20)
+  email_verificado  Boolean   @default(false)
+  token_verificacao String?   @db.VarChar(255)
+  patrocinador_id   Int?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  patrocinador      Usuario?  @relation("Patrocinador", fields: [patrocinador_id], references: [id])
+  patrocinados      Usuario[] @relation("Patrocinador")
+
+  prestador         Prestador?
+  cliente           Cliente?
+  servicos          Servico[]
+  avaliacoesFeitas  Avaliacao[] @relation("AvaliacaoCliente")
+  avaliacoesRecebidas Avaliacao[] @relation("AvaliacaoPrestador")
+  notificacoes      Notificacao[]
+  mensagensEnviadas Mensagem[] @relation("MensagemRemetente")
+  mensagensRecebidas Mensagem[] @relation("MensagemDestinatario")
+  solicitacoes      Solicitacao[]
+
+  @@map("usuarios")
+}
+
+model Prestador {
+  usuario_id       Int      @id
+  especialidade    String?  @db.VarChar(255)
+  sobre            String?  @db.Text
+  avaliacao_media  Decimal  @default(0) @db.Decimal(3, 2)
+  verificado       Boolean  @default(false)
+  disponibilidade  String?  @db.VarChar(255)
+
+  usuario          Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("prestadores")
+}
+
+model Cliente {
+  usuario_id Int     @id
+  usuario    Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("clientes")
+}
+
+model Categoria {
+  id        Int       @id @default(autoincrement())
+  nome      String    @db.VarChar(100)
+  descricao String?   @db.Text
+  icone     String?   @db.VarChar(50)
+  imagem    String?   @db.VarChar(255)
+  servicos  Servico[]
+
+  @@map("categorias")
+}
+
+model Servico {
+  id             Int      @id @default(autoincrement())
+  usuario_id     Int
+  categoria_id   Int
+  titulo         String   @db.VarChar(255)
+  descricao      String?  @db.Text
+  preco_base     Decimal  @default(0) @db.Decimal(10, 2)
+  unidade_medida String?  @db.VarChar(50)
+  destaque       Boolean  @default(false)
+  status         String   @default("ativo") @db.VarChar(20)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  usuario        Usuario   @relation(fields: [usuario_id], references: [id])
+  categoria      Categoria @relation(fields: [categoria_id], references: [id])
+  avaliacoes     Avaliacao[]
+  solicitacoes   Solicitacao[]
+
+  @@map("servicos")
+}
+
+model Avaliacao {
+  id               Int      @id @default(autoincrement())
+  cliente_id       Int
+  prestador_id     Int
+  servico_id       Int
+  agendamento_id   Int?
+  nota             Decimal  @db.Decimal(2, 1)
+  comentario       String?  @db.Text
+  resposta_prestador String? @db.Text
+  data_avaliacao   DateTime @default(now())
+
+  cliente          Usuario  @relation("AvaliacaoCliente", fields: [cliente_id], references: [id])
+  prestador        Usuario  @relation("AvaliacaoPrestador", fields: [prestador_id], references: [id])
+  servico          Servico  @relation(fields: [servico_id], references: [id])
+
+  @@map("avaliacoes")
+}
+
+model Solicitacao {
+  id          Int       @id @default(autoincrement())
+  cliente_id  Int
+  servico_id  Int
+  descricao   String?   @db.Text
+  status      String    @default("pendente") @db.VarChar(30)
+  created_at  DateTime  @default(now())
+
+  cliente     Usuario   @relation(fields: [cliente_id], references: [id])
+  servico     Servico   @relation(fields: [servico_id], references: [id])
+  orcamentos  Orcamento[]
+
+  @@map("solicitacoes")
+}
+
+model Orcamento {
+  id              Int      @id @default(autoincrement())
+  solicitacao_id  Int
+  prestador_id    Int
+  valor           Decimal  @db.Decimal(10, 2)
+  descricao       String?  @db.Text
+  prazo_estimado  String?  @db.VarChar(50)
+  status          String   @default("enviado") @db.VarChar(30)
+  created_at      DateTime @default(now())
+
+  solicitacao     Solicitacao @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
+
+  @@map("orcamentos")
+}
+
+model Mensagem {
+  id               Int      @id @default(autoincrement())
+  remetente_id     Int
+  destinatario_id  Int
+  conteudo         String   @db.Text
+  lida             Boolean  @default(false)
+  created_at       DateTime @default(now())
+
+  remetente        Usuario  @relation("MensagemRemetente", fields: [remetente_id], references: [id])
+  destinatario     Usuario  @relation("MensagemDestinatario", fields: [destinatario_id], references: [id])
+
+  @@map("mensagens")
+}
+
+model Notificacao {
+  id          Int      @id @default(autoincrement())
+  usuario_id  Int
+  tipo        String   @db.VarChar(50)
+  titulo      String   @db.VarChar(255)
+  mensagem    String?  @db.Text
+  lida        Boolean  @default(false)
+  link        String?  @db.VarChar(255)
+  created_at  DateTime @default(now())
+
+  usuario     Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("notificacoes")
+}

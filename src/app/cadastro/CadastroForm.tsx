@@ -1,0 +1,174 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Eye, EyeOff, UserPlus, Loader2, Wrench, User } from 'lucide-react'
+
+export default function CadastroForm() {
+    const router = useRouter()
+    const [tipo, setTipo] = useState<'cliente' | 'prestador'>('cliente')
+    const [nome, setNome] = useState('')
+    const [email, setEmail] = useState('')
+    const [telefone, setTelefone] = useState('')
+    const [senha, setSenha] = useState('')
+    const [showPass, setShowPass] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [erro, setErro] = useState('')
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault()
+        setErro('')
+        setLoading(true)
+
+        try {
+            const res = await fetch('/api/auth/cadastro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, senha, telefone, tipo }),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                setErro(data.error || 'Erro ao criar conta')
+                return
+            }
+
+            router.push('/')
+            router.refresh()
+        } catch {
+            setErro('Erro de conexão. Tente novamente.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-5">
+            {erro && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm text-center font-medium">
+                    {erro}
+                </div>
+            )}
+
+            {/* Tipo selector */}
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Eu sou:</label>
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setTipo('cliente')}
+                        className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${tipo === 'cliente'
+                                ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                            }`}
+                    >
+                        <User size={18} />
+                        Cliente
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTipo('prestador')}
+                        className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${tipo === 'prestador'
+                                ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                            }`}
+                    >
+                        <Wrench size={18} />
+                        Profissional
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label htmlFor="nome" className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Nome completo
+                </label>
+                <input
+                    id="nome"
+                    type="text"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    required
+                    placeholder="Seu nome"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all"
+                />
+            </div>
+
+            <div>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+                    E-mail
+                </label>
+                <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="seu@email.com"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all"
+                />
+            </div>
+
+            <div>
+                <label htmlFor="telefone" className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Telefone <span className="text-slate-400">(opcional)</span>
+                </label>
+                <input
+                    id="telefone"
+                    type="tel"
+                    value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all"
+                />
+            </div>
+
+            <div>
+                <label htmlFor="senha" className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Senha
+                </label>
+                <div className="relative">
+                    <input
+                        id="senha"
+                        type={showPass ? 'text' : 'password'}
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        required
+                        minLength={6}
+                        placeholder="Mínimo 6 caracteres"
+                        className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPass(!showPass)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                        {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                </div>
+            </div>
+
+            <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+                {loading ? (
+                    <Loader2 size={20} className="animate-spin" />
+                ) : (
+                    <>
+                        <UserPlus size={18} />
+                        Criar minha conta
+                    </>
+                )}
+            </button>
+
+            <p className="text-xs text-center text-slate-400">
+                Ao criar sua conta, você concorda com nossos{' '}
+                <a href="/termos" className="text-indigo-600 hover:underline">Termos de Uso</a>{' '}
+                e <a href="/privacidade" className="text-indigo-600 hover:underline">Política de Privacidade</a>.
+            </p>
+        </form>
+    )
+}
