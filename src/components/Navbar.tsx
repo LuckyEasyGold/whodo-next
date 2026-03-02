@@ -41,10 +41,11 @@ export default function Navbar() {
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-sm shadow-lg group-hover:scale-105 transition-transform">
-                            W
-                        </div>
-                        <span className="text-xl font-extrabold gradient-text tracking-tight">WhoDo!</span>
+                        <img 
+                            src="/logo.png" 
+                            alt="WhoDo" 
+                            className="h-9 w-auto group-hover:scale-105 transition-transform"
+                        />
                     </Link>
 
                     {/* Desktop nav */}
