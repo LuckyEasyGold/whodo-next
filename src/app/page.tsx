@@ -17,7 +17,7 @@ export default async function Home() {
     categorias = await prisma.categoria.findMany({
       include: { _count: { select: { servicos: true } } },
       orderBy: { servicos: { _count: 'desc' } },
-      take: 8,
+      take: 12,
     })
 
     topPrestadores = await prisma.usuario.findMany({
