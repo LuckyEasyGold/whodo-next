@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
                 ],
                 status: 'ativo',
             },
-            include: { prestador: true },
         })
 
         if (!usuario) {

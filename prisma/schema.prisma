@@ -10,18 +10,40 @@ datasource db {
 model Usuario {
   id                Int       @id @default(autoincrement())
   nome              String    @db.VarChar(100)
+  nome_fantasia     String?   @db.VarChar(100)
   email             String    @unique @db.VarChar(100)
-  senha             String    @db.VarChar(255)
-  telefone          String?   @db.VarChar(20)
-  documento         String?   @unique @db.VarChar(20)
-  tipo              String    @default("cliente") @db.VarChar(20)
+  senha             String?   @db.VarChar(255) // Optional for future social logins
+  telefone          String?   @db.VarChar(20)  // Used for WhatsApp too
+  documento         String?   @unique @db.VarChar(20) // CPF or CNPJ
+  tipo              String    @default("usuario") @db.VarChar(20) // Keep as "usuario" or "admin" in the future
   foto_perfil       String?   @db.VarChar(255)
+  
+  // Professional / Profile fields
+  especialidade     String?   @db.VarChar(255)
+  sobre             String?   @db.Text
+  avaliacao_media   Decimal   @default(0) @db.Decimal(3, 2)
+  verificado        Boolean   @default(false)
+  disponibilidade   String?   @db.VarChar(255)
+  
+  // Locations
   endereco          String?   @db.VarChar(255)
   cidade            String?   @db.VarChar(100)
   estado            String?   @db.VarChar(2)
   cep               String?   @db.VarChar(10)
   latitude          Decimal?  @db.Decimal(10, 8)
   longitude         Decimal?  @db.Decimal(11, 8)
+  
+  // Socials / Web
+  website           String?   @db.VarChar(255)
+  linkedin          String?   @db.VarChar(255)
+  facebook          String?   @db.VarChar(255)
+  instagram         String?   @db.VarChar(255)
+  youtube           String?   @db.VarChar(255)
+  tiktok            String?   @db.VarChar(255)
+  kwai              String?   @db.VarChar(255)
+  perfil_academico  String?   @db.VarChar(255)
+
+  // System status
   status            String    @default("ativo") @db.VarChar(20)
   email_verificado  Boolean   @default(false)
   token_verificacao String?   @db.VarChar(255)
@@ -32,37 +54,33 @@ model Usuario {
   patrocinador      Usuario?  @relation("Patrocinador", fields: [patrocinador_id], references: [id])
   patrocinados      Usuario[] @relation("Patrocinador")
 
-  prestador         Prestador?
-  cliente           Cliente?
+  portfolio         PortfolioMedia[]
   servicos          Servico[]
   avaliacoesFeitas  Avaliacao[] @relation("AvaliacaoCliente")
   avaliacoesRecebidas Avaliacao[] @relation("AvaliacaoPrestador")
   notificacoes      Notificacao[]
   mensagensEnviadas Mensagem[] @relation("MensagemRemetente")
   mensagensRecebidas Mensagem[] @relation("MensagemDestinatario")
-  solicitacoes      Solicitacao[]
+  
+  solicitacoesEnviadas  Solicitacao[] @relation("SolicitacaoCliente")
+  orcamentosEnviados    Orcamento[]   @relation("OrcamentoPrestador")
 
   @@map("usuarios")
 }
 
-model Prestador {
-  usuario_id       Int      @id
-  especialidade    String?  @db.VarChar(255)
-  sobre            String?  @db.Text
-  avaliacao_media  Decimal  @default(0) @db.Decimal(3, 2)
-  verificado       Boolean  @default(false)
-  disponibilidade  String?  @db.VarChar(255)
+model PortfolioMedia {
+  id               Int      @id @default(autoincrement())
+  usuario_id       Int
+  url              String   @db.VarChar(255)
+  tipo             String   @default("imagem") @db.VarChar(20) // 'imagem' ou 'video'
+  titulo           String?  @db.VarChar(255)
+  descricao        String?  @db.Text // Contexto detalhado
+  citacao          String?  @db.Text // Citacao do cliente
+  created_at       DateTime @default(now())
 
   usuario          Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
-  @@map("prestadores")
-}
-
-model Cliente {
-  usuario_id Int     @id
-  usuario    Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
-
-  @@map("clientes")
+  @@map("portfolio_media")
 }
 
 model Categoria {
@@ -123,7 +141,7 @@ model Solicitacao {
   status      String    @default("pendente") @db.VarChar(30)
   created_at  DateTime  @default(now())
 
-  cliente     Usuario   @relation(fields: [cliente_id], references: [id])
+  cliente     Usuario   @relation("SolicitacaoCliente", fields: [cliente_id], references: [id])
   servico     Servico   @relation(fields: [servico_id], references: [id])
   orcamentos  Orcamento[]
 
@@ -141,6 +159,7 @@ model Orcamento {
   created_at      DateTime @default(now())
 
   solicitacao     Solicitacao @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
+  prestador       Usuario     @relation("OrcamentoPrestador", fields: [prestador_id], references: [id])
 
   @@map("orcamentos")
 }

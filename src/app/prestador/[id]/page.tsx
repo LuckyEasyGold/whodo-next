@@ -15,7 +15,6 @@ export default async function PrestadorPage({ params }: { params: Promise<{ id: 
     const prestador = await prisma.usuario.findUnique({
         where: { id: parseInt(id), tipo: 'prestador' },
         include: {
-            prestador: true,
             servicos: { include: { categoria: true } },
             avaliacoesRecebidas: {
                 include: {

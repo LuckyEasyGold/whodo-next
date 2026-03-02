@@ -18,7 +18,7 @@ export default async function PerfilPage({ params }: { params: Promise<{ id: str
     const usuario = await prisma.usuario.findUnique({
         where: { id: parseInt(id) },
         include: {
-            prestador: true,
+            portfolio: { orderBy: { created_at: 'desc' } },
             servicos: { include: { categoria: true }, orderBy: { created_at: 'desc' } },
             avaliacoesRecebidas: {
                 include: {

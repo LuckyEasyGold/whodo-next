@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import BuscarContent from './BuscarContent'
@@ -10,17 +11,26 @@ export const metadata = {
 
 export default async function BuscarPage({ searchParams }: { searchParams: Promise<{ q?: string; categoria?: string; loc?: string; dist?: string; rating?: string; preco?: string; verificado?: string }> }) {
     const params = await searchParams
+    const session = await getSession()
     const categorias = await prisma.categoria.findMany({ orderBy: { nome: 'asc' } })
 
+    // Smart map centering: logged in user's city, or last searched city from params
+    let defaultCity = params.loc || ''
+    if (!defaultCity && session) {
+        const me = await prisma.usuario.findUnique({ where: { id: session.id }, select: { cidade: true } })
+        if (me?.cidade) defaultCity = me.cidade
+    }
+
     const where: any = {
-        tipo: 'prestador',
+        // In the unified model, anyone with at least one service is a "provider"
+        servicos: { some: {} },
         status: 'ativo',
     }
 
     if (params.q) {
         where.OR = [
             { nome: { contains: params.q } },
-            { prestador: { especialidade: { contains: params.q } } },
+            { especialidade: { contains: params.q } },
             { servicos: { some: { titulo: { contains: params.q } } } },
         ]
     }
@@ -39,13 +49,11 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
     }
 
     if (params.verificado === 'true') {
-        if (!where.prestador) where.prestador = {}
-        where.prestador.verificado = true
+        where.verificado = true
     }
 
     if (params.rating) {
-        if (!where.prestador) where.prestador = {}
-        where.prestador.avaliacao_media = { gte: parseFloat(params.rating) }
+        where.avaliacao_media = { gte: parseFloat(params.rating) }
     }
 
     if (params.preco) {
@@ -57,7 +65,6 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
     const profissionais = await prisma.usuario.findMany({
         where,
         include: {
-            prestador: true,
             servicos: { include: { categoria: true }, take: 3 },
             avaliacoesRecebidas: { select: { nota: true } },
         },
@@ -73,6 +80,7 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
                     categorias={JSON.parse(JSON.stringify(categorias))}
                     queryInicial={params.q || ''}
                     categoriaInicial={params.categoria || ''}
+                    defaultCity={defaultCity}
                 />
             </main>
             <Footer />

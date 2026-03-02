@@ -6,7 +6,7 @@ import { Eye, EyeOff, UserPlus, Loader2, Wrench, User } from 'lucide-react'
 
 export default function CadastroForm() {
     const router = useRouter()
-    const [tipo, setTipo] = useState<'cliente' | 'prestador'>('cliente')
+    // 'tipo' was removed
     const [nome, setNome] = useState('')
     const [email, setEmail] = useState('')
     const [telefone, setTelefone] = useState('')
@@ -24,7 +24,7 @@ export default function CadastroForm() {
             const res = await fetch('/api/auth/cadastro', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, email, senha, telefone, tipo }),
+                body: JSON.stringify({ nome, email, senha, telefone }),
             })
 
             const data = await res.json()
@@ -51,34 +51,7 @@ export default function CadastroForm() {
                 </div>
             )}
 
-            {/* Tipo selector */}
-            <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Eu sou:</label>
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        type="button"
-                        onClick={() => setTipo('cliente')}
-                        className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${tipo === 'cliente'
-                                ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                            }`}
-                    >
-                        <User size={18} />
-                        Cliente
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setTipo('prestador')}
-                        className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${tipo === 'prestador'
-                                ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                            }`}
-                    >
-                        <Wrench size={18} />
-                        Profissional
-                    </button>
-                </div>
-            </div>
+            {/* Form Fields */}
 
             <div>
                 <label htmlFor="nome" className="block text-sm font-medium text-slate-700 mb-1.5">

@@ -23,7 +23,6 @@ export default async function Home() {
     topPrestadores = await prisma.usuario.findMany({
       where: { tipo: 'prestador', status: 'ativo' },
       include: {
-        prestador: true,
         servicos: { include: { categoria: true }, take: 2 },
         avaliacoesRecebidas: true,
       },

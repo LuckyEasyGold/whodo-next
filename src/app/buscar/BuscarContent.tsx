@@ -16,7 +16,9 @@ type Profissional = {
     estado: string | null
     latitude: any
     longitude: any
-    prestador: { especialidade: string | null; avaliacao_media: any; verificado: boolean } | null
+    especialidade: string | null
+    avaliacao_media: any
+    verificado: boolean
     servicos: { titulo: string; preco_base: any; categoria: { nome: string } }[]
     avaliacoesRecebidas: { nota: any }[]
 }
@@ -28,9 +30,10 @@ type Props = {
     categorias: Categoria[]
     queryInicial: string
     categoriaInicial: string
+    defaultCity: string
 }
 
-export default function BuscarContent({ profissionais, categorias, queryInicial, categoriaInicial }: Props) {
+export default function BuscarContent({ profissionais, categorias, queryInicial, categoriaInicial, defaultCity }: Props) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -43,10 +46,10 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
 
     const aplicarFiltros = () => {
         const params = new URLSearchParams(searchParams.toString())
-        
+
         if (location) params.set('loc', location)
         else params.delete('loc')
-        
+
         if (distance !== 10) params.set('dist', distance.toString())
         else params.delete('dist')
 
@@ -115,7 +118,7 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sticky top-20">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-lg font-bold text-slate-900">Filtrar Resultados</h2>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setLocation(''); setDistance(10); setMinRating(0); setPriceRange(1000); setOnlyVerified(false);
                                         router.push('/buscar')
@@ -197,18 +200,18 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                     </h3>
                                     <div className="space-y-3">
                                         <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={onlyVerified} 
+                                            <input
+                                                type="checkbox"
+                                                checked={onlyVerified}
                                                 onChange={(e) => setOnlyVerified(e.target.checked)}
-                                                className="rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 w-4 h-4" 
+                                                className="rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 w-4 h-4"
                                             />
                                             Apenas verificados
                                         </label>
                                     </div>
                                 </div>
-                                
-                                <button 
+
+                                <button
                                     onClick={aplicarFiltros}
                                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-md shadow-indigo-200 mt-4"
                                 >
@@ -259,7 +262,7 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
                                     {profissionais.map((p, i) => {
-                                        const rating = Number(p.prestador?.avaliacao_media || 0)
+                                        const rating = Number(p.avaliacao_media || 0)
                                         const numAval = p.avaliacoesRecebidas.length
                                         const minPrice = p.servicos.length > 0
                                             ? Math.min(...p.servicos.map((s) => Number(s.preco_base)))
@@ -276,7 +279,7 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                                     href={`/perfil/${p.id}`}
                                                     className="group block rounded-2xl overflow-hidden bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 hover:-translate-y-1 relative"
                                                 >
-                                                    {p.prestador?.verificado ? (
+                                                    {p.verificado ? (
                                                         <span className="absolute top-3 right-3 z-10 bg-emerald-100/90 backdrop-blur-sm text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
                                                             <CheckCircle size={12} /> Verificado
                                                         </span>
@@ -298,7 +301,7 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                                                     {p.nome}
                                                                 </h3>
                                                                 <p className="text-sm text-slate-500 truncate">
-                                                                    {p.prestador?.especialidade || 'Prestador de Serviço'}
+                                                                    {p.especialidade || 'Prestador de Serviço'}
                                                                 </p>
                                                                 <div className="flex items-center gap-2 mt-2">
                                                                     <div className="flex items-center gap-0.5">
@@ -349,7 +352,7 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-xl font-extrabold text-slate-900">Profissionais próximos no mapa</h2>
                                 </div>
-                                <MapWrapper profissionais={profissionais} centerCity={searchParams.get('loc') || location} />
+                                <MapWrapper profissionais={profissionais} centerCity={searchParams.get('loc') || location || defaultCity} />
                             </div>
                         </div>
                     </div>

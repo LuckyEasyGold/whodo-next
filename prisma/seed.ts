@@ -14,8 +14,7 @@ async function main() {
     await prisma.solicitacao.deleteMany()
     await prisma.avaliacao.deleteMany()
     await prisma.servico.deleteMany()
-    await prisma.prestador.deleteMany()
-    await prisma.cliente.deleteMany()
+    await prisma.portfolioMedia.deleteMany()
     await prisma.categoria.deleteMany()
     await prisma.usuario.deleteMany()
     await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1')
@@ -41,49 +40,55 @@ async function main() {
         prisma.usuario.create({
             data: {
                 nome: 'Carlos Oliveira', email: 'carlos@whodo.com', senha: senhaHash, telefone: '(43) 99999-1001',
-                tipo: 'prestador', cidade: 'Palmas', estado: 'PR', latitude: -26.484, longitude: -51.990,
+                tipo: 'usuario', cidade: 'Palmas', estado: 'PR', latitude: -26.484, longitude: -51.990,
                 foto_perfil: 'https://randomuser.me/api/portraits/men/32.jpg', status: 'ativo', email_verificado: true,
-                prestador: { create: { especialidade: 'Encanador Residencial', sobre: 'Mais de 10 anos de experiência em encanamento residencial e industrial. Trabalho com instalação e manutenção.', avaliacao_media: 4.8, verificado: true, disponibilidade: 'Seg-Sex 8h-18h' } }
+                especialidade: 'Encanador Residencial', sobre: 'Mais de 10 anos de experiência em encanamento residencial e industrial. Trabalho com instalação e manutenção.',
+                avaliacao_media: 4.8, verificado: true, disponibilidade: 'Seg-Sex 8h-18h'
             }
         }),
         prisma.usuario.create({
             data: {
                 nome: 'Ana Santos', email: 'ana@whodo.com', senha: senhaHash, telefone: '(43) 99999-1002',
-                tipo: 'prestador', cidade: 'Palmas', estado: 'PR', latitude: -26.486, longitude: -51.988,
+                tipo: 'usuario', cidade: 'Palmas', estado: 'PR', latitude: -26.486, longitude: -51.988,
                 foto_perfil: 'https://randomuser.me/api/portraits/women/44.jpg', status: 'ativo', email_verificado: true,
-                prestador: { create: { especialidade: 'Eletricista Industrial', sobre: 'Técnica em eletrotécnica com certificação NR10. Atendo residências e empresas.', avaliacao_media: 4.9, verificado: true, disponibilidade: 'Seg-Sáb 7h-17h' } }
+                especialidade: 'Eletricista Industrial', sobre: 'Técnica em eletrotécnica com certificação NR10. Atendo residências e empresas.',
+                avaliacao_media: 4.9, verificado: true, disponibilidade: 'Seg-Sáb 7h-17h'
             }
         }),
         prisma.usuario.create({
             data: {
                 nome: 'Roberto Lima', email: 'roberto@whodo.com', senha: senhaHash, telefone: '(43) 99999-1003',
-                tipo: 'prestador', cidade: 'Guarapuava', estado: 'PR', latitude: -25.39, longitude: -51.456,
+                tipo: 'usuario', cidade: 'Guarapuava', estado: 'PR', latitude: -25.39, longitude: -51.456,
                 foto_perfil: 'https://randomuser.me/api/portraits/men/55.jpg', status: 'ativo', email_verificado: true,
-                prestador: { create: { especialidade: 'Pintor de Interiores', sobre: 'Especialista em pintura decorativa, textura e efeitos especiais. Trabalho limpo e pontual.', avaliacao_media: 4.6, verificado: true, disponibilidade: 'Seg-Sex 8h-17h' } }
+                especialidade: 'Pintor de Interiores', sobre: 'Especialista em pintura decorativa, textura e efeitos especiais. Trabalho limpo e pontual.',
+                avaliacao_media: 4.6, verificado: true, disponibilidade: 'Seg-Sex 8h-17h'
             }
         }),
         prisma.usuario.create({
             data: {
                 nome: 'Juliana Ferreira', email: 'juliana@whodo.com', senha: senhaHash, telefone: '(43) 99999-1004',
-                tipo: 'prestador', cidade: 'Palmas', estado: 'PR', latitude: -26.482, longitude: -51.992,
+                tipo: 'usuario', cidade: 'Palmas', estado: 'PR', latitude: -26.482, longitude: -51.992,
                 foto_perfil: 'https://randomuser.me/api/portraits/women/65.jpg', status: 'ativo', email_verificado: true,
-                prestador: { create: { especialidade: 'Diarista Profissional', sobre: 'Serviço de limpeza completo com produtos de qualidade. Pontual e organizada.', avaliacao_media: 4.7, verificado: false, disponibilidade: 'Seg-Sex 8h-16h' } }
+                especialidade: 'Diarista Profissional', sobre: 'Serviço de limpeza completo com produtos de qualidade. Pontual e organizada.',
+                avaliacao_media: 4.7, verificado: false, disponibilidade: 'Seg-Sex 8h-16h'
             }
         }),
         prisma.usuario.create({
             data: {
                 nome: 'Marcos Silva', email: 'marcos@whodo.com', senha: senhaHash, telefone: '(43) 99999-1005',
-                tipo: 'prestador', cidade: 'Guarapuava', estado: 'PR', latitude: -25.388, longitude: -51.458,
+                tipo: 'usuario', cidade: 'Guarapuava', estado: 'PR', latitude: -25.388, longitude: -51.458,
                 foto_perfil: 'https://randomuser.me/api/portraits/men/75.jpg', status: 'ativo', email_verificado: true,
-                prestador: { create: { especialidade: 'Marceneiro e Carpinteiro', sobre: 'Fabricação de móveis sob medida, restauração e reparos. Madeira de qualidade garantida.', avaliacao_media: 4.5, verificado: true, disponibilidade: 'Seg-Sex 8h-18h, Sáb 8h-12h' } }
+                especialidade: 'Marceneiro e Carpinteiro', sobre: 'Fabricação de móveis sob medida, restauração e reparos. Madeira de qualidade garantida.',
+                avaliacao_media: 4.5, verificado: true, disponibilidade: 'Seg-Sex 8h-18h, Sáb 8h-12h'
             }
         }),
         prisma.usuario.create({
             data: {
                 nome: 'Fernanda Costa', email: 'fernanda@whodo.com', senha: senhaHash, telefone: '(43) 99999-1006',
-                tipo: 'prestador', cidade: 'Palmas', estado: 'PR', latitude: -26.488, longitude: -51.985,
+                tipo: 'usuario', cidade: 'Palmas', estado: 'PR', latitude: -26.488, longitude: -51.985,
                 foto_perfil: 'https://randomuser.me/api/portraits/women/33.jpg', status: 'ativo', email_verificado: true,
-                prestador: { create: { especialidade: 'Fotógrafa de Eventos', sobre: 'Casamentos, aniversários e ensaios fotográficos. Equipamento profissional Canon.', avaliacao_media: 4.9, verificado: true, disponibilidade: 'Todos os dias sob agendamento' } }
+                especialidade: 'Fotógrafa de Eventos', sobre: 'Casamentos, aniversários e ensaios fotográficos. Equipamento profissional Canon.',
+                avaliacao_media: 4.9, verificado: true, disponibilidade: 'Todos os dias sob agendamento'
             }
         }),
     ])
@@ -92,9 +97,8 @@ async function main() {
     const cliente = await prisma.usuario.create({
         data: {
             nome: 'Vinicius Ramos', email: 'vinicius@whodo.com', senha: senhaHash, telefone: '(43) 99999-2001',
-            tipo: 'cliente', cidade: 'Palmas', estado: 'PR', latitude: -26.485, longitude: -51.991,
-            foto_perfil: 'https://randomuser.me/api/portraits/men/22.jpg', status: 'ativo', email_verificado: true,
-            cliente: { create: {} }
+            tipo: 'usuario', cidade: 'Palmas', estado: 'PR', latitude: -26.485, longitude: -51.991,
+            foto_perfil: 'https://randomuser.me/api/portraits/men/22.jpg', status: 'ativo', email_verificado: true
         }
     })
 

@@ -25,15 +25,11 @@ export async function POST(request: NextRequest) {
                 email,
                 senha: senhaHash,
                 telefone: telefone || null,
-                tipo: tipo || 'cliente',
+                tipo: 'usuario',
                 cidade: cidade || null,
                 estado: estado || null,
                 status: 'ativo',
                 email_verificado: false,
-                ...(tipo === 'prestador'
-                    ? { prestador: { create: { especialidade: '', sobre: '', avaliacao_media: 0, verificado: false } } }
-                    : { cliente: { create: {} } }
-                ),
             },
         })
 

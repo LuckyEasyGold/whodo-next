@@ -54,7 +54,9 @@ type Profissional = {
     estado: string | null
     latitude: any // from Prisma Decimal
     longitude: any
-    prestador: { especialidade: string | null; avaliacao_media: any; verificado: boolean } | null
+    especialidade: string | null
+    avaliacao_media: any
+    verificado: boolean
 }
 
 type Props = {
@@ -131,8 +133,8 @@ export default function MapComponent({ profissionais, centerCity }: Props) {
 
                 <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>
                     {validMarkers.map((p) => {
-                        const rating = Number(p.prestador?.avaliacao_media || 0)
-                        const iconColor = p.prestador?.verificado ? '#10b981' : '#4f46e5' // Emerald if verified, Indigo otherwise
+                        const rating = Number(p.avaliacao_media || 0)
+                        const iconColor = p.verificado ? '#10b981' : '#4f46e5' // Emerald if verified, Indigo otherwise
 
                         return (
                             <Marker
@@ -150,15 +152,13 @@ export default function MapComponent({ profissionais, centerCity }: Props) {
                                             />
                                             <div>
                                                 <h4 className="font-bold text-slate-900 text-sm leading-tight">{p.nome}</h4>
-                                                <div className="flex items-center gap-1 mt-0.5">
-                                                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                                                    <span className="text-xs font-bold text-slate-700">{rating.toFixed(1)}</span>
+                                                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>{p.especialidade || 'Profissional'}</p>
+                                                <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#4f46e5' }}>★ {Number(p.avaliacao_media || 0).toFixed(1)}</span>
+                                                    {p.verificado ? <span style={{ fontSize: '10px', color: '#059669', fontWeight: 700, background: '#d1fae5', padding: '2px 6px', borderRadius: '12px' }}>Verificado</span> : ''}
                                                 </div>
                                             </div>
                                         </div>
-                                        {p.prestador?.especialidade && (
-                                            <p className="text-xs text-slate-600 font-medium mb-1">{p.prestador.especialidade}</p>
-                                        )}
                                         <p className="text-xs text-slate-500 mb-3 flex items-center gap-1">
                                             <MapPin size={12} /> {p.cidade}, {p.estado}
                                         </p>

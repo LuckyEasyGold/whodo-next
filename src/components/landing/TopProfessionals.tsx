@@ -11,7 +11,9 @@ type PrestadorProps = {
         foto_perfil: string | null
         cidade: string | null
         estado: string | null
-        prestador: { especialidade: string | null; avaliacao_media: any; verificado: boolean } | null
+        especialidade: string | null
+        avaliacao_media: any
+        verificado: boolean
         servicos: { titulo: string; preco_base: any; categoria: { nome: string } }[]
         avaliacoesRecebidas: { nota: any }[]
     }[]
@@ -54,7 +56,7 @@ export default function TopProfessionals({ prestadores }: PrestadorProps) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {prestadores.map((p, i) => {
-                        const rating = Number(p.prestador?.avaliacao_media || 0)
+                        const rating = Number(p.avaliacao_media || 0)
                         const numAval = p.avaliacoesRecebidas.length
 
                         return (
@@ -77,7 +79,7 @@ export default function TopProfessionals({ prestadores }: PrestadorProps) {
                                                 alt={p.nome}
                                                 className="w-14 h-14 rounded-xl object-cover ring-2 ring-slate-100 group-hover:ring-indigo-200 transition-all"
                                             />
-                                            {p.prestador?.verificado && (
+                                            {p.verificado && (
                                                 <CheckCircle size={18} className="absolute -bottom-1 -right-1 text-emerald-500 fill-white" />
                                             )}
                                         </div>
@@ -86,7 +88,7 @@ export default function TopProfessionals({ prestadores }: PrestadorProps) {
                                                 {p.nome}
                                             </h3>
                                             <p className="text-sm text-slate-500 truncate">
-                                                {p.prestador?.especialidade || 'Prestador'}
+                                                {p.especialidade || 'Prestador'}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <StarRating rating={rating} />

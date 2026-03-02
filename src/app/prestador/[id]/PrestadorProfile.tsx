@@ -14,13 +14,11 @@ type Props = {
         cidade: string | null
         estado: string | null
         created_at: string
-        prestador: {
-            especialidade: string | null
-            sobre: string | null
-            avaliacao_media: any
-            verificado: boolean
-            disponibilidade: string | null
-        } | null
+        especialidade: string | null
+        sobre: string | null
+        avaliacao_media: any
+        verificado: boolean
+        disponibilidade: string | null
         servicos: {
             id: number
             titulo: string
@@ -43,7 +41,7 @@ type Props = {
 
 export default function PrestadorProfile({ prestador, stats }: Props) {
     const p = prestador
-    const rating = Number(p.prestador?.avaliacao_media || 0)
+    const rating = Number(p.avaliacao_media || 0)
 
     return (
         <div>
@@ -73,7 +71,7 @@ export default function PrestadorProfile({ prestador, stats }: Props) {
                                 alt={p.nome}
                                 className="w-28 h-28 rounded-2xl object-cover ring-4 ring-white shadow-xl"
                             />
-                            {p.prestador?.verificado && (
+                            {p.verificado && (
                                 <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
                                     <CheckCircle size={18} className="text-white" />
                                 </div>
@@ -83,14 +81,14 @@ export default function PrestadorProfile({ prestador, stats }: Props) {
                         <div className="flex-1 text-center sm:text-left">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                                 <h1 className="text-2xl font-extrabold text-slate-900">{p.nome}</h1>
-                                {p.prestador?.verificado && (
+                                {p.verificado && (
                                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
                                         <CheckCircle size={12} />
                                         Verificado
                                     </span>
                                 )}
                             </div>
-                            <p className="text-slate-500 font-medium mb-3">{p.prestador?.especialidade}</p>
+                            <p className="text-slate-500 font-medium mb-3">{p.especialidade}</p>
 
                             {/* Rating */}
                             <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
@@ -115,10 +113,10 @@ export default function PrestadorProfile({ prestador, stats }: Props) {
                                         {p.cidade}, {p.estado}
                                     </span>
                                 )}
-                                {p.prestador?.disponibilidade && (
+                                {p.disponibilidade && (
                                     <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-sm">
                                         <Clock size={14} />
-                                        {p.prestador.disponibilidade}
+                                        {p.disponibilidade}
                                     </span>
                                 )}
                             </div>
@@ -138,10 +136,10 @@ export default function PrestadorProfile({ prestador, stats }: Props) {
                     </div>
 
                     {/* About */}
-                    {p.prestador?.sobre && (
+                    {p.sobre && (
                         <div className="mt-6 pt-6 border-t border-slate-100">
                             <h3 className="font-bold text-slate-900 mb-2">Sobre</h3>
-                            <p className="text-slate-600 leading-relaxed">{p.prestador.sobre}</p>
+                            <p className="text-slate-600 leading-relaxed">{p.sobre}</p>
                         </div>
                     )}
                 </motion.div>
