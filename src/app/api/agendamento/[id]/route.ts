@@ -7,15 +7,16 @@ interface Params {
 }
 
 // GET: Obter agendamento específico
-export async function GET(req: NextRequest, { params }: { params: Params }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const session = await getSession();
-    
+    const resolvedParams = await params;
+
     if (!session) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const agendamentoId = parseInt(params.id);
+    const agendamentoId = parseInt(resolvedParams.id);
     const userId = session.id;
 
     const agendamento = await prisma.agendamento.findUnique({
@@ -57,15 +58,16 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
 }
 
 // PUT: Atualizar agendamento
-export async function PUT(req: NextRequest, { params }: { params: Params }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const session = await getSession();
-    
+    const resolvedParams = await params;
+
     if (!session) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const agendamentoId = parseInt(params.id);
+    const agendamentoId = parseInt(resolvedParams.id);
     const userId = session.id;
     const body = await req.json();
 
@@ -132,15 +134,16 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
 }
 
 // DELETE: Cancelar agendamento
-export async function DELETE(req: NextRequest, { params }: { params: Params }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const session = await getSession();
-    
+    const resolvedParams = await params;
+
     if (!session) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const agendamentoId = parseInt(params.id);
+    const agendamentoId = parseInt(resolvedParams.id);
     const userId = session.id;
 
     const agendamento = await prisma.agendamento.findUnique({

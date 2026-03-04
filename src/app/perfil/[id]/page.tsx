@@ -45,7 +45,7 @@ export default async function PerfilPage({ params }: { params: Promise<{ id: str
     const totalServicos = usuario.servicos.length
     const totalAvaliacoes = usuario.avaliacoesRecebidas.length
     const mediaAvaliacao = totalAvaliacoes > 0
-        ? usuario.avaliacoesRecebidas.reduce((acc: number, a: { nota: number | string }) => acc + Number(a.nota), 0) / totalAvaliacoes
+        ? usuario.avaliacoesRecebidas.reduce((acc: number, a: { nota: any }) => acc + Number(a.nota), 0) / totalAvaliacoes
         : 0
 
     return (

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
             },
         })
 
-        if (!usuario) {
+        if (!usuario || !usuario.senha) {
             return NextResponse.json({ error: 'Usuário ou senha inválidos' }, { status: 401 })
         }
 

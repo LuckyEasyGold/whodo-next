@@ -7,7 +7,7 @@ async function addPortfolioItem() {
     if (user && user.tipo === 'prestador') {
         await prisma.portfolioMedia.create({
             data: {
-                prestador_id: user.id,
+                usuario_id: user.id,
                 url: 'https://images.unsplash.com/photo-1621544402532-22c6b1d667c5?w=400',
                 tipo: 'imagem',
                 descricao: 'Trabalho elétrico - Demonstração'

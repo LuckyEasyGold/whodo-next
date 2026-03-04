@@ -7,10 +7,11 @@ interface Params {
 }
 
 // PUT: Atualizar transação (confirmar, falhar, etc)
-export async function PUT(req: NextRequest, { params }: { params: Params }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const session = await getSession();
-    
+    const resolvedParams = await params;
+
     if (!session) {
       return NextResponse.json(
         { error: "Não autenticado" },
@@ -19,7 +20,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
     }
 
     const userId = session.id;
-    const transacaoId = parseInt(params.id);
+    const transacaoId = parseInt(resolvedParams.id);
     const body = await req.json();
 
     const transacao = await prisma.transacao.findUnique({

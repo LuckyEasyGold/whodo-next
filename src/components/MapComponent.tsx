@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { useEffect, useState, useRef } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -33,9 +33,11 @@ const renderCustomIcon = (color: string) => {
     })
 }
 
-// Map Controller for dynamic center updates
+// Map Controller for dynamic center updates and storing location
 function MapController({ center, zoom, bounds }: { center: [number, number], zoom: number, bounds?: L.LatLngBounds }) {
     const map = useMap()
+
+    // Set initial view or bounds when props change
     useEffect(() => {
         if (bounds) {
             map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 })
@@ -43,6 +45,20 @@ function MapController({ center, zoom, bounds }: { center: [number, number], zoo
             map.setView(center, zoom)
         }
     }, [center, zoom, bounds, map])
+
+    // Save location to localStorage on move/zoom
+    useMapEvents({
+        moveend: () => {
+            const currentCenter = map.getCenter()
+            const currentZoom = map.getZoom()
+            localStorage.setItem('whodo_map_location', JSON.stringify({
+                lat: currentCenter.lat,
+                lng: currentCenter.lng,
+                zoom: currentZoom
+            }))
+        }
+    })
+
     return null
 }
 
@@ -105,10 +121,24 @@ export default function MapComponent({ profissionais, centerCity }: Props) {
     let bounds: L.LatLngBounds | undefined = undefined
     let zoom = 4
 
+    // Try to load from localStorage if no city coords and no valid markers (or just to keep last location)
+    const savedLocationStr = mounted ? localStorage.getItem('whodo_map_location') : null
+    let savedLocation = null
+    if (savedLocationStr) {
+        try {
+            savedLocation = JSON.parse(savedLocationStr)
+        } catch (e) {
+            console.error("Failed to parse saved map location")
+        }
+    }
+
     if (cityCoords) {
         // If user searched for a city, center there
         mapCenter = cityCoords
         zoom = 12 // Zoom in on the city
+    } else if (savedLocation && !centerCity) { // Prioritize saved location if no specific city search
+        mapCenter = [savedLocation.lat, savedLocation.lng]
+        zoom = savedLocation.zoom
     } else if (markerPositions.length > 0) {
         // Otherwise fit map to markers
         bounds = L.latLngBounds(markerPositions)

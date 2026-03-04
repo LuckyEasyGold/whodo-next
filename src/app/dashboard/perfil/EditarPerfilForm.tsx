@@ -21,6 +21,8 @@ export default function EditarPerfilForm({ usuario }: Props) {
     const [telefone, setTelefone] = useState(usuario.telefone || '')
     const [cidade, setCidade] = useState(usuario.cidade || '')
     const [estado, setEstado] = useState(usuario.estado || '')
+    const [cep, setCep] = useState(usuario.cep || '')
+    const [endereco, setEndereco] = useState(usuario.endereco || '')
 
     // Profissional
     const [especialidade, setEspecialidade] = useState(usuario.especialidade || '')
@@ -49,6 +51,23 @@ export default function EditarPerfilForm({ usuario }: Props) {
         }
     }
 
+    const handleCepBlur = async () => {
+        const cleanCep = cep.replace(/\D/g, '')
+        if (cleanCep.length === 8) {
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+                const data = await res.json()
+                if (!data.erro) {
+                    setEndereco(data.logradouro + (data.bairro ? ` - ${data.bairro}` : ''))
+                    setCidade(data.localidade)
+                    setEstado(data.uf)
+                }
+            } catch (err) {
+                console.error("Erro ao buscar CEP:", err)
+            }
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
@@ -61,6 +80,8 @@ export default function EditarPerfilForm({ usuario }: Props) {
             formData.append('nome_fantasia', nome_fantasia)
             formData.append('documento', documento)
             formData.append('telefone', telefone)
+            formData.append('cep', cep)
+            formData.append('endereco', endereco)
             formData.append('cidade', cidade)
             formData.append('estado', estado)
             formData.append('especialidade', especialidade)
@@ -164,6 +185,20 @@ export default function EditarPerfilForm({ usuario }: Props) {
                     <label className="block text-sm font-medium text-slate-700 mb-1">WhatsApp / Telefone</label>
                     <input
                         type="text" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">CEP</label>
+                    <input
+                        type="text" value={cep} onChange={(e) => setCep(e.target.value)} onBlur={handleCepBlur} placeholder="00000-000" maxLength={9}
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
+                    />
+                </div>
+                <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Endereço</label>
+                    <input
+                        type="text" value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, Número, Bairro"
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
                     />
                 </div>

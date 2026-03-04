@@ -1,0 +1,53 @@
+
+> whodo-next@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 7.5s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/25) ...
+  Generating static pages using 7 workers (6/25) 
+  Generating static pages using 7 workers (12/25) 
+  Generating static pages using 7 workers (18/25) 
+Ô£ô Generating static pages using 7 workers (25/25) in 1677.6ms
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ ãÆ /api/agendamento
+Ôö£ ãÆ /api/agendamento/[id]
+Ôö£ ãÆ /api/auth/cadastro
+Ôö£ ãÆ /api/auth/login
+Ôö£ ãÆ /api/auth/logout
+Ôö£ ãÆ /api/auth/me
+Ôö£ ãÆ /api/carteira
+Ôö£ ãÆ /api/dados-bancarios
+Ôö£ ãÆ /api/perfil/update
+Ôö£ ãÆ /api/portfolio/[id]
+Ôö£ ãÆ /api/portfolio/albums
+Ôö£ ãÆ /api/portfolio/albums/[id]
+Ôö£ ãÆ /api/portfolio/upload
+Ôö£ ãÆ /api/servicos
+Ôö£ ãÆ /api/transacao
+Ôö£ ãÆ /api/transacao/[id]
+Ôö£ ãÆ /buscar
+Ôö£ Ôùï /cadastro
+Ôö£ ãÆ /dashboard
+Ôö£ ãÆ /dashboard/agendamentos
+Ôö£ ãÆ /dashboard/financeiro
+Ôö£ ãÆ /dashboard/perfil
+Ôö£ ãÆ /dashboard/portfolio
+Ôö£ ãÆ /dashboard/servicos
+Ôö£ Ôùï /login
+Ôö£ ãÆ /perfil/[id]
+Ôöö ãÆ /prestador/[id]
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

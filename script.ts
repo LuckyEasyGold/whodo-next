@@ -9,21 +9,14 @@ async function resetUser() {
         if (user.tipo !== 'prestador') {
             await prisma.usuario.update({
                 where: { id: user.id },
-                data: { tipo: 'prestador' }
+                data: {
+                    tipo: 'prestador',
+                    especialidade: 'Eletricista',
+                    sobre: 'Trabalho na área há 10 anos.',
+                    avaliacao_media: 0,
+                    verificado: false
+                }
             })
-            // Create prestador record if it doesn't exist
-            const p = await prisma.prestador.findUnique({ where: { usuario_id: user.id } })
-            if (!p) {
-                await prisma.prestador.create({
-                    data: {
-                        usuario_id: user.id,
-                        especialidade: 'Eletricista',
-                        sobre: 'Trabalho na área há 10 anos.',
-                        avaliacao_media: 0,
-                        verificado: false
-                    }
-                })
-            }
             console.log('User updated to prestador.')
         }
     } else {
