@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { uploadImageToSupabase } from '@/lib/supabase'
 
 export async function POST(req: Request) {
     try {
@@ -18,15 +17,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 })
         }
 
-        const uploadDir = path.join(process.cwd(), 'public/uploads/portfolio')
-        await mkdir(uploadDir, { recursive: true })
-
         const uploadedItems = []
 
         for (const file of files) {
-            const bytes = await file.arrayBuffer()
-            const buffer = Buffer.from(bytes)
-
             const isVideo = file.type.startsWith('video/')
             const isDocument = file.type === 'application/pdf' || !!file.name.match(/\.(pdf|docx?|xlsx?|pptx?|txt)$/i)
             const tipo = isVideo ? 'video' : isDocument ? 'documento' : 'imagem'
@@ -37,10 +30,14 @@ export async function POST(req: Request) {
                 .replace(/[^\w.\-]/g, '-')          // replace unsafe chars with dash
                 .replace(/-{2,}/g, '-')             // collapse multiple dashes
             const filename = `${session.id}-${Date.now()}-${safeFilename}`
-            const filepath = path.join(uploadDir, filename)
+            const filepath = `portfolio/${filename}`
 
-            await writeFile(filepath, buffer)
-            const url = `/uploads/portfolio/${filename}`
+            const { url, error } = await uploadImageToSupabase(file, 'whodo-images', filepath)
+
+            if (error || !url) {
+                console.error('Supabase upload error for portfolio file:', error)
+                return NextResponse.json({ error: 'Erro ao fazer upload do arquivo' }, { status: 500 })
+            }
 
             const record = await prisma.portfolioMedia.create({
                 data: {

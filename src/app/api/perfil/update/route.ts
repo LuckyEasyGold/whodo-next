@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { uploadImageToSupabase } from '@/lib/supabase'
 
 export async function POST(req: Request) {
     try {
@@ -39,23 +38,20 @@ export async function POST(req: Request) {
         let fotoUrl = undefined
 
         if (foto && foto.size > 0) {
-            const bytes = await foto.arrayBuffer()
-            const buffer = Buffer.from(bytes)
+            const safeFilename = foto.name.replace(/[^a-zA-Z0-9.\-_]/g, '-')
+            const filename = `${session.id}-${Date.now()}-${safeFilename}`
+            const filepath = `profile/${filename}`
 
-            // Make sure the upload directory exists
-            const uploadDir = path.join(process.cwd(), 'public/uploads/profile')
-            try {
-                await mkdir(uploadDir, { recursive: true })
-            } catch (e) {
-                // ignore if already exists
+            const { url, error } = await uploadImageToSupabase(foto, 'whodo-images', filepath)
+
+            if (error) {
+                console.error('Supabase upload error:', error)
+                return NextResponse.json({ error: 'Erro ao fazer upload da imagem.' }, { status: 500 })
             }
 
-            // Create a unique filename
-            const filename = `${session.id}-${Date.now()}-${foto.name.replace(/\s+/g, '-')}`
-            const filepath = path.join(uploadDir, filename)
-
-            await writeFile(filepath, buffer)
-            fotoUrl = `/uploads/profile/${filename}`
+            if (url) {
+                fotoUrl = url
+            }
         }
 
         // Geocode the address if it changed or exists
