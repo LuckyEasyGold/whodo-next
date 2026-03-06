@@ -15,10 +15,13 @@ type Conversa = {
     servico: {
         id: number
         titulo: string
-        cobranca_tipo: string
-        usuario: Participante
+        cobranca_tipo?: string
+        usuario_id?: number
+        usuario?: Participante
     }
     mensagens: UltimaMensagem[]
+    // Campo extra que vem da API /api/mensagens/[id] dentro de `solicitacao`
+    prestador?: Participante
 }
 
 type Mensagem = {
@@ -81,7 +84,17 @@ export default function MensagensPage() {
         const data = await r.json()
         if (data.mensagens) {
             setMensagens(data.mensagens)
-            setSolicitacaoInfo(data.solicitacao)
+            // A API retorna solicitacao + prestador separado; normalizamos para o formato Conversa
+            if (data.solicitacao) {
+                const sol = data.solicitacao
+                // Busca o prestador do servico (usuario_id) nas conversas da lista
+                const conversaExistente = conversas.find(c => c.id === solicitacaoId)
+                setSolicitacaoInfo(conversaExistente || {
+                    ...sol,
+                    mensagens: [],
+                    prestador: sol.prestador || null,
+                })
+            }
         }
     }
 
@@ -115,9 +128,20 @@ export default function MensagensPage() {
         return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
     }
 
-    function getInterlocutor(conversa: Conversa) {
+    // Retorna o outro participante da conversa (não o usuário logado)
+    function getInterlocutor(conversa: Conversa): Participante {
         if (!userId) return conversa.cliente
-        return conversa.cliente.id === userId ? conversa.servico.usuario : conversa.cliente
+        // prestador pode vir direto se vier da API de mensagens
+        if (conversa.prestador) {
+            return conversa.cliente?.id === userId ? conversa.prestador : conversa.cliente
+        }
+        // ou via servico.usuario se vier da listagem de solicitações
+        const prestador = conversa.servico?.usuario
+        if (prestador) {
+            return conversa.cliente?.id === userId ? prestador : conversa.cliente
+        }
+        // fallback seguro
+        return conversa.cliente || { id: 0, nome: 'Usuário', foto_perfil: null }
     }
 
     return (
@@ -209,8 +233,8 @@ export default function MensagensPage() {
                                                 </p>
                                             </div>
                                             <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-medium ${solicitacaoInfo.status === 'pendente' ? 'bg-amber-100 text-amber-700' :
-                                                    solicitacaoInfo.status === 'em_negociacao' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-green-100 text-green-700'
+                                                solicitacaoInfo.status === 'em_negociacao' ? 'bg-blue-100 text-blue-700' :
+                                                    'bg-green-100 text-green-700'
                                                 }`}>
                                                 {solicitacaoInfo.status === 'pendente' ? 'Aguardando' :
                                                     solicitacaoInfo.status === 'em_negociacao' ? 'Em negociação' : 'Concluído'}
@@ -240,8 +264,8 @@ export default function MensagensPage() {
                                                 />
                                             )}
                                             <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm shadow-sm ${minha
-                                                    ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-br-sm'
-                                                    : 'bg-white text-slate-800 rounded-bl-sm border border-slate-100'
+                                                ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-br-sm'
+                                                : 'bg-white text-slate-800 rounded-bl-sm border border-slate-100'
                                                 }`}>
                                                 <p className="leading-relaxed">{msg.conteudo}</p>
                                                 <p className={`text-[10px] mt-1 ${minha ? 'text-indigo-200 text-right' : 'text-slate-400'}`}>
