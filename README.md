@@ -1,164 +1,149 @@
-<div align="center">
-  <h1>⚡ WhoDo!</h1>
-  <p><strong>A plataforma que conecta quem precisa com quem sabe fazer.</strong></p>
+# 🔧 WhoDo — Plataforma de Serviços e Profissionais
 
-  <p>
-    <a href="https://nextjs.org"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js"></a>
-    <a href="https://www.typescriptlang.org"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript"></a>
-    <a href="https://www.prisma.io"><img alt="Prisma" src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma"></a>
-    <a href="https://tailwindcss.com"><img alt="Tailwind CSS" src="https://img.shields.io/badge/TailwindCSS-3-38B2AC?style=for-the-badge&logo=tailwind-css"></a>
-    <img alt="License" src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge">
-  </p>
+WhoDo é uma plataforma moderna para conectar prestadores de serviços a clientes. Profissionais criam perfis, cadastram seus serviços e recebem agendamentos e solicitações de orçamento. Clientes encontram profissionais próximos a si, visualizam portfólios e fazem contato diretamente pelo sistema.
 
-  <br/>
-  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/master/public/og-image.png" alt="WhoDo! Preview" width="780" />
-</div>
+> **Acesse o site em produção:** [whodo.newsdrop.net.br](https://whodo.newsdrop.net.br)
 
 ---
 
-## 📖 Sobre o Projeto
+## 🚀 Infraestrutura e Tecnologias
 
-**WhoDo!** é uma plataforma de marketplace de serviços freelance e profissionais liberais que conecta prestadores de serviços com clientes de forma simples, moderna e eficiente.
-
-> **Modelo Unificado de Usuário:** qualquer pessoa cadastrada pode tanto contratar serviços quanto oferecer os seus — seja como diarista, professor particular, músico, contador, advogado ou médico.
-
----
-
-## ✨ Funcionalidades
-
-| Funcionalidade | Status |
-|---|---|
-| 🔐 Autenticação (e-mail + senha) | ✅ Completo |
-| 👤 Perfil Público estilo Instagram | ✅ Completo |
-| 🗂️ Portfólio com Lightbox (fotos e vídeos) | ✅ Completo |
-| 🗺️ Busca com Mapa Interativo (Leaflet) | ✅ Completo |
-| 🔍 Filtros dinâmicos (preço, nota, localização) | ✅ Completo |
-| 📊 Dashboard do Usuário | ✅ Completo |
-| ✏️ Edição de Perfil + Redes Sociais | ✅ Completo |
-| 🖼️ Upload de Portfólio com título e citação do cliente | ✅ Completo |
-| 📅 Agendamentos | 🚧 Em desenvolvimento |
-| 💬 Mensageria em tempo real | 🚧 Em desenvolvimento |
-| 💰 Dashboard Financeiro | 🚧 Em desenvolvimento |
-| 🔗 Login Social (Google, Facebook) | 🔜 Planejado |
+| Camada | Tecnologia |
+|--------|-----------|
+| **Framework** | [Next.js 16](https://nextjs.org/) com App Router e TypeScript |
+| **Banco de Dados** | [Neon](https://neon.tech/) — PostgreSQL serverless |
+| **Armazenamento de Arquivos** | [Supabase Storage](https://supabase.com/storage) — imagens de perfil e portfólio |
+| **ORM** | [Prisma](https://www.prisma.io/) |
+| **Autenticação** | Sistema próprio com cookies `httpOnly` + **JWT assinado via `jose`** |
+| **Hospedagem** | [Vercel](https://vercel.com/) |
+| **Domínio Customizado** | `whodo.newsdrop.net.br` (CNAME apontado via HostGator) |
+| **Mapa** | [Leaflet](https://leafletjs.com/) + [React-Leaflet](https://react-leaflet.js.org/) |
+| **Animações de UI** | [Framer Motion](https://www.framer.com/motion/) |
+| **Ícones** | [Lucide React](https://lucide.dev/) |
 
 ---
 
-## 🛠️ Stack Tecnológica
+## 📦 Módulos Implementados
 
-- **Framework:** [Next.js 16](https://nextjs.org) com App Router e Turbopack
-- **Linguagem:** [TypeScript](https://www.typescriptlang.org)
-- **ORM:** [Prisma](https://www.prisma.io) com MySQL (XAMPP em dev)
-- **Estilo:** [Tailwind CSS](https://tailwindcss.com)
-- **Animações:** [Framer Motion](https://www.framer.com/motion)
-- **Mapas:** [Leaflet](https://leafletjs.com) + [React-Leaflet](https://react-leaflet.js.org)
-- **Ícones:** [Lucide React](https://lucide.dev)
-- **Autenticação:** JWT em HTTP-only Cookies + [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+### ✅ Autenticação (100%)
+- Cadastro e login com e-mail e senha (bcrypt)
+- Sessão segura via cookie `httpOnly` + **JWT criptografado** (biblioteca `jose`)
+- Impossível adulteração de ID de sessão (vulnerabilidade IDOR corrigida)
+- Logout que apaga o token de forma segura
+
+### ✅ Perfil do Profissional (100%)
+- Edição de dados básicos: nome, telefone, CEP, endereço, especialidade
+- Preenchimento automático de endereço via CEP (ViaCEP)
+- Geocodificação automática do endereço para posicionamento no mapa (Nominatim)
+- Upload de foto de perfil com armazenamento no Supabase Storage
+- Redes sociais: website, LinkedIn, Facebook, Instagram, YouTube, TikTok, Kwai
+
+### ✅ Portfólio (100%)
+- Criação de álbuns com nome e descrição
+- Upload de múltiplas mídias (imagens e vídeos) armazenadas no Supabase
+- Visualização em lightbox com navegação entre fotos
+
+### ✅ Mapa de Profissionais (100%)
+- Exibe prestadores clusterizados por proximidade em mapa interativo
+- Ao abrir o site, o mapa lembra da última posição visualizada (localStorage)
+- Filtro por categoria de serviço
+
+### ✅ Módulo de Serviços (100%)
+- Profissional pode criar, editar e excluir seus serviços
+- Campos: Título, Categoria, Descrição, Preço Base e Tempo Estimado
+- **Tipo de Cobrança:** `FIXO` (preço definido) ou `ORCAMENTO` (valor variável, o cliente solicita orçamento)
+- Painel com listagem dos serviços, avaliações e agendamentos vinculados
+
+### ✅ Dashboard Financeiro (~90%)
+- Visualização de saldo da carteira
+- Listagem de transações (entradas e saídas)
+- Formulário para adicionar transações manuais
+
+### 🔧 Agendamentos (Em desenvolvimento)
+- Estrutura do banco de dados já existente (`Agendamento`, `Solicitacao`)
+- Interface do dashboard parcialmente implementada
+
+### 🔧 Mensagens (Em desenvolvimento)
+- Estrutura do banco de dados já existente (`Mensagem`)
+- Interface do dashboard ainda não implementada
 
 ---
 
-## 📦 Pré-requisitos
+## ⚙️ Como Rodar Localmente
 
-- **Node.js** >= 18
-- **XAMPP** (ou qualquer MySQL >= 8)
-- **npm** ou **yarn**
+### Pré-requisitos
+- Node.js 18+
+- Conta no [Neon](https://neon.tech/) (banco de dados)
+- Conta no [Supabase](https://supabase.com/) (armazenamento de imagens)
 
----
-
-## 🚀 Instalação e Execução Local
-
+### 1. Clone o repositório
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/LuckyEasyGold/whodo-next.git
+git clone https://github.com/seu-usuario/whodo-next.git
 cd whodo-next
-
-# 2. Instale as dependências
-npm install
-
-# 3. Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o .env com suas credenciais de banco
 ```
 
-### Configuração do `.env`
-
-```env
-DATABASE_URL="mysql://root:@localhost:3306/whodo"
-JWT_SECRET="sua-chave-secreta-aqui"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-```
-
+### 2. Instale as dependências
 ```bash
-# 4. Aplique o schema no banco de dados
-npx prisma db push
+npm install
+```
 
-# 5. (Opcional) Popule com dados de exemplo
-npx prisma db seed
+### 3. Configure o arquivo `.env`
+Crie um arquivo `.env` na raiz do projeto:
+```env
+# Banco de dados (Neon PostgreSQL)
+DATABASE_URL="postgresql://usuario:senha@host/neondb?sslmode=require"
 
-# 6. Inicie o servidor de desenvolvimento
+# Autenticação (JWT)
+NEXTAUTH_SECRET="sua-chave-secreta-super-longa-aqui"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Supabase (armazenamento de imagens)
+NEXT_PUBLIC_SUPABASE_URL="https://seu-projeto.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="sua-chave-anon-aqui"
+```
+
+### 4. Configure o banco de dados
+```bash
+npx prisma db push      # Cria as tabelas no Neon
+npx prisma generate     # Gera o cliente Prisma
+npx prisma db seed      # (Opcional) Popula com dados de exemplo
+```
+
+### 5. Rode o servidor de desenvolvimento
+```bash
 npm run dev
 ```
 
-Acesse **[http://localhost:3000](http://localhost:3000)** 🚀
+Acesse em [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🗃️ Estrutura do Projeto
+## 🔐 Segurança
+
+- Senhas armazenadas com hash `bcrypt`
+- Sessão em cookie `httpOnly` — não acessível via JavaScript do navegador
+- Cookie assinado com **JWT (JSON Web Token)** usando `HS256` — qualquer adulteração invalida a sessão automaticamente
+- Todas as rotas da API verificam a sessão antes de executar operações
+
+---
+
+## 📁 Estrutura do Projeto
 
 ```
-whodo-next/
-├── prisma/
-│   ├── schema.prisma          # Schema do banco de dados
-│   └── seed.ts               # Dados de exemplo
-├── public/
-│   └── uploads/portfolio/    # Uploads locais (dev)
-└── src/
-    ├── app/
-    │   ├── api/              # API Routes (auth, perfil, portfólio)
-    │   ├── buscar/           # Página de busca com mapa
-    │   ├── cadastro/         # Registro de usuário
-    │   ├── dashboard/        # Área do usuário logado
-    │   │   ├── perfil/       # Edição de perfil
-    │   │   └── portfolio/    # Gerenciamento de portfólio
-    │   ├── login/            # Autenticação
-    │   └── perfil/[id]/      # Perfil público
-    ├── components/
-    │   ├── landing/          # Seções da Landing Page
-    │   ├── MapComponent.tsx  # Mapa interativo com cluster
-    │   └── MapWrapper.tsx    # Wrapper SSR-safe do mapa
-    └── lib/
-        ├── auth.ts           # Lógica de sessão JWT
-        └── prisma.ts         # Cliente Prisma singleton
+src/
+├── app/
+│   ├── api/           # Rotas da API (backend)
+│   │   ├── auth/      # Login, logout, registro, sessão
+│   │   ├── servicos/  # CRUD de serviços
+│   │   ├── perfil/    # Atualização de perfil e foto
+│   │   ├── portfolio/ # Álbuns e upload de mídia
+│   │   └── ...
+│   ├── dashboard/     # Páginas do painel do profissional
+│   ├── buscar/        # Busca de profissionais + mapa
+│   └── ...
+├── components/        # Componentes reutilizáveis (Navbar, etc.)
+└── lib/
+    ├── auth.ts        # JWT: encrypt, decrypt, getSession
+    ├── prisma.ts      # Instância do Prisma Client
+    └── supabase.ts    # Cliente Supabase + função de upload
 ```
-
----
-
-## 🗺️ Modelo de Dados (Resumo)
-
-O núcleo da aplicação é o modelo unificado **`Usuario`**:
-
-- Campos de perfil pessoal (nome, foto, sobre, especialidade)
-- Campos de localização (cidade, estado, lat/lng)
-- Redes sociais (LinkedIn, Instagram, YouTube, TikTok, etc.)
-- Relações com `Servico`, `PortfolioMedia`, `Avaliacao`, etc.
-
----
-
-## 🤝 Contribuindo
-
-1. Faça um _fork_ do projeto
-2. Crie sua branch: `git checkout -b feature/nova-funcionalidade`
-3. Commit suas mudanças: `git commit -m 'feat: adiciona nova funcionalidade'`
-4. Push: `git push origin feature/nova-funcionalidade`
-5. Abra um Pull Request
-
----
-
-## 📄 Licença
-
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
-
----
-
-<div align="center">
-  <p>Feito com ❤️ pela equipe <strong>WhoDo!</strong></p>
-</div>

@@ -7,7 +7,6 @@ async function main() {
     console.log('🌱 Iniciando seed...')
 
     // Limpar dados existentes (ordem importa por FKs)
-    await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0')
     await prisma.notificacao.deleteMany()
     await prisma.transacao.deleteMany()
     await prisma.dadosBancarios.deleteMany()
@@ -21,7 +20,6 @@ async function main() {
     await prisma.portfolioMedia.deleteMany()
     await prisma.categoria.deleteMany()
     await prisma.usuario.deleteMany()
-    await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1')
 
     // Categorias
     const categorias = await Promise.all([
