@@ -170,6 +170,7 @@ model Solicitacao {
   cliente     Usuario   @relation("SolicitacaoCliente", fields: [cliente_id], references: [id])
   servico     Servico   @relation(fields: [servico_id], references: [id])
   orcamentos  Orcamento[]
+  mensagens   Mensagem[]
 
   @@map("solicitacoes")
 }
@@ -194,12 +195,14 @@ model Mensagem {
   id               Int      @id @default(autoincrement())
   remetente_id     Int
   destinatario_id  Int
+  solicitacao_id   Int?
   conteudo         String   @db.Text
   lida             Boolean  @default(false)
   created_at       DateTime @default(now())
 
-  remetente        Usuario  @relation("MensagemRemetente", fields: [remetente_id], references: [id])
-  destinatario     Usuario  @relation("MensagemDestinatario", fields: [destinatario_id], references: [id])
+  remetente        Usuario     @relation("MensagemRemetente", fields: [remetente_id], references: [id])
+  destinatario     Usuario     @relation("MensagemDestinatario", fields: [destinatario_id], references: [id])
+  solicitacao      Solicitacao? @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
 
   @@map("mensagens")
 }

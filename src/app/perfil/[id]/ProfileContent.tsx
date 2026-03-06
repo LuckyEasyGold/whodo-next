@@ -55,7 +55,7 @@ type Props = {
         perfil_academico: string | null
 
         portfolioAlbuns: Album[]
-        servicos: { id: number; titulo: string; descricao: string | null; preco_base: any; unidade_medida: string | null; categoria: { nome: string } }[]
+        servicos: { id: number; titulo: string; descricao: string | null; preco_base: any; unidade_medida: string | null; cobranca_tipo: string; categoria: { nome: string } }[]
         avaliacoesRecebidas: { id: number; nota: any; comentario: string | null; data_avaliacao: string; cliente: { nome: string; foto_perfil: string | null }; servico: { titulo: string } }[]
     }
     isOwner: boolean
