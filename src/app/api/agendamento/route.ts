@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth";
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "Não autenticado" },
@@ -20,22 +20,23 @@ export async function GET(req: NextRequest) {
 
     let agendamentos;
 
+    // Inclui sempre cliente E prestador para evitar undefined no frontend
+    const includeComum = {
+      cliente: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
+      prestador: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
+      servico: { select: { id: true, titulo: true, descricao: true } },
+    }
+
     if (tipo === "prestador") {
       agendamentos = await prisma.agendamento.findMany({
         where: { prestador_id: userId },
-        include: {
-          cliente: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
-          servico: { select: { id: true, titulo: true, descricao: true } },
-        },
+        include: includeComum,
         orderBy: { data_agendamento: "asc" },
       });
     } else {
       agendamentos = await prisma.agendamento.findMany({
         where: { cliente_id: userId },
-        include: {
-          prestador: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
-          servico: { select: { id: true, titulo: true, descricao: true } },
-        },
+        include: includeComum,
         orderBy: { data_agendamento: "asc" },
       });
     }
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "Não autenticado" },

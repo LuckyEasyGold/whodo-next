@@ -270,25 +270,25 @@ export default function AgendamentosContent() {
                       <img
                         src={
                           tipoView === "cliente"
-                            ? agendamento.prestador.foto_perfil ||
-                            "/default-avatar.png"
-                            : agendamento.cliente.foto_perfil ||
-                            "/default-avatar.png"
+                            ? agendamento.prestador?.foto_perfil ||
+                            "https://randomuser.me/api/portraits/lego/1.jpg"
+                            : agendamento.cliente?.foto_perfil ||
+                            "https://randomuser.me/api/portraits/lego/1.jpg"
                         }
                         alt="Avatar"
-                        className="w-10 h-10 rounded-full"
+                        className="w-10 h-10 rounded-full object-cover"
                       />
                       <div>
                         <p className="font-medium">
                           {tipoView === "cliente"
-                            ? agendamento.prestador.nome
-                            : agendamento.cliente.nome}
+                            ? agendamento.prestador?.nome
+                            : agendamento.cliente?.nome}
                         </p>
                         <p className="text-sm text-gray-600">
                           ⭐{" "}
                           {Number(tipoView === "cliente"
-                            ? agendamento.prestador.avaliacao_media
-                            : agendamento.cliente.avaliacao_media
+                            ? agendamento.prestador?.avaliacao_media ?? 0
+                            : agendamento.cliente?.avaliacao_media ?? 0
                           ).toFixed(1)}
                         </p>
                       </div>
