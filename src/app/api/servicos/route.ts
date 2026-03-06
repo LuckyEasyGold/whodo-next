@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth";
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "Não autenticado" },
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
           concluidos: agendamentos.filter((a: any) => a.status === "concluido").length,
           cancelados: agendamentos.filter((a: any) => a.status === "cancelado").length,
           totalAvaliacoes: avaliacoes.length,
-          mediaAvaliacoes: avaliacoes.length > 0 
+          mediaAvaliacoes: avaliacoes.length > 0
             ? (avaliacoes.reduce((sum: number, a: any) => sum + parseFloat(a.nota), 0) / avaliacoes.length).toFixed(1)
             : 0,
         },
@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "Não autenticado" },
@@ -107,6 +107,8 @@ export async function POST(req: NextRequest) {
       descricao,
       preco_base,
       unidade_medida,
+      cobranca_tipo,
+      tempo_estimado,
     } = body;
 
     // Validações
@@ -123,8 +125,10 @@ export async function POST(req: NextRequest) {
         categoria_id: parseInt(categoria_id),
         titulo,
         descricao,
-        preco_base: parseFloat(preco_base),
+        preco_base: preco_base ? parseFloat(preco_base) : 0,
         unidade_medida,
+        cobranca_tipo: cobranca_tipo || "FIXO",
+        tempo_estimado,
         status: "ativo",
       },
       include: {
