@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
+import { encrypt } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
     try {
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Usuário ou senha inválidos' }, { status: 401 })
         }
 
-        // Criar sessão simples via cookie
+        // Criar sessão de segurança usando JWT
         const sessionData = {
             id: usuario.id,
             nome: usuario.nome,
@@ -40,8 +41,10 @@ export async function POST(request: NextRequest) {
             foto: usuario.foto_perfil,
         }
 
+        const sessionToken = await encrypt(sessionData)
+
         const cookieStore = await cookies()
-        cookieStore.set('whodo_session', JSON.stringify(sessionData), {
+        cookieStore.set('whodo_session', sessionToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',

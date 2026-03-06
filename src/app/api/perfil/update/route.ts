@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSession } from '@/lib/auth'
+import { getSession, encrypt } from '@/lib/auth'
 import { uploadImageToSupabase } from '@/lib/supabase'
+import { cookies } from 'next/headers'
 
 export async function POST(req: Request) {
     try {
@@ -119,9 +120,29 @@ export async function POST(req: Request) {
             updateData.foto_perfil = fotoUrl
         }
 
-        await prisma.usuario.update({
+        const usuarioAtualizado = await prisma.usuario.update({
             where: { id: session.id },
             data: updateData
+        })
+
+        // Atualizar o JWT do Cookie com os novos dados de perfil
+        const newSessionData = {
+            id: usuarioAtualizado.id,
+            nome: usuarioAtualizado.nome,
+            email: usuarioAtualizado.email,
+            tipo: usuarioAtualizado.tipo,
+            foto: usuarioAtualizado.foto_perfil,
+        }
+
+        const sessionToken = await encrypt(newSessionData)
+        const cookieStore = await cookies()
+
+        cookieStore.set('whodo_session', sessionToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/',
         })
 
         return NextResponse.json({ success: true, foto_perfil: fotoUrl })
