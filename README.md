@@ -9,7 +9,7 @@
     <a href="https://neon.tech"><img alt="Neon" src="https://img.shields.io/badge/Neon-PostgreSQL-00E699?style=for-the-badge&logo=postgresql"></a>
     <a href="https://supabase.com"><img alt="Supabase" src="https://img.shields.io/badge/Supabase-Storage-3ECF8E?style=for-the-badge&logo=supabase"></a>
     <a href="https://vercel.com"><img alt="Vercel" src="https://img.shields.io/badge/Vercel-Deploy-black?style=for-the-badge&logo=vercel"></a>
-    <img alt="License" src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge">
+    
   </p>
 
   <br/>
