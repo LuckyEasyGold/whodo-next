@@ -212,7 +212,7 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                                         <Calendar size={14} className="inline mr-1.5 -mt-0.5" /> Contratar
                                     </button>
                                     <button
-                                        onClick={() => setShowContratarModal(true)}
+                                        onClick={() => router.push('/dashboard/mensagens')}
                                         className="px-5 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-all"
                                     >
                                         <MessageSquare size={14} className="inline mr-1.5 -mt-0.5" /> Mensagem
