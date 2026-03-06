@@ -210,21 +210,19 @@ export default function AgendamentosContent() {
       <div className="flex gap-4 mb-8 border-b">
         <button
           onClick={() => setTipoView("cliente")}
-          className={`pb-4 px-4 font-medium ${
-            tipoView === "cliente"
-              ? "border-b-2 border-blue-500 text-blue-600"
-              : "text-gray-600"
-          }`}
+          className={`pb-4 px-4 font-medium ${tipoView === "cliente"
+            ? "border-b-2 border-blue-500 text-blue-600"
+            : "text-gray-600"
+            }`}
         >
           Meus Agendamentos (Cliente)
         </button>
         <button
           onClick={() => setTipoView("prestador")}
-          className={`pb-4 px-4 font-medium ${
-            tipoView === "prestador"
-              ? "border-b-2 border-blue-500 text-blue-600"
-              : "text-gray-600"
-          }`}
+          className={`pb-4 px-4 font-medium ${tipoView === "prestador"
+            ? "border-b-2 border-blue-500 text-blue-600"
+            : "text-gray-600"
+            }`}
         >
           Agendamentos Recebidos (Prestador)
         </button>
@@ -273,9 +271,9 @@ export default function AgendamentosContent() {
                         src={
                           tipoView === "cliente"
                             ? agendamento.prestador.foto_perfil ||
-                              "/default-avatar.png"
+                            "/default-avatar.png"
                             : agendamento.cliente.foto_perfil ||
-                              "/default-avatar.png"
+                            "/default-avatar.png"
                         }
                         alt="Avatar"
                         className="w-10 h-10 rounded-full"
@@ -288,7 +286,7 @@ export default function AgendamentosContent() {
                         </p>
                         <p className="text-sm text-gray-600">
                           ⭐{" "}
-                          {(tipoView === "cliente"
+                          {Number(tipoView === "cliente"
                             ? agendamento.prestador.avaliacao_media
                             : agendamento.cliente.avaliacao_media
                           ).toFixed(1)}
@@ -322,7 +320,7 @@ export default function AgendamentosContent() {
 
                   <div className="flex items-center gap-2 text-gray-700">
                     <DollarSign size={16} />
-                    <span>R$ {agendamento.valor_total.toFixed(2)}</span>
+                    <span>R$ {Number(agendamento.valor_total).toFixed(2)}</span>
                   </div>
 
                   {agendamento.descricao && (
@@ -454,7 +452,7 @@ export default function AgendamentosContent() {
               <div>
                 <p className="text-sm text-gray-600">Valor</p>
                 <p className="text-2xl font-bold text-green-600">
-                  R$ {showDetalhesModal.valor_total.toFixed(2)}
+                  R$ {Number(showDetalhesModal.valor_total).toFixed(2)}
                 </p>
               </div>
 
@@ -556,11 +554,10 @@ export default function AgendamentosContent() {
                     handleCancelarAgendamento(showAcaoModal.id);
                   }
                 }}
-                className={`flex-1 text-white px-4 py-2 rounded-lg font-medium transition ${
-                  acao === "cancelar"
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-500 hover:bg-green-600"
-                }`}
+                className={`flex-1 text-white px-4 py-2 rounded-lg font-medium transition ${acao === "cancelar"
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-green-500 hover:bg-green-600"
+                  }`}
               >
                 {acao === "confirmar" && "Confirmar"}
                 {acao === "concluir" && "Concluir"}
