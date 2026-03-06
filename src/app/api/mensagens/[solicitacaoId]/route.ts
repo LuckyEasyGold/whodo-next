@@ -20,7 +20,7 @@ export async function GET(
         const solicitacao = await prisma.solicitacao.findUnique({
             where: { id },
             include: {
-                servico: { select: { usuario_id: true, titulo: true, cobranca_tipo: true, preco_base: true } },
+                servico: { select: { usuario_id: true, titulo: true } },
                 cliente: { select: { id: true, nome: true, foto_perfil: true } },
                 orcamentos: { orderBy: { created_at: "desc" }, take: 1 }
             }
