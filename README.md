@@ -174,11 +174,8 @@ O núcleo da aplicação é o modelo unificado **`Usuario`**:
 4. Push: `git push origin funcionalidade/nova-funcionalidade`
 5. Abra um Pull Request
 
----
 
-## 📄 Licença
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 ---
 
