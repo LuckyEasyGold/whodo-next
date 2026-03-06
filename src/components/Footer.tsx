@@ -42,10 +42,12 @@ export default function Footer() {
 
                 <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-xs">
-                            W
-                        </div>
-                        <span className="font-bold text-white">WhoDo!</span>
+                        <img
+                            src="/logo.png"
+                            alt="WhoDo"
+                            className="h-8 w-auto opacity-80"
+                        />
+                        <span className="font-black text-white text-lg tracking-tight">WhoDo<span className="text-blue-400">!</span></span>
                     </div>
                     <p className="text-sm text-slate-500">
                         © {new Date().getFullYear()} WhoDo! Todos os direitos reservados.
