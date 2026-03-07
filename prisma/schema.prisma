@@ -47,9 +47,18 @@ model Usuario {
   status            String    @default("ativo") @db.VarChar(20)
   email_verificado  Boolean   @default(false)
   token_verificacao String?   @db.VarChar(255)
+  
+  // Password Recovery / NextAuth
+  emailVerified     DateTime?
+  reset_token       String?   @db.VarChar(255)
+  reset_token_expires DateTime?
+
   patrocinador_id   Int?
   created_at        DateTime  @default(now())
   updated_at        DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
 
   patrocinador      Usuario?  @relation("Patrocinador", fields: [patrocinador_id], references: [id])
   patrocinados      Usuario[] @relation("Patrocinador")
@@ -306,4 +315,47 @@ model DadosBancarios {
   usuario             Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@map("dados_bancarios")
+}
+
+// ==========================================
+// NextAuth / Auth.js Models
+// ==========================================
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             Int
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
