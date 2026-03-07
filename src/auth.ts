@@ -77,6 +77,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
         async session({ session, user }) {
             return session; // Apenas para compatibilidade da Interface
+        },
+        async redirect({ url, baseUrl }) {
+            // Force redirection to home page after successful login
+            return baseUrl;
         }
     },
     session: {
