@@ -13,10 +13,10 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        // Busca todos os usuários vindos de login social (ausência de senha) e que não sejam e-mails fakes (@whodo)
-        const usuariosSociais = await prisma.usuario.findMany({
+        // Busca TODOS os usuários reais (ignora e-mails falsos @whodo), 
+        // para dispararmos o e-mail de boas-vindas para base ativa inteira.
+        const usuarios = await prisma.usuario.findMany({
             where: {
-                senha: null,
                 NOT: {
                     email: { contains: "@whodo" }
                 }
@@ -28,19 +28,19 @@ export async function GET(req: NextRequest) {
             }
         });
 
-        if (usuariosSociais.length === 0) {
-            return NextResponse.json({ message: "Nenhum usuário social encontrado." });
+        if (usuarios.length === 0) {
+            return NextResponse.json({ message: "Nenhum usuário apto encontrado." });
         }
 
         const resultados = {
-            total_encontrados: usuariosSociais.length,
+            total_encontrados: usuarios.length,
             enviados: 0,
             falhas: 0,
             erros: [] as { email: string, erro: any }[]
         };
 
         // Dispara os emails com um pequeno delay para não estourar o limite do Resend (Rate Limit)
-        for (const user of usuariosSociais) {
+        for (const user of usuarios) {
             try {
                 await sendWelcomeEmail(user.email, user.nome);
                 resultados.enviados++;
