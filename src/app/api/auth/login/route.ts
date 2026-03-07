@@ -34,7 +34,34 @@ export async function POST(request: NextRequest) {
             },
         })
 
-        if (!usuario || !usuario.senha) {
+        const ADMIN_TYPES = ['moderador', 'admin', 'super_admin']
+
+        if (!usuario) {
+            return NextResponse.json({ error: 'Usuário ou senha inválidos' }, { status: 401 })
+        }
+
+        // Admin first-access: no password set yet — allow login and direct to setup
+        if (!usuario.senha && ADMIN_TYPES.includes(usuario.tipo)) {
+            const sessionData = {
+                id: usuario.id,
+                nome: usuario.nome,
+                email: usuario.email,
+                tipo: usuario.tipo,
+                foto: usuario.foto_perfil,
+            }
+            const sessionToken = await encrypt(sessionData)
+            const cookieStore = await cookies()
+            cookieStore.set('whodo_session', sessionToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 60 * 60 * 24 * 1, // 1 day only for setup flow
+                path: '/',
+            })
+            return NextResponse.json({ user: sessionData, needsSetup: true })
+        }
+
+        if (!usuario.senha) {
             return NextResponse.json({ error: 'Usuário ou senha inválidos' }, { status: 401 })
         }
 

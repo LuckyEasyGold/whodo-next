@@ -32,7 +32,19 @@ export default function LoginForm() {
                 return
             }
 
-            router.push('/')
+            // Admin first-access: redirect to setup page
+            if (data.needsSetup) {
+                router.push('/admin/setup')
+                return
+            }
+
+            // Normal redirect: admin panel or home based on role
+            const adminTypes = ['moderador', 'admin', 'super_admin']
+            if (data.user && adminTypes.includes(data.user.tipo)) {
+                router.push('/admin')
+            } else {
+                router.push('/')
+            }
             router.refresh()
         } catch {
             setErro('Erro de conexão. Tente novamente.')
@@ -40,6 +52,7 @@ export default function LoginForm() {
             setLoading(false)
         }
     }
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
