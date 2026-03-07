@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Send, MessageSquare, Clock, CheckCheck, ChevronRight } from 'lucide-react'
+import { Send, MessageSquare, Clock, CheckCheck, ChevronRight, ChevronLeft } from 'lucide-react'
 
 type Participante = { id: number; nome: string; foto_perfil: string | null }
 type UltimaMensagem = { conteudo: string; created_at: string; remetente_id: number; lida: boolean }
@@ -148,7 +148,7 @@ export default function MensagensPage() {
     return (
         <div className="h-[calc(100vh-4rem)] flex overflow-hidden bg-slate-50">
             {/* Coluna esquerda: lista de conversas */}
-            <div className="w-full md:w-80 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+            <div className={`w-full md:w-80 flex-shrink-0 bg-white border-r border-slate-200 flex-col ${conversaAtiva ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-slate-100">
                     <h1 className="text-lg font-bold text-slate-900">Mensagens</h1>
                     <p className="text-xs text-slate-500 mt-0.5">Suas conversas e solicitações</p>
@@ -202,7 +202,7 @@ export default function MensagensPage() {
             </div>
 
             {/* Área do chat */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className={`flex-1 flex-col min-w-0 ${!conversaAtiva ? 'hidden md:flex' : 'flex'}`}>
                 {!conversaAtiva ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
                         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-4">
@@ -217,12 +217,18 @@ export default function MensagensPage() {
                     <>
                         {/* Header do chat */}
                         {solicitacaoInfo && (
-                            <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-3">
+                            <div className="bg-white border-b border-slate-200 px-4 md:px-6 py-3 flex items-center gap-3 z-10 sticky top-0">
+                                <button
+                                    onClick={() => setConversaAtiva(null)}
+                                    className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors flex-shrink-0"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
                                 {(() => {
                                     const interlocutor = getInterlocutor(solicitacaoInfo as any)
                                     return (
                                         <>
-                                            <Link href={`/perfil/${interlocutor.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                                            <Link href={`/perfil/${interlocutor.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0 flex-1">
                                                 <img
                                                     src={interlocutor.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'}
                                                     className="w-9 h-9 rounded-full object-cover"
