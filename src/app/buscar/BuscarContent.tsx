@@ -45,7 +45,7 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
     const [onlyVerified, setOnlyVerified] = useState(searchParams.get('verificado') === 'true')
 
     // Paginação
-    const itemsPerPage = 10
+    const itemsPerPage = 20
     const [currentPage, setCurrentPage] = useState(1)
 
     const totalPages = Math.ceil(profissionais.length / itemsPerPage)
