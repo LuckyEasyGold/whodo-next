@@ -146,7 +146,7 @@ export default function MensagensPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex overflow-hidden bg-slate-50">
+        <div className="flex overflow-hidden bg-slate-50 -m-4 sm:-m-6 lg:-m-8 h-[calc(100dvh-9.5rem)] md:h-[calc(100vh-4rem)]">
             {/* Coluna esquerda: lista de conversas */}
             <div className={`w-full md:w-80 flex-shrink-0 bg-white border-r border-slate-200 flex-col ${conversaAtiva ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-slate-100">
@@ -202,7 +202,7 @@ export default function MensagensPage() {
             </div>
 
             {/* Área do chat */}
-            <div className={`flex-1 flex-col min-w-0 ${!conversaAtiva ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`flex-col min-w-0 ${!conversaAtiva ? 'hidden md:flex flex-1' : 'flex fixed inset-0 z-[60] bg-slate-50 md:relative md:z-auto md:flex-1'}`}>
                 {!conversaAtiva ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
                         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-4">
