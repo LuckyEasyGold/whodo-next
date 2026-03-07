@@ -64,14 +64,9 @@ export default function LoginForm() {
             </div>
 
             <div>
-                <div className="flex justify-between items-center mb-1.5">
-                    <label htmlFor="senha" className="text-sm font-medium text-slate-700">
-                        Senha
-                    </label>
-                    <a href="/recuperar-senha" className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
-                        Esqueceu a senha?
-                    </a>
-                </div>
+                <label htmlFor="senha" className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Senha
+                </label>
                 <div className="relative">
                     <input
                         id="senha"
@@ -89,6 +84,11 @@ export default function LoginForm() {
                     >
                         {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
+                </div>
+                <div className="flex justify-end mt-2">
+                    <a href="/recuperar-senha" tabIndex={-1} className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+                        Esqueceu a senha?
+                    </a>
                 </div>
             </div>
 

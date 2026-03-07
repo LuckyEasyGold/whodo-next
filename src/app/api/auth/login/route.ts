@@ -3,9 +3,20 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { encrypt } from '@/lib/auth'
+import { authRateLimiter, rateLimitCheck } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
     try {
+        const ip = request.headers.get('x-forwarded-for') || 'unknown';
+        const rateLimitResult = await rateLimitCheck(authRateLimiter, ip);
+
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { error: "Muitas tentativas. Tente novamente em 1 minuto." },
+                { status: 429, headers: rateLimitResult.headers as any }
+            );
+        }
+
         const { email, senha } = await request.json()
 
         if (!email || !senha) {
@@ -47,7 +58,7 @@ export async function POST(request: NextRequest) {
         cookieStore.set('whodo_session', sessionToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'strict',
             maxAge: 60 * 60 * 24 * 7, // 7 days
             path: '/',
         })

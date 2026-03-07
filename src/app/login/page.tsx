@@ -13,13 +13,13 @@ export default function LoginPage() {
             <Navbar />
             <main className="min-h-screen flex items-center justify-center px-4 py-20 bg-gradient-to-br from-slate-50 to-indigo-50/30">
                 <div className="w-full max-w-md">
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-black text-xl shadow-lg shadow-indigo-500/30 mb-4">
-                            W
-                        </div>
+                    {/* Logo & Header */}
+                    <div className="text-center mb-8 flex flex-col items-center">
+                        <Link href="/" className="mb-6 block hover:opacity-90 transition-opacity">
+                            <img src="/logo.png" alt="WhoDo! Logo" className="h-14 w-auto object-contain mx-auto" />
+                        </Link>
                         <h1 className="text-2xl font-extrabold text-slate-900">Entrar no WhoDo!</h1>
-                        <p className="text-slate-500 mt-1">Acesse sua conta para continuar</p>
+                        <p className="text-slate-600 mt-2 font-medium">Whodo — Quem precisa encontra. Quem faz escolhe.</p>
                     </div>
 
                     {/* Form Card */}

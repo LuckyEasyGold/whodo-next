@@ -2,9 +2,21 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { uploadImageToSupabase } from '@/lib/supabase'
+import { validateUpload } from '@/lib/upload-security'
+import { uploadRateLimiter, rateLimitCheck } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
     try {
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const rateLimitResult = await rateLimitCheck(uploadRateLimiter, ip);
+
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { error: "Limite de uploads excedido. Aguarde 1 minuto." },
+                { status: 429, headers: rateLimitResult.headers as any }
+            );
+        }
+
         const session = await getSession()
         if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
@@ -20,6 +32,10 @@ export async function POST(req: Request) {
         const uploadedItems = []
 
         for (const file of files) {
+            const validation = validateUpload(file);
+            if (!validation.valid) {
+                return NextResponse.json({ error: validation.error }, { status: 400 })
+            }
             const isVideo = file.type.startsWith('video/')
             const isDocument = file.type === 'application/pdf' || !!file.name.match(/\.(pdf|docx?|xlsx?|pptx?|txt)$/i)
             const tipo = isVideo ? 'video' : isDocument ? 'documento' : 'imagem'
