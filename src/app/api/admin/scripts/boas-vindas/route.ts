@@ -13,10 +13,13 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        // Busca todos os usuários vindos de login social (identificados pela ausência de senha)
+        // Busca todos os usuários vindos de login social (ausência de senha) e que não sejam e-mails fakes (@whodo)
         const usuariosSociais = await prisma.usuario.findMany({
             where: {
-                senha: null
+                senha: null,
+                NOT: {
+                    email: { contains: "@whodo" }
+                }
             },
             select: {
                 id: true,
