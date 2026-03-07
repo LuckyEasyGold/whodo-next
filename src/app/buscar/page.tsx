@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import BuscarContent from './BuscarContent'
+import { calcularTitulo } from '@/app/api/ranking/route'
 
 export const metadata = {
     title: 'Buscar Profissionais - WhoDo!',
@@ -21,9 +22,12 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         if (me?.cidade) defaultCity = me.cidade
     }
 
-    // Base: show all users that are not explicitly blocked/inactive
+    // Nunca mostrar contas de sistema (admin, moderador, super_admin)
     const where: any = {
-        NOT: { status: 'inativo' }
+        NOT: [
+            { status: 'inativo' },
+            { tipo: { in: ['admin', 'moderador', 'super_admin'] } },
+        ]
     }
 
     if (params.q) {
@@ -56,9 +60,7 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         else where.AND = [locFilter]
     }
 
-    if (params.verificado === 'true') {
-        where.verificado = true
-    }
+    // Filtro de verificado agora é aplicado após calcular o valor real (abaixo)
 
     if (params.rating) {
         where.avaliacao_media = { gte: parseFloat(params.rating) }
@@ -70,21 +72,58 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         else where.AND = [precoFilter]
     }
 
-    const profissionais = await prisma.usuario.findMany({
+    const profissionaisRaw = await prisma.usuario.findMany({
         where,
         include: {
             servicos: { include: { categoria: true }, take: 3 },
             avaliacoesRecebidas: { select: { nota: true } },
+            _count: {
+                select: { servicos: true }
+            }
         },
         take: 100,
     })
+
+    // Calcula ranking global por contratos concluídos
+    const rankingGlobal = await prisma.agendamento.groupBy({
+        by: ['prestador_id'],
+        where: { status: 'concluido' },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+    })
+    const totalNoRanking = rankingGlobal.length
+
+    const rankingMap: Record<number, { posicao: number; totalContratos: number; titulo: string | null }> = {}
+    rankingGlobal.forEach((r, idx) => {
+        rankingMap[r.prestador_id] = {
+            posicao: idx + 1,
+            totalContratos: r._count.id,
+            titulo: calcularTitulo(idx + 1, totalNoRanking),
+        }
+    })
+
+    // Recalcula verificado: deve ter ao menos 1 serviço + 1 contrato concluído
+    const profissionais = profissionaisRaw.map(p => {
+        const temServico = p._count.servicos > 0
+        const rankInfo = rankingMap[p.id]
+        const temContrato = rankInfo ? rankInfo.totalContratos > 0 : false
+        return {
+            ...p,
+            verificado: temServico && temContrato,
+            ranking: rankInfo || null,
+        }
+    })
+
+    const resultado = params.verificado === 'true'
+        ? profissionais.filter(p => p.verificado)
+        : profissionais
 
     return (
         <>
             <Navbar />
             <main className="pt-16 min-h-screen bg-slate-50">
                 <BuscarContent
-                    profissionais={JSON.parse(JSON.stringify(profissionais))}
+                    profissionais={JSON.parse(JSON.stringify(resultado))}
                     categorias={JSON.parse(JSON.stringify(categorias))}
                     queryInicial={params.q || ''}
                     categoriaInicial={params.categoria || ''}

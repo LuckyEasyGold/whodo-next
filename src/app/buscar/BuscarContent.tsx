@@ -21,6 +21,7 @@ type Profissional = {
     verificado: boolean
     servicos: { titulo: string; preco_base: any; categoria: { nome: string } }[]
     avaliacoesRecebidas: { nota: any }[]
+    ranking: { posicao: number; totalContratos: number; titulo: string | null } | null
 }
 
 type Categoria = { id: number; nome: string; icone: string | null }
@@ -278,12 +279,13 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                                         href={`/perfil/${p.id}`}
                                                         className="group flex flex-col rounded-2xl overflow-hidden bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100/50 transition-all duration-300 hover:-translate-y-0.5 relative h-full"
                                                     >
+                                                        {/* Badge verificado/em avaliação */}
                                                         {p.verificado ? (
                                                             <span className="absolute top-2 right-2 z-10 bg-emerald-100/90 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
                                                                 <CheckCircle size={10} /> Verificado
                                                             </span>
                                                         ) : (
-                                                            <span className="absolute top-2 right-2 z-10 bg-amber-100/90 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">Novo</span>
+                                                            <span className="absolute top-2 right-2 z-10 bg-amber-100/90 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">Em avaliação</span>
                                                         )}
 
                                                         <div className="p-3 flex flex-col items-center text-center gap-2 flex-1">
@@ -293,17 +295,34 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                                                 className="w-14 h-14 rounded-xl object-cover ring-2 ring-slate-100 mt-4"
                                                             />
                                                             <div className="w-full min-w-0 mt-1">
-                                                                <h3 className="font-bold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors truncate">
-                                                                    {p.nome}
-                                                                </h3>
-                                                                <p className="text-xs text-slate-500 truncate">
-                                                                    {p.especialidade || 'Prestador de Serviço'}
-                                                                </p>
+                                                                {p.especialidade ? (
+                                                                    // Perfil profissional preenchido: especialidade em destaque
+                                                                    <>
+                                                                        <h3 className="font-extrabold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors truncate leading-tight">
+                                                                            {p.especialidade}
+                                                                        </h3>
+                                                                        <p className="text-[11px] text-slate-500 truncate mt-0.5">{p.nome}</p>
+                                                                    </>
+                                                                ) : (
+                                                                    // Sem perfil profissional: nome em destaque, título "Cliente"
+                                                                    <>
+                                                                        <h3 className="font-extrabold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors truncate leading-tight">
+                                                                            {p.nome}
+                                                                        </h3>
+                                                                        <p className="text-[11px] text-slate-400 truncate mt-0.5">Cliente</p>
+                                                                    </>
+                                                                )}
+                                                                {/* Badge de ranking de contratos */}
+                                                                {p.ranking?.titulo && (
+                                                                    <span className="inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                                        {p.ranking.titulo}
+                                                                    </span>
+                                                                )}
                                                                 <div className="flex items-center justify-center gap-0.5 mt-1.5">
                                                                     {[1, 2, 3, 4, 5].map((j) => (
-                                                                        <Star key={j} size={10} className={j <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} />
+                                                                        <Star key={j} size={10} className={j <= Math.round(Number(p.avaliacao_media || 0)) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} />
                                                                     ))}
-                                                                    <span className="text-[10px] font-bold text-slate-600 ml-1">{rating.toFixed(1)}</span>
+                                                                    <span className="text-[10px] font-bold text-slate-600 ml-1">{Number(p.avaliacao_media || 0).toFixed(1)}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
