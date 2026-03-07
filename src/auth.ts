@@ -7,7 +7,6 @@ import { encrypt } from "@/lib/auth"
 import { cookies } from "next/headers"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-    adapter: PrismaAdapter(prisma),
     providers: [
         Google({
             clientId: process.env.AUTH_GOOGLE_ID,
@@ -47,28 +46,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     });
                 }
 
-                // Criar a SESSÃO CUSTOMIZADA (mesma de login convencional)
-                const sessionData = {
-                    id: dbUser.id,
-                    nome: dbUser.nome,
-                    email: dbUser.email,
-                    tipo: dbUser.tipo,
-                    foto: dbUser.foto_perfil,
-                };
+                // Removida a configuração do cookie daqui porque o NextAuth blockeia cookies().set() nos headers de sua própria Response interna.
+                // O JWT customizado será gerado pela rota /api/auth/sync para garantir o funcionamento.
 
-                const sessionToken = await encrypt(sessionData);
-
-                // Manter exatamente a mesma estrutura do seu login atual
-                const cookieStore = await cookies();
-                cookieStore.set('whodo_session', sessionToken, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
-                    maxAge: 60 * 60 * 24 * 7, // 7 days
-                    path: '/',
-                });
-
-                // Permite que o NextAuth termine o fluxo também silenciosamente
+                // Permite que o NextAuth termine o fluxo silenciosamente em JWT mode
                 return true;
             } catch (error) {
                 console.error("Erro no interceptador do Login Social:", error);
@@ -79,11 +60,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return session; // Apenas para compatibilidade da Interface
         },
         async redirect({ url, baseUrl }) {
-            // Force redirection to home page after successful login
+            // Se vier redirect para '/api/auth/sync', respeita ele!
+            if (url.includes('/api/auth/sync')) return url;
             return baseUrl;
         }
     },
     session: {
-        strategy: "database"
+        strategy: "jwt"
     }
 })
