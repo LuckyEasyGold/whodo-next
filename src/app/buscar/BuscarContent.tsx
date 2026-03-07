@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Search, MapPin, Star, CheckCircle, SlidersHorizontal, Filter } from 'lucide-react'
+import { Search, MapPin, Star, CheckCircle, SlidersHorizontal, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
 
 import MapWrapper from '@/components/MapWrapper'
 
@@ -43,6 +43,14 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
     const [distance, setDistance] = useState(Number(searchParams.get('dist')) || 10)
     const [minRating, setMinRating] = useState(Number(searchParams.get('rating')) || 0)
     const [onlyVerified, setOnlyVerified] = useState(searchParams.get('verificado') === 'true')
+
+    // Paginação
+    const itemsPerPage = 10
+    const [currentPage, setCurrentPage] = useState(1)
+
+    const totalPages = Math.ceil(profissionais.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const currentItems = profissionais.slice(startIndex, startIndex + itemsPerPage)
 
     const aplicarFiltros = () => {
         const params = new URLSearchParams(searchParams.toString())
@@ -260,91 +268,132 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                     <p className="text-slate-500">Tente buscar com outros termos, ajustar os filtros ou aumentar o raio de distância.</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                                    {profissionais.map((p, i) => {
-                                        const rating = Number(p.avaliacao_media || 0)
-                                        const numAval = p.avaliacoesRecebidas.length
-                                        const minPrice = p.servicos.length > 0
-                                            ? Math.min(...p.servicos.map((s) => Number(s.preco_base)))
-                                            : null
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                                        {currentItems.map((p, i) => {
+                                            const rating = Number(p.avaliacao_media || 0)
+                                            const numAval = p.avaliacoesRecebidas.length
+                                            const minPrice = p.servicos.length > 0
+                                                ? Math.min(...p.servicos.map((s) => Number(s.preco_base)))
+                                                : null
 
-                                        return (
-                                            <motion.div
-                                                key={p.id}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: i * 0.05 }}
-                                            >
-                                                <Link
-                                                    href={`/perfil/${p.id}`}
-                                                    className="group block rounded-2xl overflow-hidden bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 hover:-translate-y-1 relative"
+                                            return (
+                                                <motion.div
+                                                    key={p.id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: i * 0.05 }}
                                                 >
-                                                    {p.verificado ? (
-                                                        <span className="absolute top-3 right-3 z-10 bg-emerald-100/90 backdrop-blur-sm text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                                                            <CheckCircle size={12} /> Verificado
-                                                        </span>
-                                                    ) : (
-                                                        <span className="absolute top-3 right-3 z-10 bg-amber-100/90 backdrop-blur-sm text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                                                            Novo
-                                                        </span>
-                                                    )}
-
-                                                    <div className="p-5">
-                                                        <div className="flex items-start gap-4">
-                                                            <img
-                                                                src={p.foto_perfil || 'https://randomuser.me/api/portraits/men/1.jpg'}
-                                                                alt={p.nome}
-                                                                className="w-16 h-16 rounded-xl object-cover ring-2 ring-slate-100"
-                                                            />
-                                                            <div className="flex-1 min-w-0">
-                                                                <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
-                                                                    {p.nome}
-                                                                </h3>
-                                                                <p className="text-sm text-slate-500 truncate">
-                                                                    {p.especialidade || 'Prestador de Serviço'}
-                                                                </p>
-                                                                <div className="flex items-center gap-2 mt-2">
-                                                                    <div className="flex items-center gap-0.5">
-                                                                        {[1, 2, 3, 4, 5].map((j) => (
-                                                                            <Star
-                                                                                key={j}
-                                                                                size={12}
-                                                                                className={j <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
-                                                                            />
-                                                                        ))}
-                                                                    </div>
-                                                                    <span className="text-xs font-bold text-slate-700">{rating.toFixed(1)} <span className="text-slate-400 font-medium">({numAval})</span></span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {p.servicos.length > 0 && (
-                                                            <div className="mt-4 flex flex-wrap gap-1.5">
-                                                                {p.servicos.slice(0, 3).map((s) => (
-                                                                    <span key={s.titulo} className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold group-hover:bg-indigo-50 group-hover:text-indigo-700 transition-colors">
-                                                                        {s.titulo}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="px-5 py-3 bg-slate-50 flex items-center justify-between border-t border-slate-100 group-hover:bg-indigo-50/30 transition-colors">
-                                                        <div className="flex items-center gap-1 text-sm text-slate-500 font-medium">
-                                                            <MapPin size={14} className="text-indigo-500" />
-                                                            <span>{p.cidade || 'N/A'}, {p.estado || ''}</span>
-                                                        </div>
-                                                        {minPrice && (
-                                                            <span className="text-sm font-extrabold text-indigo-600">
-                                                                R$ {minPrice.toFixed(0)} <span className="text-xs font-medium text-slate-500">inicial</span>
+                                                    <Link
+                                                        href={`/perfil/${p.id}`}
+                                                        className="group block rounded-2xl overflow-hidden bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 hover:-translate-y-1 relative"
+                                                    >
+                                                        {p.verificado ? (
+                                                            <span className="absolute top-3 right-3 z-10 bg-emerald-100/90 backdrop-blur-sm text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                                                                <CheckCircle size={12} /> Verificado
+                                                            </span>
+                                                        ) : (
+                                                            <span className="absolute top-3 right-3 z-10 bg-amber-100/90 backdrop-blur-sm text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                                                                Novo
                                                             </span>
                                                         )}
-                                                    </div>
-                                                </Link>
-                                            </motion.div>
-                                        )
-                                    })}
-                                </div>
+
+                                                        <div className="p-5">
+                                                            <div className="flex items-start gap-4">
+                                                                <img
+                                                                    src={p.foto_perfil || 'https://randomuser.me/api/portraits/men/1.jpg'}
+                                                                    alt={p.nome}
+                                                                    className="w-16 h-16 rounded-xl object-cover ring-2 ring-slate-100"
+                                                                />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                                                                        {p.nome}
+                                                                    </h3>
+                                                                    <p className="text-sm text-slate-500 truncate">
+                                                                        {p.especialidade || 'Prestador de Serviço'}
+                                                                    </p>
+                                                                    <div className="flex items-center gap-2 mt-2">
+                                                                        <div className="flex items-center gap-0.5">
+                                                                            {[1, 2, 3, 4, 5].map((j) => (
+                                                                                <Star
+                                                                                    key={j}
+                                                                                    size={12}
+                                                                                    className={j <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                        <span className="text-xs font-bold text-slate-700">{rating.toFixed(1)} <span className="text-slate-400 font-medium">({numAval})</span></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {p.servicos.length > 0 && (
+                                                                <div className="mt-4 flex flex-wrap gap-1.5">
+                                                                    {p.servicos.slice(0, 3).map((s) => (
+                                                                        <span key={s.titulo} className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold group-hover:bg-indigo-50 group-hover:text-indigo-700 transition-colors">
+                                                                            {s.titulo}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="px-5 py-3 bg-slate-50 flex items-center justify-between border-t border-slate-100 group-hover:bg-indigo-50/30 transition-colors">
+                                                            <div className="flex items-center gap-1 text-sm text-slate-500 font-medium">
+                                                                <MapPin size={14} className="text-indigo-500" />
+                                                                <span>{p.cidade || 'N/A'}, {p.estado || ''}</span>
+                                                            </div>
+                                                            {minPrice && (
+                                                                <span className="text-sm font-extrabold text-indigo-600">
+                                                                    R$ {minPrice.toFixed(0)} <span className="text-xs font-medium text-slate-500">inicial</span>
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </Link>
+                                                </motion.div>
+                                            )
+                                        })}
+                                    </div>
+
+                                    {/* Controles de Paginação */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-center gap-2 mt-8 mb-10 pb-4">
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1}
+                                                className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                                            >
+                                                <ChevronLeft size={20} />
+                                            </button>
+
+                                            <div className="flex gap-1">
+                                                {Array.from({ length: totalPages }).map((_, idx) => {
+                                                    const page = idx + 1
+                                                    return (
+                                                        <button
+                                                            key={page}
+                                                            onClick={() => setCurrentPage(page)}
+                                                            className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-colors ${currentPage === page
+                                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                                                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                                }`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages}
+                                                className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                                            >
+                                                <ChevronRight size={20} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
                             )}
 
                             {/* Map Box */}

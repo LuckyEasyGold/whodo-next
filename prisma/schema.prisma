@@ -80,6 +80,10 @@ model Usuario {
   carteira              Carteira?
   dadosBancarios        DadosBancarios?
 
+  seguindo             Seguidor[]            @relation("SeguindoUsuario")
+  seguidores           Seguidor[]            @relation("SeguidoresUsuario")
+  comentariosPortfolio PortfolioComentario[] @relation("UsuarioComentarios")
+
   @@map("usuarios")
 }
 
@@ -96,6 +100,7 @@ model PortfolioMedia {
 
   usuario          Usuario         @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
   album            PortfolioAlbum? @relation(fields: [album_id], references: [id], onDelete: SetNull)
+  comentarios      PortfolioComentario[] @relation("MediaComentarios")
 
   @@map("portfolio_media")
 }
@@ -358,4 +363,35 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// ==========================================
+// Social Features Models
+// ==========================================
+
+model Seguidor {
+  id               Int      @id @default(autoincrement())
+  seguidor_id      Int
+  seguido_id       Int
+  created_at       DateTime @default(now())
+
+  seguidor         Usuario  @relation("SeguindoUsuario", fields: [seguidor_id], references: [id], onDelete: Cascade)
+  seguido          Usuario  @relation("SeguidoresUsuario", fields: [seguido_id], references: [id], onDelete: Cascade)
+
+  @@unique([seguidor_id, seguido_id])
+  @@map("seguidores")
+}
+
+model PortfolioComentario {
+  id               Int      @id @default(autoincrement())
+  texto            String   @db.Text
+  usuario_id       Int
+  media_id         Int
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  usuario          Usuario        @relation("UsuarioComentarios", fields: [usuario_id], references: [id], onDelete: Cascade)
+  media            PortfolioMedia @relation("MediaComentarios", fields: [media_id], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_comentarios")
 }

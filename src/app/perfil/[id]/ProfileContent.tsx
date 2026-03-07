@@ -1,11 +1,240 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, MapPin, CheckCircle, Clock, MessageSquare, Calendar, Settings, Grid3X3, Play, Briefcase, ExternalLink, X, Trash2, Globe, Linkedin, Facebook, Instagram, Youtube, UserCheck, MessageCircle, ArrowLeft, FileText } from 'lucide-react'
+import { Star, MapPin, CheckCircle, Clock, MessageSquare, Calendar, Settings, Grid3X3, Play, Briefcase, ExternalLink, X, Trash2, Globe, Linkedin, Facebook, Instagram, Youtube, UserCheck, MessageCircle, ArrowLeft, FileText, ChevronLeft, ChevronRight as ChevronRightIcon, Video, Send, Loader2 } from 'lucide-react'
 import ContratarModal from './ContratarModal'
+import AvaliarModal from './AvaliarModal'
+
+// ─── Lightbox ────────────────────────────────────────────────────────────────
+function Lightbox({ items, startIndex, onClose, isVisitor }: {
+    items: MediaItem[]
+    startIndex: number
+    onClose: () => void
+    isVisitor?: boolean
+}) {
+    const [idx, setIdx] = useState(startIndex)
+    const item = items[idx]
+    const hasPrev = idx > 0
+    const hasNext = idx < items.length - 1
+
+    const [showComments, setShowComments] = useState(false)
+    const [comments, setComments] = useState<any[]>([])
+    const [isLoadingComments, setIsLoadingComments] = useState(false)
+    const [newComment, setNewComment] = useState('')
+    const [isPosting, setIsPosting] = useState(false)
+
+    // Load comments when item changes
+    useEffect(() => {
+        if (!showComments || !item) return
+        let active = true
+        setIsLoadingComments(true)
+        fetch(`/api/portfolio/comentarios/${item.id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (active && data.comentarios) setComments(data.comentarios)
+            })
+            .finally(() => { if (active) setIsLoadingComments(false) })
+        return () => { active = false }
+    }, [item, showComments])
+
+    const handlePostComment = async () => {
+        if (!newComment.trim() || isPosting) return
+        setIsPosting(true)
+        try {
+            const res = await fetch(`/api/portfolio/comentarios/${item.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ texto: newComment })
+            })
+            const data = await res.json()
+            if (res.ok && data.comentario) {
+                setComments(prev => [...prev, data.comentario])
+                setNewComment('')
+            } else {
+                alert(data.error || 'Erro ao publicar comentário')
+            }
+        } catch (error) {
+            alert('Erro de conexão ao publicar comentário')
+        } finally {
+            setIsPosting(false)
+        }
+    }
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/95 flex overflow-hidden"
+            onClick={onClose}
+        >
+            {/* Left side: Media & Info */}
+            <div className={`flex flex-col flex-1 transition-all duration-300 ${showComments ? 'w-full md:w-2/3 lg:w-3/4' : 'w-full'}`}>
+                {/* Top bar */}
+                <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                    <div>
+                        {item.titulo && <p className="text-white font-semibold text-sm">{item.titulo}</p>}
+                        <p className="text-white/50 text-xs">{idx + 1} / {items.length}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {isVisitor && (
+                            <button onClick={() => setShowComments(!showComments)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${showComments ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}>
+                                <MessageCircle size={16} /> Comentários
+                            </button>
+                        )}
+                        <a href={item.url} target="_blank" rel="noreferrer"
+                            className="p-2 text-white/70 hover:text-white rounded-full transition-colors" title="Abrir em nova aba">
+                            <ExternalLink size={20} />
+                        </a>
+                        <button onClick={onClose} className="p-2 text-white/70 hover:text-white rounded-full transition-colors">
+                            <X size={24} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Media area */}
+                <div className="flex-1 flex items-center justify-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                    {/* Prev button */}
+                    {hasPrev && (
+                        <button onClick={() => setIdx(i => i - 1)}
+                            className="absolute left-3 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-sm">
+                            <ChevronLeft size={28} />
+                        </button>
+                    )}
+
+                    <AnimatePresence mode="wait">
+                        <motion.div key={item.id}
+                            initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex items-center justify-center w-full h-full px-16"
+                        >
+                            {item.tipo === 'video' ? (
+                                <video src={item.url} controls autoPlay
+                                    className="max-w-full max-h-full rounded-xl shadow-2xl"
+                                    style={{ maxHeight: 'calc(100vh - 200px)' }}
+                                />
+                            ) : (
+                                <img src={item.url} alt={item.titulo || ''}
+                                    className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                                    style={{ maxHeight: 'calc(100vh - 200px)' }}
+                                />
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
+
+                    {/* Next button */}
+                    {hasNext && (
+                        <button onClick={() => setIdx(i => i + 1)}
+                            className="absolute right-3 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-sm">
+                            <ChevronRightIcon size={28} />
+                        </button>
+                    )}
+                </div>
+
+                {/* Bottom info */}
+                {(item.descricao || item.citacao) && (
+                    <div className="flex-shrink-0 px-6 py-4 text-center" onClick={e => e.stopPropagation()}>
+                        {item.descricao && <p className="text-white/80 text-sm">{item.descricao}</p>}
+                        {item.citacao && (
+                            <p className="text-white/50 text-xs italic mt-1">&ldquo;{item.citacao}&rdquo;</p>
+                        )}
+                    </div>
+                )}
+
+                {/* Thumbnail strip */}
+                {items.length > 1 && (
+                    <div className="flex-shrink-0 flex gap-2 justify-center pb-4 px-4 overflow-x-auto" onClick={e => e.stopPropagation()}>
+                        {items.map((it, i) => (
+                            <button key={it.id} onClick={() => setIdx(i)}
+                                className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${i === idx ? 'border-indigo-400 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'}`}>
+                                {it.tipo === 'video' ? (
+                                    <div className="w-full h-full bg-slate-700 flex items-center justify-center">
+                                        <Video size={16} className="text-white" />
+                                    </div>
+                                ) : it.tipo === 'documento' ? (
+                                    <div className="w-full h-full bg-slate-700 flex items-center justify-center">
+                                        <FileText size={16} className="text-white" />
+                                    </div>
+                                ) : (
+                                    <img src={it.url} alt="" className="w-full h-full object-cover" />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Right side: Comments Panel */}
+            <AnimatePresence>
+                {showComments && (
+                    <motion.div
+                        initial={{ x: 300, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: 300, opacity: 0 }}
+                        className="w-full md:w-1/3 lg:w-1/4 h-full bg-white flex flex-col border-l border-white/10"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white text-slate-800">
+                            <h3 className="font-bold text-slate-900">Comentários</h3>
+                            <button onClick={() => setShowComments(false)} className="text-slate-400 hover:text-slate-600 md:hidden"><X size={20} /></button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+                            {isLoadingComments ? (
+                                <div className="flex justify-center p-4"><Loader2 className="animate-spin text-indigo-400" size={24} /></div>
+                            ) : comments.length === 0 ? (
+                                <p className="text-center text-sm text-slate-400 py-8">Nenhum comentário ainda. Seja o primeiro!</p>
+                            ) : (
+                                comments.map(comment => (
+                                    <div key={comment.id} className="flex gap-3">
+                                        <img src={comment.usuario.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'} className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-slate-200" />
+                                        <div>
+                                            <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
+                                                <p className="text-xs font-bold text-slate-900 mb-1">{comment.usuario.nome_fantasia || comment.usuario.nome}</p>
+                                                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{comment.texto}</p>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 mt-1 ml-1">
+                                                {new Date(comment.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <div className="p-4 bg-white border-t border-slate-100">
+                            <div className="flex gap-2 relative">
+                                <textarea
+                                    value={newComment}
+                                    onChange={e => setNewComment(e.target.value)}
+                                    placeholder="Adicionar comentário..."
+                                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-400 resize-none pr-12 text-slate-800"
+                                    rows={1}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault()
+                                            handlePostComment()
+                                        }
+                                    }}
+                                />
+                                <button
+                                    onClick={handlePostComment}
+                                    disabled={isPosting || !newComment.trim()}
+                                    className="absolute right-2 top-2 p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                    {isPosting ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-2 text-center">Pressione Enter para enviar</p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    )
+}
 
 type MediaItem = {
     id: number
@@ -59,6 +288,7 @@ type Props = {
         avaliacoesRecebidas: { id: number; nota: any; comentario: string | null; data_avaliacao: string; cliente: { nome: string; foto_perfil: string | null }; servico: { titulo: string } }[]
     }
     isOwner: boolean
+    initialIsFollowing: boolean
     stats: { totalServicos: number; totalAvaliacoes: number; mediaAvaliacao: number; seguidores: number; seguindo: number }
 }
 
@@ -66,12 +296,80 @@ type Tab = 'portfolio' | 'servicos' | 'avaliacoes'
 
 
 
-export default function ProfileContent({ usuario, isOwner, stats }: Props) {
+export default function ProfileContent({ usuario, isOwner, initialIsFollowing, stats }: Props) {
     const router = useRouter()
     const [activeTab, setActiveTab] = useState<Tab>('portfolio')
     const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
-    const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null)
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
     const [showContratarModal, setShowContratarModal] = useState(false)
+    const [showAvaliarModal, setShowAvaliarModal] = useState(false)
+    const [isChatLoading, setIsChatLoading] = useState(false)
+    const [avaliacoes, setAvaliacoes] = useState(usuario.avaliacoesRecebidas || [])
+
+    // Follower State
+    const [isFollowing, setIsFollowing] = useState(initialIsFollowing)
+    const [followersCount, setFollowersCount] = useState(stats.seguidores)
+    const [isFollowLoading, setIsFollowLoading] = useState(false)
+
+    // Only viewable items (images + videos) for lightbox navigation
+    const viewableItems = selectedAlbum?.medias.filter((m: MediaItem) => m.tipo !== 'documento') || []
+
+    async function handleFollow() {
+        if (!usuario.id) return
+        setIsFollowLoading(true)
+        // Optimistic update
+        const pastFollowing = isFollowing
+        setIsFollowing(!pastFollowing)
+        setFollowersCount(c => pastFollowing ? c - 1 : c + 1)
+
+        try {
+            const res = await fetch('/api/seguidores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seguido_id: usuario.id })
+            })
+            const data = await res.json()
+            if (!res.ok) {
+                // Revert if error
+                setIsFollowing(pastFollowing)
+                setFollowersCount(c => pastFollowing ? c + 1 : c - 1)
+                alert(data.error || 'Erro ao seguir usuário')
+            } else {
+                // Sync with actual server state
+                setIsFollowing(data.following)
+            }
+        } catch (err) {
+            console.error(err)
+            // Revert on catch
+            setIsFollowing(pastFollowing)
+            setFollowersCount(c => pastFollowing ? c + 1 : c - 1)
+        } finally {
+            setIsFollowLoading(false)
+        }
+    }
+
+    async function handleIniciarChat() {
+        if (!p.id) return
+        setIsChatLoading(true)
+        try {
+            const res = await fetch('/api/mensagens/iniciar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prestador_id: p.id })
+            })
+            const data = await res.json()
+            if (res.ok && data.solicitacao_id) {
+                router.push(`/dashboard/mensagens?conversa=${data.solicitacao_id}`)
+            } else {
+                alert(data.error || 'Erro ao iniciar conversa')
+            }
+        } catch (error) {
+            console.error(error)
+            alert('Erro de conexão ao iniciar conversa')
+        } finally {
+            setIsChatLoading(false)
+        }
+    }
 
     const p = usuario
     const rating = Number(p.avaliacao_media || 0)
@@ -83,16 +381,15 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
     ]
 
     const openMedia = (item: MediaItem) => {
-        setSelectedMedia(item)
-        document.body.style.overflow = 'hidden'
-    }
-    const closeMedia = () => {
-        setSelectedMedia(null)
-        document.body.style.overflow = 'auto'
+        const idx = viewableItems.findIndex((m: MediaItem) => m.id === item.id)
+        if (idx >= 0) {
+            setLightboxIndex(idx)
+            document.body.style.overflow = 'hidden'
+        }
     }
 
-    const closeModal = () => {
-        setSelectedMedia(null)
+    const closeLightbox = () => {
+        setLightboxIndex(null)
         document.body.style.overflow = 'auto'
     }
 
@@ -100,58 +397,8 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
         <div className="max-w-4xl mx-auto px-4 py-6">
             {/* Modal de Portfolio Lightbox */}
             <AnimatePresence>
-                {selectedMedia && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 sm:p-8"
-                    >
-                        <button onClick={closeMedia} className="absolute top-4 right-4 p-2 text-white/70 hover:text-white bg-black/50 rounded-full">
-                            <X size={24} />
-                        </button>
-
-                        <div className="flex flex-col md:flex-row w-full max-w-6xl h-full max-h-[90vh] bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl">
-                            {/* Mídia Container */}
-                            <div className="flex-1 flex items-center justify-center bg-black relative">
-                                {selectedMedia.tipo === 'video' ? (
-                                    <video src={selectedMedia.url} controls autoPlay className="max-w-full max-h-full object-contain" />
-                                ) : (
-                                    <img src={selectedMedia.url} alt={selectedMedia.titulo || 'Mídia'} className="max-w-full max-h-full object-contain" />
-                                )}
-                            </div>
-
-                            {/* Informações da Mídia */}
-                            <div className="w-full md:w-96 flex flex-col bg-white overflow-y-auto">
-                                <div className="p-6 flex flex-col h-full">
-                                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                                        <img src={p.foto_perfil || 'https://randomuser.me/api/portraits/men/1.jpg'} className="w-10 h-10 rounded-full object-cover" />
-                                        <div>
-                                            <p className="font-bold text-slate-900 text-sm leading-tight">{p.nome_fantasia || p.nome}</p>
-                                            {p.especialidade && <p className="text-xs text-slate-500">{p.especialidade}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-1">
-                                        {selectedMedia.titulo && (
-                                            <h2 className="text-xl font-bold text-slate-900 mb-3">{selectedMedia.titulo}</h2>
-                                        )}
-                                        {selectedMedia.descricao && (
-                                            <p className="text-slate-600 text-sm leading-relaxed mb-6 whitespace-pre-line">{selectedMedia.descricao}</p>
-                                        )}
-                                        {selectedMedia.citacao && (
-                                            <div className="bg-slate-50 p-4 rounded-xl border-l-4 border-indigo-500 mb-6">
-                                                <p className="text-sm italic text-slate-700">"{selectedMedia.citacao}"</p>
-                                                <span className="block mt-2 text-xs font-semibold text-slate-500">— Feedback do Cliente</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Owner lightbox actions removed — manage from Dashboard Portfólio */}
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
+                {lightboxIndex !== null && (
+                    <Lightbox items={viewableItems} startIndex={lightboxIndex} onClose={closeLightbox} isVisitor={!isOwner} />
                 )}
             </AnimatePresence>
 
@@ -208,14 +455,27 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                                 </>
                             ) : (
                                 <>
-                                    <button onClick={() => setShowContratarModal(true)} className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all">
+                                    <button
+                                        onClick={handleFollow}
+                                        disabled={isFollowLoading}
+                                        className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm ${isFollowing
+                                            ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                                            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-500/25'
+                                            }`}
+                                    >
+                                        <UserCheck size={14} className="inline mr-1.5 -mt-0.5" />
+                                        {isFollowing ? 'Seguindo' : 'Seguir'}
+                                    </button>
+                                    <button onClick={() => setShowContratarModal(true)} className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg text-sm font-semibold hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 transition-all">
                                         <Calendar size={14} className="inline mr-1.5 -mt-0.5" /> Contratar
                                     </button>
                                     <button
-                                        onClick={() => router.push('/dashboard/mensagens')}
-                                        className="px-5 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-all"
+                                        onClick={handleIniciarChat}
+                                        disabled={isChatLoading}
+                                        className="px-5 py-2 border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-all disabled:opacity-50 flex items-center h-[38px]"
                                     >
-                                        <MessageSquare size={14} className="inline mr-1.5 -mt-0.5" /> Mensagem
+                                        <MessageSquare size={14} className="mr-1.5" />
+                                        {isChatLoading ? 'Carreg...' : 'Mensagem'}
                                     </button>
                                 </>
                             )}
@@ -228,7 +488,7 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                                 <span className="text-xs text-slate-500">Serviços</span>
                             </div>
                             <div className="text-center">
-                                <span className="font-bold text-slate-900 block">{stats.seguidores}</span>
+                                <span className="font-bold text-slate-900 block">{followersCount}</span>
                                 <span className="text-xs text-slate-500">Seguidores</span>
                             </div>
                             <div className="text-center">
@@ -410,19 +670,28 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
 
                 {activeTab === 'avaliacoes' && (
                     <div className="space-y-4">
-                        {p.avaliacoesRecebidas.length === 0 ? (
+                        <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                            <h3 className="font-bold text-slate-800 text-lg">Avaliações</h3>
+                            {!isOwner && (
+                                <button onClick={() => setShowAvaliarModal(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition-all">
+                                    <Star size={14} className="inline mr-1" /> Avaliar
+                                </button>
+                            )}
+                        </div>
+
+                        {avaliacoes.length === 0 ? (
                             <p className="text-center text-slate-400 py-10">Nenhuma avaliação ainda</p>
                         ) : (
-                            p.avaliacoesRecebidas.map((a) => (
+                            avaliacoes.map((a) => (
                                 <div key={a.id} className="p-4 rounded-xl border border-slate-100">
                                     <div className="flex items-center gap-3 mb-2">
                                         <img
-                                            src={a.cliente.foto_perfil || 'https://randomuser.me/api/portraits/men/1.jpg'}
-                                            alt={a.cliente.nome}
+                                            src={a.cliente?.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'}
+                                            alt={a.cliente?.nome || 'Usuário'}
                                             className="w-9 h-9 rounded-full object-cover"
                                         />
                                         <div>
-                                            <h4 className="font-semibold text-slate-900 text-sm">{a.cliente.nome}</h4>
+                                            <h4 className="font-semibold text-slate-900 text-sm">{a.cliente?.nome || 'Anônimo'}</h4>
                                             <div className="flex items-center gap-1">
                                                 {[1, 2, 3, 4, 5].map((i) => (
                                                     <Star key={i} size={12} className={i <= Math.round(Number(a.nota)) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} />
@@ -431,8 +700,8 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                                             </div>
                                         </div>
                                     </div>
-                                    {a.comentario && <p className="text-sm text-slate-600">{a.comentario}</p>}
-                                    <p className="text-xs text-slate-400 mt-1">Serviço: {a.servico.titulo}</p>
+                                    {a.comentario && <p className="text-sm text-slate-600 border-l-2 border-indigo-200 pl-3 italic mt-3 mb-2">{a.comentario}</p>}
+                                    <p className="text-xs font-semibold text-indigo-500 mt-2 bg-indigo-50 inline-block px-2 py-1 rounded-md">Serviço: {a.servico?.titulo || 'Serviço excluído'}</p>
                                 </div>
                             ))
                         )}
@@ -445,6 +714,17 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                 usuario={usuario}
                 isOpen={showContratarModal}
                 onClose={() => setShowContratarModal(false)}
+            />
+
+            {/* Modal de Avaliar */}
+            <AvaliarModal
+                usuarioId={usuario.id}
+                servicos={usuario.servicos.map(s => ({ id: s.id, titulo: s.titulo }))}
+                isOpen={showAvaliarModal}
+                onClose={() => setShowAvaliarModal(false)}
+                onAvaliacaoCriada={(novaAvaliacao) => {
+                    setAvaliacoes(prev => [novaAvaliacao, ...prev])
+                }}
             />
         </div>
     )

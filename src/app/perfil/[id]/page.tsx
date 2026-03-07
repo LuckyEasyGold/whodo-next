@@ -41,6 +41,19 @@ export default async function PerfilPage({ params }: { params: Promise<{ id: str
 
     const isOwner = session?.id === usuario.id
 
+    // Follow status and counts
+    const isFollowing = session && !isOwner ? await prisma.seguidor.findUnique({
+        where: {
+            seguidor_id_seguido_id: {
+                seguidor_id: session.id,
+                seguido_id: usuario.id
+            }
+        }
+    }) !== null : false
+
+    const seguidoresCount = await prisma.seguidor.count({ where: { seguido_id: usuario.id } })
+    const seguindoCount = await prisma.seguidor.count({ where: { seguidor_id: usuario.id } })
+
     // Stats
     const totalServicos = usuario.servicos.length
     const totalAvaliacoes = usuario.avaliacoesRecebidas.length
@@ -55,12 +68,13 @@ export default async function PerfilPage({ params }: { params: Promise<{ id: str
                 <ProfileContent
                     usuario={JSON.parse(JSON.stringify(usuario))}
                     isOwner={isOwner}
+                    initialIsFollowing={isFollowing}
                     stats={{
                         totalServicos,
                         totalAvaliacoes,
                         mediaAvaliacao: Math.round(mediaAvaliacao * 10) / 10,
-                        seguidores: 0,
-                        seguindo: 0,
+                        seguidores: seguidoresCount,
+                        seguindo: seguindoCount,
                     }}
                 />
             </main>

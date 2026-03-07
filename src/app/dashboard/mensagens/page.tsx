@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Send, MessageSquare, Clock, CheckCheck, ChevronRight } from 'lucide-react'
 
 type Participante = { id: number; nome: string; foto_perfil: string | null }
@@ -221,17 +222,19 @@ export default function MensagensPage() {
                                     const interlocutor = getInterlocutor(solicitacaoInfo as any)
                                     return (
                                         <>
-                                            <img
-                                                src={interlocutor.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'}
-                                                className="w-9 h-9 rounded-full object-cover"
-                                                alt={interlocutor.nome}
-                                            />
-                                            <div>
-                                                <p className="font-semibold text-sm text-slate-900">{interlocutor.nome}</p>
-                                                <p className="text-xs text-slate-500">
-                                                    Serviço: <span className="font-medium text-indigo-600">{(solicitacaoInfo as any).titulo || solicitacaoInfo.servico?.titulo}</span>
-                                                </p>
-                                            </div>
+                                            <Link href={`/perfil/${interlocutor.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                                                <img
+                                                    src={interlocutor.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'}
+                                                    className="w-9 h-9 rounded-full object-cover"
+                                                    alt={interlocutor.nome}
+                                                />
+                                                <div>
+                                                    <p className="font-semibold text-sm text-slate-900">{interlocutor.nome}</p>
+                                                    <p className="text-xs text-slate-500">
+                                                        Serviço: <span className="font-medium text-indigo-600">{(solicitacaoInfo as any).titulo || solicitacaoInfo.servico?.titulo}</span>
+                                                    </p>
+                                                </div>
+                                            </Link>
                                             <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-medium ${solicitacaoInfo.status === 'pendente' ? 'bg-amber-100 text-amber-700' :
                                                 solicitacaoInfo.status === 'em_negociacao' ? 'bg-blue-100 text-blue-700' :
                                                     'bg-green-100 text-green-700'
@@ -257,11 +260,13 @@ export default function MensagensPage() {
                                     return (
                                         <div key={msg.id} className={`flex items-end gap-2 ${minha ? 'flex-row-reverse' : ''}`}>
                                             {!minha && (
-                                                <img
-                                                    src={msg.remetente.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'}
-                                                    className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-                                                    alt={msg.remetente.nome}
-                                                />
+                                                <Link href={`/perfil/${msg.remetente.id}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
+                                                    <img
+                                                        src={msg.remetente.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'}
+                                                        className="w-7 h-7 rounded-full object-cover"
+                                                        alt={msg.remetente.nome}
+                                                    />
+                                                </Link>
                                             )}
                                             <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm shadow-sm ${minha
                                                 ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-br-sm'
@@ -305,6 +310,6 @@ export default function MensagensPage() {
                     </>
                 )}
             </div>
-        </div>
+        </div >
     )
 }

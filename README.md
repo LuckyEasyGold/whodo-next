@@ -32,19 +32,35 @@
 
 | Funcionalidade | Status |
 |---|---|
-| 🔐 Autenticação segura (e-mail + senha + JWT assinado) | ✅ Completo |
+| 🔐 Autenticação segura (e-mail + senha + JWT) | ✅ Completo |
+| 🔗 Login Social (Google, Facebook via Auth.js) | ✅ Completo |
 | 👤 Perfil Público estilo Instagram | ✅ Completo |
-| 🗂️ Portfólio com Lightbox (fotos e vídeos) | ✅ Completo |
-| 🗺️ Busca com Mapa Interativo (Leaflet) | ✅ Completo |
+| 🗂️ Portfólio com Lightbox interativa e Comentários | ✅ Completo |
+| 👥 Sistema de Seguir e Seguidores | ✅ Completo |
+| ⭐ Sistema de Avaliações e Reviews (1 a 5 Estrelas) | ✅ Completo |
+| 🗺️ Busca Inteligente com Paginação e Mapa (Leaflet) | ✅ Completo |
 | 🔍 Filtros dinâmicos (preço, nota, localização) | ✅ Completo |
 | 📊 Dashboard do Usuário | ✅ Completo |
 | ✏️ Edição de Perfil + CEP automático + Geocodificação | ✅ Completo |
 | 🖼️ Upload de Portfólio (Supabase Storage) | ✅ Completo |
 | 🔧 Módulo de Serviços (fixo ou orçamento) | ✅ Completo |
 | 💰 Dashboard Financeiro (carteira + transações) | ✅ ~90% completo |
-| 📅 Agendamentos | 🚧 Em desenvolvimento |
-| 💬 Mensageria em tempo real | 🚧 Em desenvolvimento |
-| 🔗 Login Social (Google, Facebook) | 🔜 Planejado |
+| 💬 Mensageria instantânea (Chat) integrado ao Perfil | ✅ Completo |
+| 📅 Agendamentos de serviços | 🚧 Em desenvolvimento |
+
+---
+
+## 🚀 Últimas Novidades
+
+Finalizamos recentemente uma grande atualização focada em **Recursos Sociais**, elevando o WhoDo! a um verdadeiro ecossistema engajado:
+- **Páginas Extras e SEO:** Criação nativa de subpáginas como Termos, Privacidade, Sobre, Blog e Carreiras.
+- **Integração Real-Time:** Usuários podem agora iniciar chats diretamente do perfil do prestador.
+- **Rede Interativa:** Lançamento do mecanismo de "Seguir" perfis, com contadores atualizados instantaneamente.
+- **Feedback Constante:** Implementação completa da função de comentar mídias no portfólio.
+- **Reputação Blindada:** Sistema de nota (1 a 5 estrelas) associado a comentários focado para transparecer a qualidade de cada profissional de serviço.
+- **Melhorias de Busca:** Busca de prestadores agora é contida em paginações otimizadas (Client-Side).
+
+*Melhorias futuras previstas:* Lapidação de Gateway de Pagamento, fluxo de Agendamento direto sem passar por orçamentos prévios e um App Mobile nativo.*
 
 ---
 
