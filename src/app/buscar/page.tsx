@@ -77,6 +77,7 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         include: {
             servicos: { include: { categoria: true }, take: 3 },
             avaliacoesRecebidas: { select: { nota: true } },
+            accounts: { select: { id: true } },
             _count: {
                 select: { servicos: true }
             }
@@ -107,9 +108,15 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         const temServico = p._count.servicos > 0
         const rankInfo = rankingMap[p.id]
         const temContrato = rankInfo ? rankInfo.totalContratos > 0 : false
+
+        // Regra de "Em avaliação": email não verificado e não tem conta social
+        const temContaSocial = p.accounts && p.accounts.length > 0
+        const emAvaliacao = !p.email_verificado && !temContaSocial
+
         return {
             ...p,
             verificado: temServico && temContrato,
+            emAvaliacao,
             ranking: rankInfo || null,
         }
     })

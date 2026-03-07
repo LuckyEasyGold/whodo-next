@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { authRateLimiter, rateLimitCheck } from '@/lib/rate-limit'
+import { sendVerificationEmail } from '@/lib/email'
+import { randomUUID } from 'crypto'
 
 export async function POST(request: NextRequest) {
     try {
@@ -30,6 +32,8 @@ export async function POST(request: NextRequest) {
 
         const senhaHash = await bcrypt.hash(senha, 10)
 
+        const tokenVerificacao = randomUUID()
+
         const usuario = await prisma.usuario.create({
             data: {
                 nome,
@@ -41,7 +45,15 @@ export async function POST(request: NextRequest) {
                 estado: estado || null,
                 status: 'ativo',
                 email_verificado: false,
+                token_verificacao: tokenVerificacao,
             },
+        })
+
+        // Envia email de verificação assincronamente (sem prender a requisição)
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const verifyLink = `${appUrl}/api/auth/verificar-email?token=${tokenVerificacao}`
+        sendVerificationEmail(email, verifyLink, nome).catch(err => {
+            console.error('Erro ao chamar sendVerificationEmail:', err)
         })
 
         // Auto-login após cadastro

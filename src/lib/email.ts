@@ -41,3 +41,41 @@ export async function sendPasswordResetEmail(email: string, resetLink: string, u
     return { success: false, error };
   }
 }
+
+export async function sendVerificationEmail(email: string, verifyLink: string, userName: string) {
+  try {
+    const data = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Confirme seu E-mail - WhoDo!',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #4F46E5; margin: 0;">WhoDo!</h1>
+            <p style="color: #64748B; margin-top: 5px;">Quem precisa encontra. Quem faz escolhe.</p>
+          </div>
+          
+          <div style="background-color: #F8FAFC; border-radius: 12px; padding: 30px; border: 1px solid #E2E8F0;">
+            <h2 style="margin-top: 0; color: #1E293B;">Olá, ${userName}!</h2>
+            <p style="line-height: 1.6;">Obrigado por se juntar ao <strong>WhoDo!</strong>. Para garantir a segurança da plataforma e liberar todos os recursos da sua conta, por favor, clique no botão abaixo para confirmar seu e-mail:</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+              <a href="${verifyLink}" style="background-color: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Verificar Meu E-mail</a>
+            </div>
+            
+            <p style="line-height: 1.6; font-size: 14px; color: #64748B;">Se você não solicitou este cadastro, pode ignorar este e-mail com segurança.</p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #94A3B8;">
+            <p>© ${new Date().getFullYear()} WhoDo! Marketplace. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    return { success: false, error };
+  }
+}

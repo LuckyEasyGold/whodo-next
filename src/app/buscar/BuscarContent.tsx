@@ -19,6 +19,7 @@ type Profissional = {
     especialidade: string | null
     avaliacao_media: any
     verificado: boolean
+    emAvaliacao?: boolean
     servicos: { titulo: string; preco_base: any; categoria: { nome: string } }[]
     avaliacoesRecebidas: { nota: any }[]
     ranking: { posicao: number; totalContratos: number; titulo: string | null } | null
@@ -279,14 +280,14 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                                         href={`/perfil/${p.id}`}
                                                         className="group flex flex-col rounded-2xl overflow-hidden bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100/50 transition-all duration-300 hover:-translate-y-0.5 relative h-full"
                                                     >
-                                                        {/* Badge verificado/em avaliação */}
+                                                        {/* Badge verificado ou em avaliação */}
                                                         {p.verificado ? (
                                                             <span className="absolute top-2 right-2 z-10 bg-emerald-100/90 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
                                                                 <CheckCircle size={10} /> Verificado
                                                             </span>
-                                                        ) : (
+                                                        ) : p.emAvaliacao ? (
                                                             <span className="absolute top-2 right-2 z-10 bg-amber-100/90 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">Em avaliação</span>
-                                                        )}
+                                                        ) : null}
 
                                                         <div className="p-3 flex flex-col items-center text-center gap-2 flex-1">
                                                             <img
