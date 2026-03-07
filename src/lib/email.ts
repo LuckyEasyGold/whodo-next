@@ -79,3 +79,44 @@ export async function sendVerificationEmail(email: string, verifyLink: string, u
     return { success: false, error };
   }
 }
+
+export async function sendWelcomeEmail(email: string, userName: string) {
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://whodo.newsdrop.net.br';
+    const data = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Bem-vindo(a) ao WhoDo! 🎉',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #4F46E5; margin: 0; font-size: 32px;">WhoDo<span style="color: #93C5FD;">!</span></h1>
+            <p style="color: #64748B; margin-top: 5px; font-size: 16px;">Quem precisa encontra. Quem faz escolhe.</p>
+          </div>
+          
+          <div style="background-color: #F8FAFC; border-radius: 12px; padding: 30px; border: 1px solid #E2E8F0;">
+            <h2 style="margin-top: 0; color: #1E293B;">Olá, ${userName}!</h2>
+            <p style="line-height: 1.6; font-size: 16px;">Que alegria ter você com a gente no <strong>WhoDo!</strong> Estamos muito felizes em receber você na nossa comunidade.</p>
+            
+            <p style="line-height: 1.6; font-size: 16px;">Aqui é o lugar certo para conectar grandes profissionais a pessoas que precisam de soluções rápidas e de qualidade. Seja para contratar ou para oferecer o seu talento, você está no lugar certo.</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+              <a href="${appUrl}/buscar" style="background-color: #4F46E5; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">Explorar Plataforma</a>
+            </div>
+            
+            <p style="line-height: 1.6; font-size: 14px; color: #64748B;">Dica: Complete o seu perfil para ter mais visibilidade e acesso a todos os recursos.</p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #94A3B8;">
+            <p>© ${new Date().getFullYear()} WhoDo! Marketplace. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    return { success: false, error };
+  }
+}

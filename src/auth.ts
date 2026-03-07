@@ -5,6 +5,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { encrypt } from "@/lib/auth"
 import { cookies } from "next/headers"
+import { sendWelcomeEmail } from "@/lib/email"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -43,6 +44,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             tipo: 'usuario',
                             email_verificado: true // Já verificado pelo Google/Facebook
                         }
+                    });
+
+                    // Dispara e-mail de Boas-Vindas para novo cadastro social (assíncrono)
+                    sendWelcomeEmail(dbUser.email, dbUser.nome).catch(err => {
+                        console.error('Erro ao enviar boas-vindas social:', err);
                     });
                 }
 
