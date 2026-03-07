@@ -11,15 +11,17 @@ export default function CadastroPage() {
     return (
         <>
             <Navbar />
-            <main className="min-h-screen flex items-center justify-center px-4 py-20 bg-gradient-to-br from-slate-50 to-indigo-50/30">
+            <main className="min-h-screen flex items-center justify-center px-4 py-20" style={{ background: 'var(--gradient-hero)' }}>
                 <div className="w-full max-w-md">
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-black text-xl shadow-lg shadow-indigo-500/30 mb-4">
-                            W
-                        </div>
-                        <h1 className="text-2xl font-extrabold text-slate-900">Criar conta no WhoDo!</h1>
-                        <p className="text-slate-500 mt-1">É grátis e leva menos de 1 minuto</p>
+                    {/* Logo & Header */}
+                    <div className="text-center mb-8 flex flex-col items-center">
+                        <Link href="/" className="mb-6 block hover:opacity-90 transition-transform hover:scale-105">
+                            <div className="bg-white p-3 rounded-2xl shadow-lg">
+                                <img src="/logo.png" alt="WhoDo! Logo" className="h-10 w-auto object-contain mx-auto" />
+                            </div>
+                        </Link>
+                        <h1 className="text-2xl font-extrabold text-white">Criar conta no WhoDo!</h1>
+                        <p className="text-indigo-200 mt-2 font-medium">Whodo — Quem precisa encontra. Quem faz escolhe.</p>
                     </div>
 
                     {/* Form Card */}
@@ -27,9 +29,9 @@ export default function CadastroPage() {
                         <CadastroForm />
                     </div>
 
-                    <p className="text-center mt-6 text-sm text-slate-500">
+                    <p className="text-center mt-6 text-sm text-indigo-200/80">
                         Já tem conta?{' '}
-                        <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                        <Link href="/login" className="font-semibold text-white hover:text-indigo-100 transition-colors">
                             Entrar
                         </Link>
                     </p>

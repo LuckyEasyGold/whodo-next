@@ -246,6 +246,18 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
 
                         {/* Bio & Links Gerais */}
                         <div>
+                            {/* Social Links Formatted Output */}
+                            {(p.website || p.linkedin || p.instagram || p.facebook || p.youtube || p.tiktok || p.kwai || p.perfil_academico) && (
+                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-4">
+                                    {p.website && <a href={p.website} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors tooltip" title="Website"><Globe size={18} /></a>}
+                                    {p.linkedin && <a href={p.linkedin} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="LinkedIn"><Linkedin size={18} /></a>}
+                                    {p.instagram && <a href={`https://instagram.com/${p.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="Instagram"><Instagram size={18} /></a>}
+                                    {p.facebook && <a href={p.facebook} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="Facebook"><Facebook size={18} /></a>}
+                                    {p.youtube && <a href={p.youtube} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="YouTube"><Youtube size={18} /></a>}
+                                    {p.perfil_academico && <a href={p.perfil_academico} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="Perfil Acadêmico/Lattes"><UserCheck size={18} /></a>}
+                                </div>
+                            )}
+
                             {p.especialidade && (
                                 <h2 className="font-bold text-slate-800 text-sm mb-1">{p.especialidade}</h2>
                             )}
@@ -265,18 +277,6 @@ export default function ProfileContent({ usuario, isOwner, stats }: Props) {
                                     </span>
                                 )}
                             </div>
-
-                            {/* Social Links Formatted Output */}
-                            {(p.website || p.linkedin || p.instagram || p.facebook || p.youtube || p.tiktok || p.kwai || p.perfil_academico) && (
-                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
-                                    {p.website && <a href={p.website} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors tooltip" title="Website"><Globe size={18} /></a>}
-                                    {p.linkedin && <a href={p.linkedin} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="LinkedIn"><Linkedin size={18} /></a>}
-                                    {p.instagram && <a href={`https://instagram.com/${p.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="Instagram"><Instagram size={18} /></a>}
-                                    {p.facebook && <a href={p.facebook} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="Facebook"><Facebook size={18} /></a>}
-                                    {p.youtube && <a href={p.youtube} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="YouTube"><Youtube size={18} /></a>}
-                                    {p.perfil_academico && <a href={p.perfil_academico} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 hover:text-indigo-600 transition-colors" title="Perfil Acadêmico/Lattes"><UserCheck size={18} /></a>}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
