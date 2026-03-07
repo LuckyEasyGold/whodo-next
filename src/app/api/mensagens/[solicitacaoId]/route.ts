@@ -115,6 +115,17 @@ export async function POST(
             }
         });
 
+        // Criar notificação para o destinatário da mensagem
+        await prisma.notificacao.create({
+            data: {
+                usuario_id: destinatario_id,
+                tipo: "mensagem",
+                titulo: `Mensagem de ${session.nome}`,
+                mensagem: conteudo.trim().length > 60 ? conteudo.trim().substring(0, 57) + "..." : conteudo.trim(),
+                link: `/dashboard/mensagens?conversa=${id}`,
+            }
+        });
+
         return NextResponse.json(mensagem, { status: 201 });
     } catch (error) {
         console.error("Erro ao enviar mensagem:", error);
