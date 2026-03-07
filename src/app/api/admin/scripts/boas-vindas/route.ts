@@ -13,12 +13,10 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        // Busca todos os usuários que têm pelo menos uma conta vinculada (Google/Facebook)
+        // Busca todos os usuários vindos de login social (identificados pela ausência de senha)
         const usuariosSociais = await prisma.usuario.findMany({
             where: {
-                accounts: {
-                    some: {} // Qualquer registro na tabela Account
-                }
+                senha: null
             },
             select: {
                 id: true,
