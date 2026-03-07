@@ -33,10 +33,10 @@ const sidebarItems = [
 
 export default function DashboardContent({ usuario, stats }: Props) {
     const kpiCards = [
-        { label: 'Serviços Ativos', value: String(stats.totalServicos), icon: Briefcase, color: 'from-blue-500 to-indigo-600', bgLight: 'bg-blue-50', textColor: 'text-blue-600' },
-        { label: 'Avaliação Média', value: stats.mediaAvaliacao.toFixed(1), icon: Star, color: 'from-amber-500 to-orange-600', bgLight: 'bg-amber-50', textColor: 'text-amber-600' },
-        { label: 'Total Avaliações', value: String(stats.totalAvaliacoes), icon: TrendingUp, color: 'from-emerald-500 to-teal-600', bgLight: 'bg-emerald-50', textColor: 'text-emerald-600' },
-        { label: 'Notificações', value: String(stats.totalNotificacoes), icon: Bell, color: 'from-purple-500 to-violet-600', bgLight: 'bg-purple-50', textColor: 'text-purple-600' },
+        { label: 'Serviços Ativos', value: String(stats.totalServicos), icon: Briefcase, color: 'from-blue-500 to-indigo-600', bgLight: 'bg-blue-50', textColor: 'text-blue-600', href: '/dashboard/servicos' },
+        { label: 'Avaliação Média', value: stats.mediaAvaliacao.toFixed(1), icon: Star, color: 'from-amber-500 to-orange-600', bgLight: 'bg-amber-50', textColor: 'text-amber-600', href: `/perfil/${usuario.id}?tab=avaliacoes` },
+        { label: 'Total Avaliações', value: String(stats.totalAvaliacoes), icon: TrendingUp, color: 'from-emerald-500 to-teal-600', bgLight: 'bg-emerald-50', textColor: 'text-emerald-600', href: `/perfil/${usuario.id}?tab=avaliacoes` },
+        { label: 'Notificações', value: String(stats.totalNotificacoes), icon: Bell, color: 'from-purple-500 to-violet-600', bgLight: 'bg-purple-50', textColor: 'text-purple-600', href: '#' },
     ]
 
     return (
@@ -65,15 +65,16 @@ export default function DashboardContent({ usuario, stats }: Props) {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-lg hover:shadow-slate-100/50 transition-all"
                     >
-                        <div className="flex items-start justify-between mb-3">
-                            <div className={`p-2.5 rounded-xl ${card.bgLight}`}>
-                                <card.icon size={20} className={card.textColor} />
+                        <Link href={card.href} className="block bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-lg hover:shadow-slate-100/50 hover:border-indigo-100 transition-all cursor-pointer h-full">
+                            <div className="flex items-start justify-between mb-3">
+                                <div className={`p-2.5 rounded-xl ${card.bgLight}`}>
+                                    <card.icon size={20} className={card.textColor} />
+                                </div>
                             </div>
-                        </div>
-                        <h3 className="text-2xl font-extrabold text-slate-900">{card.value}</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">{card.label}</p>
+                            <h3 className="text-2xl font-extrabold text-slate-900">{card.value}</h3>
+                            <p className="text-xs text-slate-500 mt-0.5">{card.label}</p>
+                        </Link>
                     </motion.div>
                 ))}
             </div>
@@ -89,22 +90,22 @@ export default function DashboardContent({ usuario, stats }: Props) {
                 >
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="font-bold text-slate-900">Meus Serviços</h2>
-                        <button className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                        <Link href="/dashboard/servicos" className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
                             <Plus size={14} /> Adicionar
-                        </button>
+                        </Link>
                     </div>
                     {usuario.servicos.length === 0 ? (
                         <p className="text-center text-slate-400 py-6 text-sm">Nenhum serviço cadastrado</p>
                     ) : (
                         <div className="space-y-3">
                             {usuario.servicos.slice(0, 4).map((s) => (
-                                <div key={s.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all">
+                                <Link href={`/dashboard/servicos`} key={s.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-slate-50 transition-all cursor-pointer">
                                     <div className="min-w-0">
                                         <h4 className="font-semibold text-slate-900 text-sm truncate">{s.titulo}</h4>
                                         <span className="text-xs text-slate-500">{s.categoria.nome}</span>
                                     </div>
                                     <span className="font-bold text-indigo-600 text-sm flex-shrink-0 ml-2">R$ {Number(s.preco_base).toFixed(0)}</span>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}
@@ -122,8 +123,8 @@ export default function DashboardContent({ usuario, stats }: Props) {
                         <p className="text-center text-slate-400 py-6 text-sm">Sem atividade recente</p>
                     ) : (
                         <div className="space-y-3">
-                            {usuario.notificacoes.map((n) => (
-                                <div key={n.id} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${n.lida ? 'border-slate-100' : 'border-indigo-200 bg-indigo-50/30'}`}>
+                            {usuario.notificacoes.map((n: any) => (
+                                <Link href={n.link || '#'} key={n.id} className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer hover:border-indigo-200 hover:bg-slate-50 ${n.lida ? 'border-slate-100' : 'border-indigo-200 bg-indigo-50/30'}`}>
                                     <div className="p-2 rounded-lg bg-indigo-50 flex-shrink-0">
                                         <Bell size={14} className="text-indigo-600" />
                                     </div>
@@ -132,7 +133,7 @@ export default function DashboardContent({ usuario, stats }: Props) {
                                         {n.mensagem && <p className="text-xs text-slate-500 line-clamp-1">{n.mensagem}</p>}
                                         <p className="text-xs text-slate-400 mt-0.5">{new Date(n.created_at).toLocaleDateString('pt-BR')}</p>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}
@@ -149,15 +150,15 @@ export default function DashboardContent({ usuario, stats }: Props) {
                 >
                     <h2 className="font-bold text-slate-900 mb-4">Últimas Avaliações</h2>
                     <div className="flex gap-4 overflow-x-auto pb-2">
-                        {usuario.avaliacoesRecebidas.map((a, i) => (
-                            <div key={i} className="flex-shrink-0 w-60 p-4 rounded-xl border border-slate-100 bg-slate-50">
+                        {usuario.avaliacoesRecebidas.map((a: any, i) => (
+                            <Link href={`/perfil/${usuario.id}?tab=avaliacoes`} key={i} className="flex-shrink-0 w-60 p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-indigo-100 transition-all cursor-pointer block">
                                 <div className="flex items-center gap-0.5 mb-2">
                                     {[1, 2, 3, 4, 5].map((j) => (
                                         <Star key={j} size={14} className={j <= Math.round(Number(a.nota)) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} />
                                     ))}
                                 </div>
                                 <p className="text-xs text-slate-400">{new Date(a.data_avaliacao).toLocaleDateString('pt-BR')}</p>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 </motion.div>
