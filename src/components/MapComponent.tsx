@@ -132,17 +132,22 @@ export default function MapComponent({ profissionais, centerCity }: Props) {
         }
     }
 
-    if (cityCoords) {
-        // If user searched for a city, center there
+    if (validMarkers.length > 0) {
+        // Sempre prioriza a localização do primeiro profissional com coordenadas
+        mapCenter = [validMarkers[0].lat, validMarkers[0].lng]
+        if (validMarkers.length === 1) {
+            zoom = 13
+        } else {
+            bounds = L.latLngBounds(markerPositions)
+        }
+    } else if (cityCoords) {
+        // Se não há profissionais com coords, usa a cidade geocodificada
         mapCenter = cityCoords
-        zoom = 12 // Zoom in on the city
-    } else if (savedLocation && !centerCity) { // Prioritize saved location if no specific city search
+        zoom = 12
+    } else if (savedLocation && !centerCity) {
+        // Último recurso: posição salva no localStorage
         mapCenter = [savedLocation.lat, savedLocation.lng]
         zoom = savedLocation.zoom
-    } else if (markerPositions.length > 0) {
-        // Otherwise fit map to markers
-        bounds = L.latLngBounds(markerPositions)
-        mapCenter = markerPositions[0]
     }
 
     return (
