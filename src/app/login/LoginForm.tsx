@@ -114,7 +114,7 @@ export default function LoginForm() {
                 <div className="space-y-3">
                     <button
                         type="button"
-                        onClick={() => signIn('google')}
+                        onClick={() => signIn('google', { callbackUrl: '/' })}
                         className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-3 shadow-sm"
                     >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -129,7 +129,7 @@ export default function LoginForm() {
 
                     <button
                         type="button"
-                        onClick={() => signIn('facebook')}
+                        onClick={() => signIn('facebook', { callbackUrl: '/' })}
                         className="w-full py-3 px-4 bg-[#1877F2] text-white rounded-xl font-semibold hover:bg-[#166fe5] transition-all flex items-center justify-center gap-3 shadow-md shadow-blue-500/20"
                     >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
