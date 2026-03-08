@@ -73,6 +73,7 @@ model Usuario {
   mensagensRecebidas Mensagem[] @relation("MensagemDestinatario")
   
   solicitacoesEnviadas  Solicitacao[] @relation("SolicitacaoCliente")
+  solicitacoesRecebidas Solicitacao[] @relation("SolicitacaoPrestador")
   orcamentosEnviados    Orcamento[]   @relation("OrcamentoPrestador")
   
   agendamentosCliente   Agendamento[] @relation("AgendamentoCliente")
@@ -174,16 +175,18 @@ model Avaliacao {
 }
 
 model Solicitacao {
-  id          Int       @id @default(autoincrement())
-  cliente_id  Int
-  servico_id  Int
-  descricao   String?   @db.Text
-  status      String    @default("pendente") @db.VarChar(30)
-  created_at  DateTime  @default(now())
+  id           Int       @id @default(autoincrement())
+  cliente_id   Int
+  servico_id   Int?
+  prestador_id Int?      // Novo campo para permitir chat direto sem serviço
+  descricao    String?   @db.Text
+  status       String    @default("pendente") @db.VarChar(30)
+  created_at   DateTime  @default(now())
 
-  cliente     Usuario   @relation("SolicitacaoCliente", fields: [cliente_id], references: [id])
-  servico     Servico   @relation(fields: [servico_id], references: [id])
-  orcamentos  Orcamento[]
+  cliente      Usuario   @relation("SolicitacaoCliente", fields: [cliente_id], references: [id])
+  prestador    Usuario?  @relation("SolicitacaoPrestador", fields: [prestador_id], references: [id])
+  servico      Servico?  @relation(fields: [servico_id], references: [id])
+  orcamentos   Orcamento[]
   mensagens   Mensagem[]
 
   @@map("solicitacoes")

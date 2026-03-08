@@ -13,7 +13,7 @@ type Conversa = {
     status: string
     created_at: string
     cliente: Participante
-    servico: {
+    servico?: {
         id: number
         titulo: string
         cobranca_tipo?: string
@@ -21,7 +21,6 @@ type Conversa = {
         usuario?: Participante
     }
     mensagens: UltimaMensagem[]
-    // Campo extra que vem da API /api/mensagens/[id] dentro de `solicitacao`
     prestador?: Participante
 }
 
@@ -186,7 +185,7 @@ export default function MensagensPage() {
                                             <p className="text-sm font-semibold text-slate-800 truncate">{interlocutor.nome}</p>
                                             {ultima && <span className="text-xs text-slate-400 ml-1 flex-shrink-0">{formatarHora(ultima.created_at)}</span>}
                                         </div>
-                                        <p className="text-xs text-slate-500 truncate">{c.servico.titulo}</p>
+                                        <p className="text-xs text-slate-500 truncate">{c.servico?.titulo || 'Mensagem Direta'}</p>
                                         {ultima && (
                                             <p className="text-xs text-slate-400 truncate mt-0.5 flex items-center gap-1">
                                                 {ultima.remetente_id === userId && <CheckCheck size={10} className="text-indigo-400 flex-shrink-0" />}

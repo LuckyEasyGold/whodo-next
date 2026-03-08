@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Se não existir, precisamos criar uma nova.
-        // Como o chat do WhoDo é atrelado a um "Servico", buscamos qualquer serviço desse prestador.
+        // Como o chat do WhoDo agora suporta mensagens diretas, tentamos buscar um serviço.
+        // Se a pessoa tiver um, usamos. Se não tiver, vai como null = Chat Direto.
         const servicoDisponivel = await prisma.servico.findFirst({
             where: {
                 usuario_id: prestador_id,
@@ -47,20 +48,21 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        if (!servicoDisponivel) {
-            // Se ele não tem serviço, buscamos mesmo assim inativo ou criamos um dummy fallback?
-            // Neste domínio, se o usuário não é prestador ativo, não pode ser contratado.
-            return NextResponse.json({ error: "Este usuário não possui serviços ativos para contato." }, { status: 400 });
+        // Cria a conversa (solicitação) genérica,
+        // com o campo prestador_id setado, e servico_id só se existir.
+        const dataSolicitacao: any = {
+            cliente_id: session.id,
+            prestador_id: prestador_id,
+            descricao: "Mensagem direta iniciada pelo perfil",
+            status: "pendente"
+        };
+
+        if (servicoDisponivel) {
+            dataSolicitacao.servico_id = servicoDisponivel.id;
         }
 
-        // Cria a conversa (solicitação) genérica
         const novaSolicitacao = await prisma.solicitacao.create({
-            data: {
-                cliente_id: session.id,
-                servico_id: servicoDisponivel.id,
-                descricao: "Contato direto via perfil",
-                status: "pendente"
-            }
+            data: dataSolicitacao
         });
 
         // Mandamos uma mensagem do sistema "invisível" ou apenas criamos a sala.

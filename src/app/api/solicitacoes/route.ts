@@ -94,11 +94,13 @@ export async function GET(req: NextRequest) {
             where: {
                 OR: [
                     { cliente_id: session.id },
+                    { prestador_id: session.id },
                     { servico: { usuario_id: session.id } }
                 ]
             },
             include: {
                 cliente: { select: { id: true, nome: true, foto_perfil: true } },
+                prestador: { select: { id: true, nome: true, foto_perfil: true } },
                 servico: {
                     select: {
                         id: true, titulo: true, cobranca_tipo: true,

@@ -22,6 +22,7 @@ export async function GET(
             include: {
                 servico: { select: { usuario_id: true, titulo: true } },
                 cliente: { select: { id: true, nome: true, foto_perfil: true } },
+                prestador: { select: { id: true, nome: true, foto_perfil: true } },
                 orcamentos: { orderBy: { created_at: "desc" }, take: 1 }
             }
         });
@@ -30,7 +31,8 @@ export async function GET(
             return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
         }
 
-        const isPrestador = solicitacao.servico.usuario_id === session.id;
+        const donoServicoId = solicitacao.servico?.usuario_id || solicitacao.prestador_id;
+        const isPrestador = donoServicoId === session.id;
         const isCliente = solicitacao.cliente_id === session.id;
 
         if (!isPrestador && !isCliente) {
@@ -91,7 +93,12 @@ export async function POST(
             return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
         }
 
-        const isPrestador = solicitacao.servico.usuario_id === session.id;
+        const donoServicoId = solicitacao.servico?.usuario_id || solicitacao.prestador_id;
+        if (!donoServicoId) {
+            return NextResponse.json({ error: "Erro de integridade na solicitação" }, { status: 500 });
+        }
+
+        const isPrestador = donoServicoId === session.id;
         const isCliente = solicitacao.cliente_id === session.id;
 
         if (!isPrestador && !isCliente) {
@@ -101,7 +108,7 @@ export async function POST(
         // Destinatário é o outro participante da conversa
         const destinatario_id = isPrestador
             ? solicitacao.cliente_id
-            : solicitacao.servico.usuario_id;
+            : donoServicoId;
 
         const mensagem = await prisma.mensagem.create({
             data: {
