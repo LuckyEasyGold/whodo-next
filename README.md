@@ -20,7 +20,7 @@
 
 ## 📖 Sobre o Projeto
 
-**WhoDo!** é uma plataforma de serviceplace de serviços freelance e profissionais liberais que conecta prestadores de serviços com clientes de forma simples, moderna e eficiente.
+**WhoDo!** é uma plataforma de serviceplace de freelance e profissionais liberais que conecta prestadores de serviços com clientes de forma simples, moderna e eficiente.
 
 > **Modelo Unificado de Usuário:** qualquer pessoa cadastrada pode tanto contratar serviços quanto oferecer os seus — seja como diarista, professor particular, músico, contador, advogado ou médico.
 
