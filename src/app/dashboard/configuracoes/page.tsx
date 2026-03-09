@@ -1,4 +1,5 @@
 import { Settings } from 'lucide-react'
+import ConfiguracoesClient from './ConfiguracoesClient'
 
 export const metadata = { title: 'Configurações - WhoDo!' }
 
@@ -11,18 +12,11 @@ export default function ConfiguracoesPage() {
                 </div>
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Configurações</h1>
-                    <p className="text-sm text-slate-500">Gerencie as preferências da sua conta</p>
+                    <p className="text-sm text-slate-500">Gerencie sua segurança e disponibilidade</p>
                 </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
-                <p className="text-amber-700 font-semibold">🚧 Em construção</p>
-                <p className="text-amber-600 text-sm mt-1">Esta seção estará disponível em breve!</p>
-                <p className="text-amber-500 text-xs mt-2">
-                    Por ora, edite seu perfil em{' '}
-                    <a href="/dashboard/perfil" className="underline font-medium">Dashboard → Perfil</a>
-                </p>
-            </div>
+            <ConfiguracoesClient />
         </div>
     )
 }

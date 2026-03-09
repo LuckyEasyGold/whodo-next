@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AiSupportWidget from "@/components/AiSupportWidget";
 
 export const metadata: Metadata = {
   title: "WhoDo! — Encontre profissionais perto de você",
@@ -21,8 +22,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased font-sans">
         {children}
+        <AiSupportWidget />
       </body>
     </html>
   );

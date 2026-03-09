@@ -33,9 +33,10 @@ type Props = {
     queryInicial: string
     categoriaInicial: string
     defaultCity: string
+    vcQuisDizer?: string | null
 }
 
-export default function BuscarContent({ profissionais, categorias, queryInicial, categoriaInicial, defaultCity }: Props) {
+export default function BuscarContent({ profissionais, categorias, queryInicial, categoriaInicial, defaultCity, vcQuisDizer }: Props) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -252,6 +253,15 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                     <option value="preco_asc">Menor preço</option>
                                 </select>
                             </div>
+
+                            {vcQuisDizer && (
+                                <div className="mb-4 p-3 bg-indigo-50 text-indigo-800 rounded-lg flex items-center gap-2 text-sm">
+                                    <Search size={16} className="text-indigo-500" />
+                                    <span>
+                                        Você quis dizer <Link href={`/buscar?q=${vcQuisDizer}`} className="font-bold underline cursor-pointer hover:text-indigo-600">{vcQuisDizer}</Link>?
+                                    </span>
+                                </div>
+                            )}
 
                             {profissionais.length === 0 ? (
                                 <div className="text-center py-20">

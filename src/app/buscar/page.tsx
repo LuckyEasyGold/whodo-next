@@ -125,6 +125,17 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         ? profissionais.filter(p => p.verificado)
         : profissionais
 
+    let vcQuisDizer: string | null = null
+    if (params.q) {
+        const { encontrarComErroDeDigitacao } = await import('@/lib/string-utils')
+        const dicionario = categorias.map(c => c.nome.toLowerCase()).concat([
+            'faxineira', 'diarista', 'pedreiro', 'eletricista', 'encanador',
+            'pintor', 'manicure', 'cabeleireiro', 'montador', 'marido de aluguel',
+            'mecanico', 'jardineiro', 'programador', 'professor', 'fotografo', 'babá', 'cozinheira'
+        ])
+        vcQuisDizer = encontrarComErroDeDigitacao(params.q, dicionario)
+    }
+
     return (
         <>
             <Navbar />
@@ -135,6 +146,7 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
                     queryInicial={params.q || ''}
                     categoriaInicial={params.categoria || ''}
                     defaultCity={defaultCity}
+                    vcQuisDizer={vcQuisDizer}
                 />
             </main>
             <Footer />
