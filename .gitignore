@@ -45,3 +45,5 @@ next-env.d.ts
 # Ferramenta local de importação de dados (não vai para o GitHub)
 /whodo-populator/
 ../whodo-populator/
+
+.vercel
