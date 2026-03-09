@@ -1,18 +1,47 @@
-import { createOpenAI, openai } from '@ai-sdk/openai'
-import { google } from '@ai-sdk/google'
-import { streamText, LanguageModel } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { streamText, tool, stepCountIs, LanguageModel, createUIMessageStreamResponse, createUIMessageStream } from 'ai'
+import { z } from 'zod'
+import { prisma } from '@/lib/prisma'
 import fs from 'fs'
 import path from 'path'
-import { prisma } from '@/lib/prisma'
 
-// ─── Configurações de IA ──────────────────────────────────────────────────────
+// ─── Provedores ───────────────────────────────────────────────────────────────
 
-const githubModels = createOpenAI({
-    baseURL: 'https://models.inference.ai.azure.com',
-    apiKey: process.env.DEEPSEEK_API_KEY,
+// Alibaba DashScope — compatível com OpenAI API (qwen-plus tem tier gratuito)
+const dashscope = createOpenAI({
+    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    apiKey: process.env.DASHSCOPE_API_KEY ?? 'placeholder',
 })
 
-// ─── Leitura do FAQ ───────────────────────────────────────────────────────────
+// GitHub Models (gratuito com github_pat_)
+const githubModels = createOpenAI({
+    baseURL: 'https://models.inference.ai.azure.com',
+    apiKey: process.env.DEEPSEEK_API_KEY ?? 'placeholder',
+})
+
+// Google Gemini
+const googleAI = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? 'placeholder',
+})
+
+interface ModelConfig {
+    name: string
+    model: LanguageModel
+}
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+
+function getFaqContext(): string {
+    try {
+        const p = path.join(process.cwd(), 'FAQ.md')
+        return fs.readFileSync(p, 'utf8').substring(0, 6000)
+    } catch {
+        return 'Central de ajuda em manutenção.'
+    }
+}
+
+// ─── Fallback sem IA ─────────────────────────────────────────────────────────
 
 function getFaqSections(): Array<{ titulo: string; conteudo: string }> {
     try {
@@ -32,163 +61,181 @@ function getFaqSections(): Array<{ titulo: string; conteudo: string }> {
     }
 }
 
-// ─── Respostas pré-definidas (Kimi Style) ─────────────────────────────────────
+function buscarNoFaq(pergunta: string): string {
+    const sections = getFaqSections()
+    if (sections.length === 0) return ''
+    const palavras = pergunta.toLowerCase()
+        .replace(/[^\w\sáéíóúâêîôûãõàèìòùç]/g, '')
+        .split(/\s+/)
+        .filter((w: string) => w.length > 2)
+    const pontuadas = sections.map(s => {
+        const texto = (s.titulo + ' ' + s.conteudo).toLowerCase()
+        const pontos = palavras.reduce((acc: number, w: string) => acc + (texto.includes(w) ? 1 : 0), 0)
+        return { ...s, pontos }
+    })
+    pontuadas.sort((a, b) => b.pontos - a.pontos)
+    const melhor = pontuadas[0]
+    if (melhor.pontos === 0) return ''
+    return `**${melhor.titulo}**\n\n${melhor.conteudo.substring(0, 800)}`
+}
 
 const RESPOSTAS_FIXAS: Array<{ palavras: string[]; resposta: string }> = [
     {
-        palavras: ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite'],
-        resposta: 'Olá! 👋 Bem-vindo ao suporte da **WhoDo!**\n\nSou o assistente inteligente e posso ajudar com:\n• 🔍 Encontrar profissionais\n• 📝 Dúvidas sobre cadastro e login\n• 💰 Informações sobre pagamentos\n\nComo posso ajudar você hoje?'
+        palavras: ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'hello'],
+        resposta: 'Olá! 👋 Bem-vindo ao suporte da **WhoDo!**\n\nComo posso ajudar você hoje? Posso responder sobre:\n• 🔍 Encontrar profissionais\n• 📝 Cadastro e conta\n• 💰 Pagamentos\n• ⚙️ Como usar a plataforma'
     },
     {
         palavras: ['cadastro', 'cadastrar', 'criar conta', 'registrar'],
-        resposta: '📝 **Cadastro na WhoDo!**\n\nO cadastro é 100% gratuito. Basta clicar em "Cadastrar" no menu superior e escolher se você é um **Cliente** ou um **Prestador**.'
-    }
+        resposta: '📝 **Como se cadastrar na WhoDo!**\n\n1. Clique em **"Cadastrar"** no menu\n2. Preencha nome, e-mail e senha\n3. Escolha: **Cliente** ou **Prestador**\n4. Confirme seu e-mail\n\nO cadastro é **gratuito**!'
+    },
+    {
+        palavras: ['prestador', 'profissional', 'serviço', 'contratar', 'encontrar'],
+        resposta: '🔍 **Encontrando profissionais**\n\n• Use a **busca** no topo da página\n• Filtre por categoria e cidade\n• Veja avaliações de outros clientes\n• Entre em contato pelo chat\n\nQue serviço você precisa?'
+    },
+    {
+        palavras: ['pagamento', 'pagar', 'preço', 'valor', 'custo', 'taxa'],
+        resposta: '💰 **Pagamentos na WhoDo!**\n\nA plataforma é **gratuita para clientes**.\n\nPara prestadores há planos básico (gratuito) e premium.\n\nOs pagamentos são combinados diretamente entre cliente e prestador.'
+    },
+    {
+        palavras: ['senha', 'esqueci', 'recuperar', 'login', 'entrar', 'acessar'],
+        resposta: '🔐 **Problemas com acesso?**\n\n1. Clique em "Entrar"\n2. Selecione "Esqueci minha senha"\n3. Digite seu e-mail\n4. Verifique sua caixa de entrada\n\nAinda com problemas? Use o formulário em **/contato**.'
+    },
 ]
 
-// ─── Busca de profissionais no banco ─────────────────────────────────────────
-
-async function buscarProfissionais(especialidade: string, cidade?: string) {
-    try {
-        const profs = await prisma.usuario.findMany({
-            where: {
-                status: 'ativo',
-                OR: [
-                    { especialidade: { contains: especialidade, mode: 'insensitive' } },
-                    { sobre: { contains: especialidade, mode: 'insensitive' } }
-                ],
-                ...(cidade ? { cidade: { contains: cidade, mode: 'insensitive' } } : {})
-            },
-            select: { nome: true, especialidade: true, cidade: true, avaliacao_media: true },
-            take: 5
-        })
-        return profs
-    } catch {
-        return []
+function gerarRespostaFallback(pergunta: string): string {
+    const p = pergunta.toLowerCase()
+    for (const item of RESPOSTAS_FIXAS) {
+        if (item.palavras.some(palavra => p.includes(palavra))) return item.resposta
     }
+    const faqResult = buscarNoFaq(pergunta)
+    if (faqResult) return `Encontrei isso que pode ajudar:\n\n${faqResult}\n\n---\nTem mais alguma dúvida?`
+    return `Obrigado pela sua pergunta! 🤔\n\nNão encontrei uma resposta específica. Você pode:\n• 📧 Usar o formulário em **/contato**\n• 🔍 Usar a busca do site\n\nPosso ajudar com mais alguma coisa?`
 }
 
-// ─── Detecta se é pedido de busca de profissional ────────────────────────────
-
-function detectarBuscaProfissional(msg: string): { especialidade: string; cidade?: string } | null {
-    const p = msg.toLowerCase()
-    const palavrasBusca = ['preciso de', 'procuro', 'quero contratar', 'busco', 'tem algum', 'encontrar', 'indicar', 'tem pedreiro', 'tem faxineira', 'tem encanador', 'tem eletricista']
-    const ehBusca = palavrasBusca.some(w => p.includes(w))
-    if (!ehBusca) return null
-
-    const match = p.match(/(?:preciso de|procuro|quero contratar|busco|tem algum|encontrar|indicar|tem)\s+(?:um|uma|algum|alguma)?\s*([a-záéíóúâêîôûãõàèìòùç\s]+?)(?:\s+em\s+([a-záéíóúâêîôûãõàèìòùç\s]+))?(?:\.|,|$)/i)
-    if (!match) return null
-
-    return {
-        especialidade: match[1].trim(),
-        cidade: match[2]?.trim()
-    }
+function generateStreamResponse(text: string): Response {
+    const stream = createUIMessageStream({
+        execute: async ({ writer }) => {
+            const words = text.split(' ')
+            for (const word of words) {
+                writer.write({ type: 'text-delta', delta: word + ' ', id: 'fallback' })
+                await new Promise(r => setTimeout(r, 25))
+            }
+        }
+    })
+    return createUIMessageStreamResponse({ stream })
 }
 
 // ─── Handler principal ────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
+    let lastUserMessage = ''
     try {
         const { messages, pagina_atual } = await req.json()
-        const ultimaMensagem = messages?.[messages.length - 1]?.content ?? ''
-        const texto = (typeof ultimaMensagem === 'string' ? ultimaMensagem : '').toLowerCase()
+        const faqData = getFaqContext()
 
-        const encoder = new TextEncoder()
+        // Guarda última mensagem para fallback
+        const lastMsg = messages?.[messages.length - 1]?.content
+        lastUserMessage = typeof lastMsg === 'string' ? lastMsg : ''
 
-        // 1. Tenta Busca de Profissional (Prioridade Máxima e Instantânea)
-        const buscaDetectada = detectarBuscaProfissional(texto)
-        if (buscaDetectada) {
-            const profs = await buscarProfissionais(buscaDetectada.especialidade, buscaDetectada.cidade)
-            let resposta = ''
-            if (profs.length > 0) {
-                const lista = profs.map(p =>
-                    `• **${p.nome}** — ${p.especialidade || 'Serviço'}${p.cidade ? ` (${p.cidade})` : ''}${p.avaliacao_media && Number(p.avaliacao_media) > 0 ? ` ⭐ ${Number(p.avaliacao_media).toFixed(1)}` : ''}`
-                ).join('\n')
-                resposta = `🔍 Encontrei esses profissionais de **${buscaDetectada.especialidade}**:\n\n${lista}\n\n---\nVisite o perfil deles para contratar!`
-            } else {
-                resposta = `😕 Não encontrei profissionais de **${buscaDetectada.especialidade}** ativos agora.`
-            }
-            return streamingResponse(resposta)
-        }
+        const systemPrompt = `Você é o Suporte Humanizado e Amigável da plataforma WhoDo! — um marketplace de serviços que conecta clientes a prestadores qualificados.
+O usuário está navegando na página: ${pagina_atual || 'Página inicial'}.
 
-        // 2. Tenta Respostas Fixas (Instantâneas)
-        for (const item of RESPOSTAS_FIXAS) {
-            if (item.palavras.some(palavra => texto.includes(palavra))) {
-                return streamingResponse(item.resposta)
-            }
-        }
-
-        // 3. IA FALLBACK (Failover: OpenAI -> GitHub -> Gemini)
-        const model = getModel()
-        if (model) {
-            const faqContent = getFaqSections().map(s => `### ${s.titulo}\n${s.conteudo}`).join('\n\n')
-            const systemPrompt = `Você é o Suporte WhoDo! (versão inteligente). Suas respostas são curtas e gentis. 
-Baseie-se nestas informações do FAQ:
-${faqContent}
+CONHECIMENTO (FAQ):
+${faqData}
 
 Regras:
-1. Se o usuário perguntar por um profissional (ex: pedreiro), diga "Posso ajudar a encontrar. De qual cidade você é?".
-2. Nunca invente regras. Se não souber, diga para falar com contato@whodo.com.br.
-3. Use Português do Brasil.`
+1. Responda SEMPRE em Português Brasileiro.
+2. Seja breve, amigável e útil.
+3. Use a ferramenta 'buscarProfissionais' quando o usuário pedir por um serviço ou profissional.
+4. Não divulgue informações técnicas internas.`
 
-            const result = await streamText({
-                model,
-                system: systemPrompt,
-                messages,
-            })
+        type BuscarInput = { especialidade: string; cidade?: string }
+        type BuscarOutput = {
+            resultado?: string
+            profissionais?: Array<{ nome: string; especialidade: string | null; cidade: string | null; avaliacao_media: number | null }>
+        }
 
-            const stream = new ReadableStream({
-                async start(controller) {
-                    for await (const chunk of result.textStream) {
-                        controller.enqueue(encoder.encode(`0:${JSON.stringify(chunk)}\n`))
-                    }
-                    controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`))
-                    controller.close()
+        const buscarSchema = z.object({
+            especialidade: z.string(),
+            cidade: z.string().optional(),
+        })
+
+        const tools = {
+            buscarProfissionais: tool<BuscarInput, BuscarOutput>({
+                description: 'Busca profissionais reais cadastrados no WhoDo!',
+                inputSchema: buscarSchema,
+                execute: async (input: BuscarInput): Promise<BuscarOutput> => {
+                    const profs = await prisma.usuario.findMany({
+                        where: {
+                            status: 'ativo',
+                            OR: [
+                                { especialidade: { contains: input.especialidade, mode: 'insensitive' } },
+                                { sobre: { contains: input.especialidade, mode: 'insensitive' } }
+                            ],
+                            ...(input.cidade ? { cidade: { contains: input.cidade, mode: 'insensitive' } } : {})
+                        },
+                        select: { nome: true, especialidade: true, cidade: true, avaliacao_media: true },
+                        take: 5
+                    })
+                    if (profs.length === 0) return { resultado: 'Nenhum profissional encontrado para essa especialidade.' }
+                    return { profissionais: profs.map(p => ({ ...p, avaliacao_media: p.avaliacao_media?.toNumber() ?? null })) }
                 }
             })
-
-            return new Response(stream, {
-                headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Vercel-AI-Data-Stream': 'v1' }
-            })
         }
 
-        // 4. Último caso: Busca Manual Simples
-        return streamingResponse("Olá! Sou o assistente WhoDo. Como posso ajudar você? Atualmente estou offline para perguntas complexas, mas posso ajudar você a encontrar profissionais se me disser o que precisa.")
+        const modelsToTry: ModelConfig[] = []
+
+        // 1º: Alibaba DashScope — qwen-plus (tier gratuito generoso)
+        if (process.env.DASHSCOPE_API_KEY) {
+            modelsToTry.push({ name: 'Qwen', model: dashscope('qwen-plus') })
+        }
+
+        // 2º: Google Gemini
+        if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+            modelsToTry.push({ name: 'Gemini', model: googleAI('gemini-2.0-flash') })
+        }
+
+        // 3º: GitHub Models
+        if (process.env.DEEPSEEK_API_KEY?.startsWith('github_pat_')) {
+            modelsToTry.push({ name: 'GitHub-GPT', model: githubModels('gpt-4o-mini') })
+        }
+
+        // 4º: OpenAI
+        if (process.env.OPENAI_API_KEY) {
+            const { openai } = await import('@ai-sdk/openai')
+            modelsToTry.push({ name: 'OpenAI', model: openai('gpt-4o-mini') })
+        }
+
+        if (modelsToTry.length === 0) {
+            return generateStreamResponse(gerarRespostaFallback(lastUserMessage))
+        }
+
+        async function runWithFailover(index: number): Promise<Response> {
+            try {
+                const current = modelsToTry[index]
+                console.log(`🤖 Tentando: ${current.name}`)
+
+                const result = streamText({
+                    model: current.model,
+                    system: systemPrompt,
+                    messages,
+                    tools,
+                    stopWhen: stepCountIs(5),
+                })
+
+                return result.toUIMessageStreamResponse()
+
+            } catch (err: any) {
+                console.warn(`⚠️ Erro em ${modelsToTry[index].name}:`, err.message)
+                if (index + 1 < modelsToTry.length) return runWithFailover(index + 1)
+                throw err
+            }
+        }
+
+        return await runWithFailover(0)
 
     } catch (err: any) {
-        console.error("Erro no chat:", err.message)
-        return streamingResponse(`⚠️ Ocorreu um erro técnico: ${err.message}. Tente novamente.`)
+        console.error('❌ Erro final:', err.message)
+        return generateStreamResponse(gerarRespostaFallback(lastUserMessage))
     }
-}
-
-// Auxiliar para resposta em stream manual
-function streamingResponse(text: string) {
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-        async start(controller) {
-            const words = text.split(' ')
-            for (const word of words) {
-                controller.enqueue(encoder.encode(`0:${JSON.stringify(word + ' ')}\n`))
-                await new Promise(r => setTimeout(r, 20))
-            }
-            controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`))
-            controller.close()
-        }
-    })
-    return new Response(stream, {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Vercel-AI-Data-Stream': 'v1', 'Cache-Control': 'no-cache' }
-    })
-}
-
-// Seleção de modelo inteligente (Failover)
-function getModel(): LanguageModel | null {
-    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 5) {
-        return openai('gpt-4o-mini')
-    }
-    if (process.env.DEEPSEEK_API_KEY?.startsWith('github_pat_')) {
-        return githubModels('gpt-4o-mini')
-    }
-    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-        return google('gemini-1.5-flash')
-    }
-    return null
 }

@@ -1,19 +1,23 @@
 'use client'
-import { useState, useEffect, useRef, useCallback } from 'react'
-
-interface Message {
-    id: string
-    role: 'user' | 'assistant'
-    content: string
-}
+import { useState, useEffect, useRef } from 'react'
+import { useChat } from '@ai-sdk/react'
 
 export default function AiSupportWidget() {
     const [isOpen, setIsOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
-    const [messages, setMessages] = useState<Message[]>([])
-    const [input, setInput] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+
+    const { messages, input, handleInputChange, handleSubmit, status } = useChat({
+        api: '/api/suporte/chat',
+        body: {
+            pagina_atual: typeof window !== 'undefined' ? window.location.pathname : '/'
+        },
+        onError: (err) => {
+            console.error('Chat Error:', err)
+        }
+    })
+
+    const isLoading = status === 'streaming' || status === 'submitted'
 
     useEffect(() => { setMounted(true) }, [])
 
@@ -21,69 +25,21 @@ export default function AiSupportWidget() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages])
 
-    const sendMessage = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault()
-        const text = input.trim()
-        if (!text || isLoading) return
-
-        const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text }
-        setMessages(prev => [...prev, userMsg])
-        setInput('')
-        setIsLoading(true)
-
-        const assistantId = (Date.now() + 1).toString()
-        setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }])
-
-        try {
-            const res = await fetch('/api/suporte/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
-                    pagina_atual: window.location.pathname
-                })
-            })
-
-            if (!res.ok || !res.body) throw new Error('Erro na resposta')
-
-            const reader = res.body.getReader()
-            const decoder = new TextDecoder()
-            let buffer = ''
-
-            while (true) {
-                const { done, value } = await reader.read()
-                if (done) break
-
-                buffer += decoder.decode(value, { stream: true })
-                const lines = buffer.split('\n')
-                buffer = lines.pop() ?? ''
-
-                for (const line of lines) {
-                    if (line.startsWith('0:')) {
-                        try {
-                            const chunk = JSON.parse(line.slice(2))
-                            setMessages(prev => prev.map(m =>
-                                m.id === assistantId
-                                    ? { ...m, content: m.content + chunk }
-                                    : m
-                            ))
-                        } catch { /* ignora linhas inválidas */ }
-                    }
-                }
-            }
-        } catch (err) {
-            console.error('Erro no chat:', err)
-            setMessages(prev => prev.map(m =>
-                m.id === assistantId
-                    ? { ...m, content: 'Desculpe, ocorreu um erro. Tente novamente.' }
-                    : m
-            ))
-        } finally {
-            setIsLoading(false)
-        }
-    }, [input, isLoading, messages])
-
     if (!mounted) return null
+
+    // Extrai texto de uma mensagem (suporta v6 UIMessage com parts e formato legado)
+    function getMessageText(m: any): string {
+        if (!m) return ''
+        if (Array.isArray(m.parts)) {
+            const text = m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('')
+            if (text) return text
+        }
+        if (typeof m.content === 'string') return m.content
+        if (Array.isArray(m.content)) {
+            return (m.content as any[]).filter(p => p.type === 'text').map(p => p.text).join('')
+        }
+        return ''
+    }
 
     return (
         <div style={{
@@ -134,34 +90,46 @@ export default function AiSupportWidget() {
                                 <div style={{ fontSize: '12px', marginTop: '4px' }}>Pergunte sobre serviços, cadastro ou como usar a plataforma.</div>
                             </div>
                         )}
-                        {messages.map((m) => (
-                            <div key={m.id} style={{
-                                alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                                maxWidth: '85%',
-                                padding: '10px 14px',
-                                borderRadius: '16px',
-                                fontSize: '13px',
-                                lineHeight: '1.6',
-                                backgroundColor: m.role === 'user' ? '#4f46e5' : 'white',
-                                color: m.role === 'user' ? 'white' : '#1e293b',
-                                border: m.role === 'user' ? 'none' : '1px solid #e2e8f0',
-                                borderTopRightRadius: m.role === 'user' ? '2px' : '16px',
-                                borderTopLeftRadius: m.role === 'user' ? '16px' : '2px',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-word'
-                            }}>
-                                {m.content || (m.role === 'assistant' && isLoading ? '•••' : '')}
+                        {(messages as any[])
+                            .filter((m: any) => m.role === 'user' || m.role === 'assistant')
+                            .map((m: any) => {
+                                const text = getMessageText(m)
+                                if (!text.trim() && m.role !== 'assistant') return null
+                                return (
+                                    <div key={m.id} style={{
+                                        alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                                        maxWidth: '85%',
+                                        padding: '10px 14px',
+                                        borderRadius: '16px',
+                                        fontSize: '13px',
+                                        lineHeight: '1.6',
+                                        backgroundColor: m.role === 'user' ? '#4f46e5' : 'white',
+                                        color: m.role === 'user' ? 'white' : '#1e293b',
+                                        border: m.role === 'user' ? 'none' : '1px solid #e2e8f0',
+                                        borderTopRightRadius: m.role === 'user' ? '2px' : '16px',
+                                        borderTopLeftRadius: m.role === 'user' ? '16px' : '2px',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                        minHeight: '20px'
+                                    }}>
+                                        {text || (isLoading ? '•••' : '')}
+                                    </div>
+                                )
+                            })}
+                        {isLoading && messages.filter((m: any) => m.role === 'assistant').length === 0 && (
+                            <div style={{ alignSelf: 'flex-start', padding: '10px 14px', background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', color: '#6366f1' }}>
+                                •••
                             </div>
-                        ))}
+                        )}
                         <div ref={messagesEndRef} />
                     </div>
 
                     {/* Input Area */}
-                    <form onSubmit={sendMessage} style={{ padding: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px', backgroundColor: 'white' }}>
+                    <form onSubmit={handleSubmit} style={{ padding: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px', backgroundColor: 'white' }}>
                         <input
                             value={input}
-                            onChange={e => setInput(e.target.value)}
+                            onChange={handleInputChange}
                             placeholder="Escreva sua dúvida..."
                             disabled={isLoading}
                             style={{ flex: 1, padding: '10px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '13px' }}
