@@ -1,6 +1,16 @@
+import { createOpenAI, openai } from '@ai-sdk/openai'
+import { google } from '@ai-sdk/google'
+import { streamText, LanguageModel } from 'ai'
 import fs from 'fs'
 import path from 'path'
 import { prisma } from '@/lib/prisma'
+
+// ─── Configurações de IA ──────────────────────────────────────────────────────
+
+const githubModels = createOpenAI({
+    baseURL: 'https://models.inference.ai.azure.com',
+    apiKey: process.env.DEEPSEEK_API_KEY,
+})
 
 // ─── Leitura do FAQ ───────────────────────────────────────────────────────────
 
@@ -22,86 +32,18 @@ function getFaqSections(): Array<{ titulo: string; conteudo: string }> {
     }
 }
 
-// ─── Busca por relevância (sem IA) ───────────────────────────────────────────
-
-function buscarNoFaq(pergunta: string): string {
-    const sections = getFaqSections()
-    if (sections.length === 0) return ''
-
-    const palavras = pergunta.toLowerCase()
-        .replace(/[^\w\sáéíóúâêîôûãõàèìòùç]/g, '')
-        .split(/\s+/)
-        .filter(p => p.length > 2)
-
-    // Pontua cada seção pela quantidade de palavras-chave encontradas
-    const pontuadas = sections.map(s => {
-        const texto = (s.titulo + ' ' + s.conteudo).toLowerCase()
-        const pontos = palavras.reduce((acc, p) => acc + (texto.includes(p) ? 1 : 0), 0)
-        return { ...s, pontos }
-    })
-
-    pontuadas.sort((a, b) => b.pontos - a.pontos)
-    const melhor = pontuadas[0]
-
-    if (melhor.pontos === 0) return ''
-
-    // Retorna até 800 chars da seção mais relevante
-    const conteudo = melhor.conteudo.substring(0, 800)
-    return `**${melhor.titulo}**\n\n${conteudo}`
-}
-
-// ─── Respostas pré-definidas ──────────────────────────────────────────────────
+// ─── Respostas pré-definidas (Kimi Style) ─────────────────────────────────────
 
 const RESPOSTAS_FIXAS: Array<{ palavras: string[]; resposta: string }> = [
     {
-        palavras: ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'hello', 'hi'],
-        resposta: 'Olá! 👋 Bem-vindo ao suporte da **WhoDo!**\n\nSou o assistente virtual e posso ajudar com:\n• 🔍 Encontrar profissionais\n• 📝 Dúvidas sobre cadastro\n• 💰 Informações sobre pagamentos\n• ⚙️ Como usar a plataforma\n\nComo posso ajudar você hoje?'
+        palavras: ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite'],
+        resposta: 'Olá! 👋 Bem-vindo ao suporte da **WhoDo!**\n\nSou o assistente inteligente e posso ajudar com:\n• 🔍 Encontrar profissionais\n• 📝 Dúvidas sobre cadastro e login\n• 💰 Informações sobre pagamentos\n\nComo posso ajudar você hoje?'
     },
     {
-        palavras: ['cadastro', 'cadastrar', 'criar conta', 'registrar', 'registro'],
-        resposta: '📝 **Como se cadastrar na WhoDo!**\n\n1. Clique em **"Cadastrar"** no menu superior\n2. Preencha seus dados (nome, e-mail, senha)\n3. Escolha seu perfil: **Cliente** ou **Prestador de Serviços**\n4. Confirme seu e-mail\n5. Complete seu perfil\n\nO cadastro é **gratuito**! Tem alguma dúvida específica sobre o cadastro?'
-    },
-    {
-        palavras: ['prestador', 'profissional', 'serviço', 'servico', 'contratar', 'encontrar'],
-        resposta: '🔍 **Encontrando profissionais na WhoDo!**\n\nVocê pode:\n• Usar a **busca** no topo da página\n• Filtrar por **categoria** e **cidade**\n• Ver **avaliações** de outros clientes\n• Entrar em contato diretamente pelo chat\n\nQue tipo de serviço você está procurando? Posso ajudar a encontrar!'
-    },
-    {
-        palavras: ['pagamento', 'pagar', 'preço', 'preco', 'valor', 'custo', 'taxa', 'cobrança'],
-        resposta: '💰 **Pagamentos na WhoDo!**\n\nA plataforma é **gratuita para clientes**.\n\nPara prestadores:\n• Plano básico: gratuito com recursos limitados\n• Planos premium disponíveis para mais visibilidade\n\nOs pagamentos entre cliente e prestador são combinados diretamente entre as partes.\n\nTem mais alguma dúvida sobre valores?'
-    },
-    {
-        palavras: ['senha', 'esqueci', 'recuperar', 'redefinir', 'login', 'entrar', 'acessar'],
-        resposta: '🔐 **Problemas com acesso?**\n\n**Esqueceu a senha:**\n1. Clique em "Entrar"\n2. Selecione "Esqueci minha senha"\n3. Digite seu e-mail\n4. Verifique sua caixa de entrada\n\n**Ainda com problemas?** Entre em contato pelo e-mail de suporte ou use o formulário de contato no site.'
-    },
-    {
-        palavras: ['avaliação', 'avaliacao', 'nota', 'estrela', 'review', 'comentário'],
-        resposta: '⭐ **Sistema de Avaliações**\n\nApós contratar um serviço, você pode:\n• Dar uma nota de 1 a 5 estrelas\n• Deixar um comentário sobre a experiência\n• Ajudar outros clientes a escolher melhor\n\nAs avaliações são públicas e ajudam a construir a reputação dos profissionais.'
-    },
-    {
-        palavras: ['mensagem', 'chat', 'conversar', 'contato', 'falar'],
-        resposta: '💬 **Como entrar em contato com um profissional?**\n\n1. Encontre o profissional na busca\n2. Acesse o perfil dele\n3. Clique em **"Enviar Mensagem"** ou **"Solicitar Serviço"**\n4. Descreva o que você precisa\n\nO profissional receberá uma notificação e responderá em breve!'
-    },
+        palavras: ['cadastro', 'cadastrar', 'criar conta', 'registrar'],
+        resposta: '📝 **Cadastro na WhoDo!**\n\nO cadastro é 100% gratuito. Basta clicar em "Cadastrar" no menu superior e escolher se você é um **Cliente** ou um **Prestador**.'
+    }
 ]
-
-function gerarResposta(pergunta: string): string {
-    const p = pergunta.toLowerCase()
-
-    // Verifica respostas fixas primeiro
-    for (const item of RESPOSTAS_FIXAS) {
-        if (item.palavras.some(palavra => p.includes(palavra))) {
-            return item.resposta
-        }
-    }
-
-    // Busca no FAQ
-    const faqResult = buscarNoFaq(pergunta)
-    if (faqResult) {
-        return `Encontrei isso que pode ajudar:\n\n${faqResult}\n\n---\nTem mais alguma dúvida?`
-    }
-
-    // Resposta genérica
-    return `Obrigado pela sua pergunta! 🤔\n\nNão encontrei uma resposta específica para isso no momento. Você pode:\n\n• 📧 Entrar em contato pelo formulário em **/contato**\n• 🔍 Usar a busca do site para encontrar o que precisa\n• 📖 Consultar nossa central de ajuda\n\nPosso ajudar com mais alguma coisa?`
-}
 
 // ─── Busca de profissionais no banco ─────────────────────────────────────────
 
@@ -129,12 +71,11 @@ async function buscarProfissionais(especialidade: string, cidade?: string) {
 
 function detectarBuscaProfissional(msg: string): { especialidade: string; cidade?: string } | null {
     const p = msg.toLowerCase()
-    const palavrasBusca = ['preciso de', 'procuro', 'quero contratar', 'busco', 'tem algum', 'encontrar', 'indicar']
+    const palavrasBusca = ['preciso de', 'procuro', 'quero contratar', 'busco', 'tem algum', 'encontrar', 'indicar', 'tem pedreiro', 'tem faxineira', 'tem encanador', 'tem eletricista']
     const ehBusca = palavrasBusca.some(w => p.includes(w))
     if (!ehBusca) return null
 
-    // Extrai especialidade (palavras após "preciso de", "procuro", etc.)
-    const match = p.match(/(?:preciso de|procuro|quero contratar|busco|tem algum|encontrar|indicar)\s+(?:um|uma|algum|alguma)?\s*([a-záéíóúâêîôûãõàèìòùç\s]+?)(?:\s+em\s+([a-záéíóúâêîôûãõàèìòùç\s]+))?(?:\.|,|$)/i)
+    const match = p.match(/(?:preciso de|procuro|quero contratar|busco|tem algum|encontrar|indicar|tem)\s+(?:um|uma|algum|alguma)?\s*([a-záéíóúâêîôûãõàèìòùç\s]+?)(?:\s+em\s+([a-záéíóúâêîôûãõàèìòùç\s]+))?(?:\.|,|$)/i)
     if (!match) return null
 
     return {
@@ -147,56 +88,107 @@ function detectarBuscaProfissional(msg: string): { especialidade: string; cidade
 
 export async function POST(req: Request) {
     try {
-        const { messages } = await req.json()
+        const { messages, pagina_atual } = await req.json()
         const ultimaMensagem = messages?.[messages.length - 1]?.content ?? ''
-        const texto = typeof ultimaMensagem === 'string' ? ultimaMensagem : ''
+        const texto = (typeof ultimaMensagem === 'string' ? ultimaMensagem : '').toLowerCase()
 
-        // Verifica se é busca de profissional
+        const encoder = new TextEncoder()
+
+        // 1. Tenta Busca de Profissional (Prioridade Máxima e Instantânea)
         const buscaDetectada = detectarBuscaProfissional(texto)
-        let resposta: string
-
         if (buscaDetectada) {
             const profs = await buscarProfissionais(buscaDetectada.especialidade, buscaDetectada.cidade)
+            let resposta = ''
             if (profs.length > 0) {
                 const lista = profs.map(p =>
-                    `• **${p.nome}** — ${p.especialidade ?? 'Profissional'}${p.cidade ? ` (${p.cidade})` : ''}${p.avaliacao_media ? ` ⭐ ${Number(p.avaliacao_media).toFixed(1)}` : ''}`
+                    `• **${p.nome}** — ${p.especialidade || 'Serviço'}${p.cidade ? ` (${p.cidade})` : ''}${p.avaliacao_media && Number(p.avaliacao_media) > 0 ? ` ⭐ ${Number(p.avaliacao_media).toFixed(1)}` : ''}`
                 ).join('\n')
-                resposta = `🔍 Encontrei ${profs.length} profissional(is) para **${buscaDetectada.especialidade}**${buscaDetectada.cidade ? ` em ${buscaDetectada.cidade}` : ''}:\n\n${lista}\n\n---\nClique no perfil de cada um para ver mais detalhes e entrar em contato!`
+                resposta = `🔍 Encontrei esses profissionais de **${buscaDetectada.especialidade}**:\n\n${lista}\n\n---\nVisite o perfil deles para contratar!`
             } else {
-                resposta = `😕 Não encontrei profissionais de **${buscaDetectada.especialidade}**${buscaDetectada.cidade ? ` em ${buscaDetectada.cidade}` : ''} no momento.\n\nTente:\n• Buscar por uma especialidade diferente\n• Ampliar a área de busca\n• Usar a busca avançada em **/buscar**`
+                resposta = `😕 Não encontrei profissionais de **${buscaDetectada.especialidade}** ativos agora.`
             }
-        } else {
-            resposta = gerarResposta(texto)
+            return streamingResponse(resposta)
         }
 
-        // Retorna no formato de stream compatível com useChat do @ai-sdk/react
-        const encoder = new TextEncoder()
-        const readable = new ReadableStream({
-            async start(controller) {
-                // Envia a resposta palavra por palavra para efeito de digitação
-                const words = resposta.split(' ')
-                for (const word of words) {
-                    controller.enqueue(encoder.encode(`0:${JSON.stringify(word + ' ')}\n`))
-                    await new Promise(r => setTimeout(r, 25))
-                }
-                controller.enqueue(encoder.encode(`d:{"finishReason":"stop","usage":{"promptTokens":0,"completionTokens":0}}\n`))
-                controller.close()
+        // 2. Tenta Respostas Fixas (Instantâneas)
+        for (const item of RESPOSTAS_FIXAS) {
+            if (item.palavras.some(palavra => texto.includes(palavra))) {
+                return streamingResponse(item.resposta)
             }
-        })
+        }
 
-        return new Response(readable, {
-            headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-                'X-Vercel-AI-Data-Stream': 'v1',
-                'Cache-Control': 'no-cache',
-            }
-        })
+        // 3. IA FALLBACK (Failover: OpenAI -> GitHub -> Gemini)
+        const model = getModel()
+        if (model) {
+            const faqContent = getFaqSections().map(s => `### ${s.titulo}\n${s.conteudo}`).join('\n\n')
+            const systemPrompt = `Você é o Suporte WhoDo! (versão inteligente). Suas respostas são curtas e gentis. 
+Baseie-se nestas informações do FAQ:
+${faqContent}
+
+Regras:
+1. Se o usuário perguntar por um profissional (ex: pedreiro), diga "Posso ajudar a encontrar. De qual cidade você é?".
+2. Nunca invente regras. Se não souber, diga para falar com contato@whodo.com.br.
+3. Use Português do Brasil.`
+
+            const result = await streamText({
+                model,
+                system: systemPrompt,
+                messages,
+            })
+
+            const stream = new ReadableStream({
+                async start(controller) {
+                    for await (const chunk of result.textStream) {
+                        controller.enqueue(encoder.encode(`0:${JSON.stringify(chunk)}\n`))
+                    }
+                    controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`))
+                    controller.close()
+                }
+            })
+
+            return new Response(stream, {
+                headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Vercel-AI-Data-Stream': 'v1' }
+            })
+        }
+
+        // 4. Último caso: Busca Manual Simples
+        return streamingResponse("Olá! Sou o assistente WhoDo. Como posso ajudar você? Atualmente estou offline para perguntas complexas, mas posso ajudar você a encontrar profissionais se me disser o que precisa.")
 
     } catch (err: any) {
-        console.error("❌ Erro no suporte:", err.message)
-        return new Response(
-            JSON.stringify({ error: "Serviço temporariamente indisponível." }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
-        )
+        console.error("Erro no chat:", err.message)
+        return streamingResponse(`⚠️ Ocorreu um erro técnico: ${err.message}. Tente novamente.`)
     }
+}
+
+// Auxiliar para resposta em stream manual
+function streamingResponse(text: string) {
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+        async start(controller) {
+            const words = text.split(' ')
+            for (const word of words) {
+                controller.enqueue(encoder.encode(`0:${JSON.stringify(word + ' ')}\n`))
+                await new Promise(r => setTimeout(r, 20))
+            }
+            controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`))
+            controller.close()
+        }
+    })
+    return new Response(stream, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Vercel-AI-Data-Stream': 'v1', 'Cache-Control': 'no-cache' }
+    })
+}
+
+// Seleção de modelo inteligente (Failover)
+function getModel(): LanguageModel | null {
+    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 5) {
+        return openai('gpt-4o-mini')
+    }
+    if (process.env.DEEPSEEK_API_KEY?.startsWith('github_pat_')) {
+        return githubModels('gpt-4o-mini')
+    }
+    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+        return google('gemini-1.5-flash')
+    }
+    return null
 }
