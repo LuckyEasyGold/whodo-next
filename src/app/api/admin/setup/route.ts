@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Senha já definida. Use a recuperação de senha se precisar alterar.' }, { status: 400 })
         }
 
-        const hash = await bcrypt.hash(senha, 12)
+        const hash = await bcrypt.hash(senha, 10)
 
         await prisma.usuario.update({
             where: { id: dbUser.id },
