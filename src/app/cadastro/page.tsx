@@ -15,12 +15,8 @@ export default function CadastroPage() {
                 <div className="w-full max-w-md">
                     {/* Logo & Header */}
                     <div className="text-center mb-8 flex flex-col items-center">
-                        <Link href="/" className="mb-6 block hover:opacity-90 transition-transform hover:scale-105">
-                            <div className="bg-white p-3 rounded-2xl shadow-lg">
-                                <img src="/logo.png" alt="WhoDo! Logo" className="h-10 w-auto object-contain mx-auto" />
-                            </div>
-                        </Link>
-                        <h1 className="text-2xl font-extrabold text-white">Criar conta no WhoDo!</h1>
+                        
+                        <h1 className="text-2xl font-extrabold text-white">Crie sua conta no WhoDo!</h1>
                         <p className="text-indigo-200 mt-2 font-medium">Whodo — Quem precisa encontra. Quem faz escolhe.</p>
                     </div>
 

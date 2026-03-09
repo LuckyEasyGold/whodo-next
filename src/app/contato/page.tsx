@@ -15,12 +15,12 @@ export default function ContatoPage() {
                         <div className="bg-white rounded-2xl border border-slate-100 p-6">
                             <p className="text-2xl mb-3">✉️</p>
                             <h2 className="font-bold text-slate-900 mb-1">E-mail</h2>
-                            <a href="mailto:ajuda@whodo.com.br" className="text-indigo-600 hover:underline text-sm">ajuda@whodo.com.br</a>
+                            <a href="mailto:viniciusribramos@gmail.com" className="text-indigo-600 hover:underline text-sm">ajuda@whodo.com.br</a>
                         </div>
                         <div className="bg-white rounded-2xl border border-slate-100 p-6">
                             <p className="text-2xl mb-3">📱</p>
                             <h2 className="font-bold text-slate-900 mb-1">WhatsApp</h2>
-                            <p className="text-slate-500 text-sm">(43) 99999-0000</p>
+                            <p className="text-slate-500 text-sm">(42) 99153-2962</p>
                         </div>
                     </div>
                 </div>

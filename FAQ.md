@@ -34,10 +34,16 @@ Após explorar a plataforma WhoDo! (um marketplace de serviços que conecta clie
         {Quando um profissional ou até mesmo um cliente efetuam um contrato dentro da plataforma isso prova que são "reais" e nao perfil só para enxer o cadastro ou só curioso, isso ajuda a quem vai contratar ou ser contratado a tomar decisão com quem vai negocial.}
     }
     {Como filtro profissionais por preço?
-        
-    Posso ver o portfólio do profissional antes de contratar?
-    Qual a diferença entre "Preço Fixo" e "Sob Orçamento"?
-    Como solicito um orçamento?
+        {Na página de pesquisa, há um filtro,do lado esquerdo, só definir um valor máximo. Se for na versão  mobile o botão estará acima da lista dos profissionais, ao selecionar ele vai se exapnadir monstrando as opções de filtro.}    
+    }
+    {Posso ver o portfólio do profissional antes de contratar?
+        {sim, ao entrar no perfil do profissional, terá todo seu portifólio disponivel para consulta.}
+    }
+    {Qual a diferença entre "Preço Fixo" e "Sob Orçamento"?
+        {Alguns serviço, com por exemplo manicure,ja dá para definir um valor pra contratação, já serviços que dependem de uma visita no local para entender oque será feito, o preço precisa ser conbinado entre as partes.}
+    }    
+    {Como solicito um orçamento?
+        {Diretamente no perfil do profissional, no botão contratar}
     Posso negociar o valor do serviço?
     Como sei se o profissional está disponível na data que preciso?
 }
