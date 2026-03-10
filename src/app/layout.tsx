@@ -3,7 +3,7 @@ import "./globals.css";
 import AiSupportWidget from "@/components/AiSupportWidget";
 
 export const metadata: Metadata = {
-  title: "whodo! — Encontre profissionais perto de você",
+  title: "WhoDo! — Encontre profissionais perto de você",
   description: "Marketplace de serviços que conecta clientes a prestadores qualificados. Encanador, eletricista, pintor, diarista e muito mais.",
   keywords: "serviços, profissionais, encanador, eletricista, pintor, diarista, WhoDo",
 };
