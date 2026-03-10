@@ -62,7 +62,7 @@ export default async function Home() {
             </main>
 
             <footer className="bg-gray-100 py-6 text-center text-gray-500 text-sm">
-                &copy; {new Date().getFullYear()} WhoDo! Marketplace. Todos os direitos reservados.
+                &copy; {new Date().getFullYear()} WhoDo! Service Place. Todos os direitos reservados.
             </footer>
         </div>
     );
