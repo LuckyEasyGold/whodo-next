@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { logSecurityEvent } from '@/lib/security-logger';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     // BLOQUEIO DE EMERGÊNCIA - Remove header de ataque antes de processar
     const headers = new Headers(request.headers);
 
