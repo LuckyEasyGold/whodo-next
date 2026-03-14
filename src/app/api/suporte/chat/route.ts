@@ -8,13 +8,18 @@ import path from 'path'
 
 // ─── Provedores ───────────────────────────────────────────────────────────────
 
-// Alibaba DashScope — compatível com OpenAI API (qwen-plus tem tier gratuito)
+// OpenAI (Principal)
+const openaiProvider = createOpenAI({
+    apiKey: process.env.OPENAI_API_KEY ?? 'placeholder',
+})
+
+// Alibaba DashScope — compatível com OpenAI API
 const dashscope = createOpenAI({
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     apiKey: process.env.DASHSCOPE_API_KEY ?? 'placeholder',
 })
 
-// GitHub Models (gratuito com github_pat_)
+// GitHub Models
 const githubModels = createOpenAI({
     baseURL: 'https://models.inference.ai.azure.com',
     apiKey: process.env.DEEPSEEK_API_KEY ?? 'placeholder',
@@ -143,11 +148,15 @@ O usuário está navegando na página: ${pagina_atual || 'Página inicial'}.
 CONHECIMENTO (FAQ):
 ${faqData}
 
-Regras:
-1. Responda SEMPRE em Português Brasileiro.
-2. Seja breve, amigável e útil.
-3. Use a ferramenta 'buscarProfissionais' quando o usuário pedir por um serviço ou profissional.
-4. Não divulgue informações técnicas internas.`
+DIRETRIZES DE CONTRATAÇÃO:
+1. Para contratar, o usuário deve: 
+   a) Buscar o profissional (use a ferramenta 'buscarProfissionais').
+   b) Acessar o perfil do profissional.
+   c) Clicar no botão 'Contratar' para iniciar uma solicitação ou 'Mensagem' para tirar dúvidas.
+2. Explique a diferença entre 'Preço Fixo' e 'Sob Orçamento' se necessário.
+3. Responda SEMPRE em Português Brasileiro.
+4. Seja breve, amigável e útil.
+5. Não divulgue informações técnicas internas.`
 
         type BuscarInput = { especialidade: string; cidade?: string }
         type BuscarOutput = {
@@ -185,25 +194,24 @@ Regras:
 
         const modelsToTry: ModelConfig[] = []
 
-        // 1º: Alibaba DashScope — qwen-plus (tier gratuito generoso)
-        if (process.env.DASHSCOPE_API_KEY) {
-            modelsToTry.push({ name: 'Qwen', model: dashscope('qwen-plus') })
+        // 1º: OpenAI (Prioridade do Usuário)
+        if (process.env.OPENAI_API_KEY) {
+            modelsToTry.push({ name: 'OpenAI', model: openaiProvider('gpt-4o-mini') })
         }
 
-        // 2º: Google Gemini
+        // 2º: Google Gemini (Fallback 1)
         if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
             modelsToTry.push({ name: 'Gemini', model: googleAI('gemini-2.0-flash') })
         }
 
-        // 3º: GitHub Models
-        if (process.env.DEEPSEEK_API_KEY?.startsWith('github_pat_')) {
-            modelsToTry.push({ name: 'GitHub-GPT', model: githubModels('gpt-4o-mini') })
+        // 3º: Alibaba DashScope (Fallback 2)
+        if (process.env.DASHSCOPE_API_KEY) {
+            modelsToTry.push({ name: 'Qwen', model: dashscope('qwen-plus') })
         }
 
-        // 4º: OpenAI
-        if (process.env.OPENAI_API_KEY) {
-            const { openai } = await import('@ai-sdk/openai')
-            modelsToTry.push({ name: 'OpenAI', model: openai('gpt-4o-mini') })
+        // 4º: GitHub Models (Fallback 3)
+        if (process.env.DEEPSEEK_API_KEY?.startsWith('github_pat_')) {
+            modelsToTry.push({ name: 'GitHub-GPT', model: githubModels('gpt-4o-mini') })
         }
 
         if (modelsToTry.length === 0) {
