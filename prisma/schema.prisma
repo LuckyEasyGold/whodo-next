@@ -8,115 +8,100 @@ datasource db {
 }
 
 model Usuario {
-  id                Int       @id @default(autoincrement())
-  nome              String    @db.VarChar(100)
-  nome_fantasia     String?   @db.VarChar(100)
-  email             String    @unique @db.VarChar(100)
-  senha             String?   @db.VarChar(255) // Optional for future social logins
-  telefone          String?   @db.VarChar(20)  // Used for WhatsApp too
-  documento         String?   @unique @db.VarChar(20) // CPF or CNPJ
-  tipo              String    @default("usuario") @db.VarChar(20) // Keep as "usuario" or "admin" in the future
-  foto_perfil       String?   @db.VarChar(255)
-  
-  // Professional / Profile fields
-  especialidade     String?   @db.VarChar(255)
-  sobre             String?   @db.Text
-  avaliacao_media   Decimal   @default(0) @db.Decimal(3, 2)
-  verificado        Boolean   @default(false)
-  disponibilidade   String?   @db.VarChar(255)
-  
-  // Locations
-  endereco          String?   @db.VarChar(255)
-  cidade            String?   @db.VarChar(100)
-  estado            String?   @db.VarChar(2)
-  cep               String?   @db.VarChar(10)
-  latitude          Decimal?  @db.Decimal(10, 8)
-  longitude         Decimal?  @db.Decimal(11, 8)
-  
-  // Socials / Web
-  website           String?   @db.VarChar(255)
-  linkedin          String?   @db.VarChar(255)
-  facebook          String?   @db.VarChar(255)
-  instagram         String?   @db.VarChar(255)
-  youtube           String?   @db.VarChar(255)
-  tiktok            String?   @db.VarChar(255)
-  kwai              String?   @db.VarChar(255)
-  perfil_academico  String?   @db.VarChar(255)
-
-  // System status
-  status            String    @default("ativo") @db.VarChar(20)
-  email_verificado  Boolean   @default(false)
-  token_verificacao String?   @db.VarChar(255)
-  
-  // Password Recovery / NextAuth
-  emailVerified     DateTime?
-  reset_token       String?   @db.VarChar(255)
-  reset_token_expires DateTime?
-
-  patrocinador_id   Int?
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
-
-  accounts          Account[]
-  sessions          Session[]
-
-  patrocinador      Usuario?  @relation("Patrocinador", fields: [patrocinador_id], references: [id])
-  patrocinados      Usuario[] @relation("Patrocinador")
-
-  portfolio         PortfolioMedia[]
-  portfolioAlbuns   PortfolioAlbum[]
-  servicos          Servico[]
-  avaliacoesFeitas  Avaliacao[] @relation("AvaliacaoCliente")
-  avaliacoesRecebidas Avaliacao[] @relation("AvaliacaoPrestador")
-  notificacoes      Notificacao[]
-  mensagensEnviadas Mensagem[] @relation("MensagemRemetente")
-  mensagensRecebidas Mensagem[] @relation("MensagemDestinatario")
-  
-  solicitacoesEnviadas  Solicitacao[] @relation("SolicitacaoCliente")
-  solicitacoesRecebidas Solicitacao[] @relation("SolicitacaoPrestador")
-  orcamentosEnviados    Orcamento[]   @relation("OrcamentoPrestador")
-  
-  agendamentosCliente   Agendamento[] @relation("AgendamentoCliente")
-  agendamentosPrestador Agendamento[] @relation("AgendamentoPrestador")
+  id                    Int                   @id @default(autoincrement())
+  nome                  String                @db.VarChar(100)
+  nome_fantasia         String?               @db.VarChar(100)
+  email                 String                @unique @db.VarChar(100)
+  senha                 String?               @db.VarChar(255)
+  telefone              String?               @db.VarChar(20)
+  documento             String?               @unique @db.VarChar(20)
+  tipo                  String                @default("usuario") @db.VarChar(20)
+  foto_perfil           String?               @db.VarChar(255)
+  especialidade         String?               @db.VarChar(255)
+  sobre                 String?
+  avaliacao_media       Decimal               @default(0) @db.Decimal(3, 2)
+  verificado            Boolean               @default(false)
+  disponibilidade       String?               @db.VarChar(255)
+  endereco              String?               @db.VarChar(255)
+  cidade                String?               @db.VarChar(100)
+  estado                String?               @db.VarChar(2)
+  cep                   String?               @db.VarChar(10)
+  latitude              Decimal?              @db.Decimal(10, 8)
+  longitude             Decimal?              @db.Decimal(11, 8)
+  website               String?               @db.VarChar(255)
+  linkedin              String?               @db.VarChar(255)
+  facebook              String?               @db.VarChar(255)
+  instagram             String?               @db.VarChar(255)
+  youtube               String?               @db.VarChar(255)
+  tiktok                String?               @db.VarChar(255)
+  kwai                  String?               @db.VarChar(255)
+  perfil_academico      String?               @db.VarChar(255)
+  status                String                @default("ativo") @db.VarChar(20)
+  email_verificado      Boolean               @default(false)
+  token_verificacao     String?               @db.VarChar(255)
+  patrocinador_id       Int?
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @updatedAt
+  emailVerified         DateTime?
+  reset_token           String?               @db.VarChar(255)
+  reset_token_expires   DateTime?
+  accounts              Account[]
+  agendamentosCliente   Agendamento[]         @relation("AgendamentoCliente")
+  agendamentosPrestador Agendamento[]         @relation("AgendamentoPrestador")
+  avaliacoesFeitas      Avaliacao[]           @relation("AvaliacaoCliente")
+  avaliacoesRecebidas   Avaliacao[]           @relation("AvaliacaoPrestador")
   carteira              Carteira?
   dadosBancarios        DadosBancarios?
-
-  seguindo             Seguidor[]            @relation("SeguindoUsuario")
-  seguidores           Seguidor[]            @relation("SeguidoresUsuario")
-  comentariosPortfolio PortfolioComentario[] @relation("UsuarioComentarios")
+  mensagensRecebidas    Mensagem[]            @relation("MensagemDestinatario")
+  mensagensEnviadas     Mensagem[]            @relation("MensagemRemetente")
+  notificacoes          Notificacao[]
+  orcamentosEnviados    Orcamento[]           @relation("OrcamentoPrestador")
+  portfolioAlbuns       PortfolioAlbum[]
+  comentariosPortfolio  PortfolioComentario[] @relation("UsuarioComentarios")
+  portfolio             PortfolioMedia[]
+  seguidores            Seguidor[]            @relation("SeguidoresUsuario")
+  seguindo              Seguidor[]            @relation("SeguindoUsuario")
+  postagens             Postagem[]            @relation("PostagemAutor")
+  curtidas              PostagemCurtida[]
+  comentariosPostagem   PostagemComentario[]
+  compartilhamentos     PostagemCompartilhamento[]
+  servicos              Servico[]
+  sessions              Session[]
+  solicitacoesEnviadas  Solicitacao[]         @relation("SolicitacaoCliente")
+  solicitacoesRecebidas Solicitacao[]         @relation("SolicitacaoPrestador")
+  patrocinador          Usuario?              @relation("Patrocinador", fields: [patrocinador_id], references: [id])
+  patrocinados          Usuario[]             @relation("Patrocinador")
 
   @@map("usuarios")
 }
 
 model PortfolioMedia {
-  id               Int      @id @default(autoincrement())
-  usuario_id       Int
-  album_id         Int?
-  url              String   @db.VarChar(255)
-  tipo             String   @default("imagem") @db.VarChar(20) // 'imagem', 'video' ou 'documento'
-  titulo           String?  @db.VarChar(255)
-  descricao        String?  @db.Text
-  citacao          String?  @db.Text
-  created_at       DateTime @default(now())
-
-  usuario          Usuario         @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
-  album            PortfolioAlbum? @relation(fields: [album_id], references: [id], onDelete: SetNull)
-  comentarios      PortfolioComentario[] @relation("MediaComentarios")
+  id          Int                   @id @default(autoincrement())
+  usuario_id  Int
+  album_id    Int?
+  url         String                @db.VarChar(255)
+  tipo        String                @default("imagem") @db.VarChar(20)
+  titulo      String?               @db.VarChar(255)
+  descricao   String?
+  citacao     String?
+  created_at  DateTime              @default(now())
+  comentarios PortfolioComentario[] @relation("MediaComentarios")
+  album       PortfolioAlbum?       @relation(fields: [album_id], references: [id])
+  usuario     Usuario               @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@map("portfolio_media")
 }
 
 model PortfolioAlbum {
-  id          Int      @id @default(autoincrement())
-  usuario_id  Int
-  nome        String   @db.VarChar(255)
-  descricao   String?  @db.Text
-  capa_url    String?  @db.VarChar(255)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  usuario  Usuario          @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
-  medias   PortfolioMedia[]
+  id         Int              @id @default(autoincrement())
+  usuario_id Int
+  nome       String           @db.VarChar(255)
+  descricao  String?
+  capa_url   String?          @db.VarChar(255)
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  usuario    Usuario          @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  medias     PortfolioMedia[]
 
   @@map("portfolio_albums")
 }
@@ -124,7 +109,7 @@ model PortfolioAlbum {
 model Categoria {
   id        Int       @id @default(autoincrement())
   nome      String    @db.VarChar(100)
-  descricao String?   @db.Text
+  descricao String?
   icone     String?   @db.VarChar(50)
   imagem    String?   @db.VarChar(255)
   servicos  Servico[]
@@ -133,217 +118,202 @@ model Categoria {
 }
 
 model Servico {
-  id             Int      @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   usuario_id     Int
   categoria_id   Int
-  titulo         String   @db.VarChar(255)
-  descricao      String?  @db.Text
-  preco_base     Decimal  @default(0) @db.Decimal(10, 2)
-  unidade_medida String?  @db.VarChar(50)
-  cobranca_tipo  String   @default("FIXO") @db.VarChar(20) // FIXO, ORCAMENTO, A_COMBINAR
-  tempo_estimado String?  @db.VarChar(50)
-  destaque       Boolean  @default(false)
-  status         String   @default("ativo") @db.VarChar(20)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-
-  usuario        Usuario   @relation(fields: [usuario_id], references: [id])
-  categoria      Categoria @relation(fields: [categoria_id], references: [id])
-  avaliacoes     Avaliacao[]
-  solicitacoes   Solicitacao[]
+  titulo         String        @db.VarChar(255)
+  descricao      String?
+  preco_base     Decimal       @default(0) @db.Decimal(10, 2)
+  unidade_medida String?       @db.VarChar(50)
+  destaque       Boolean       @default(false)
+  status         String        @default("ativo") @db.VarChar(20)
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+  cobranca_tipo  String        @default("FIXO") @db.VarChar(20)
+  tempo_estimado String?       @db.VarChar(50)
   agendamentos   Agendamento[]
+  avaliacoes     Avaliacao[]
+  categoria      Categoria     @relation(fields: [categoria_id], references: [id])
+  usuario        Usuario       @relation(fields: [usuario_id], references: [id])
+  solicitacoes   Solicitacao[]
 
   @@map("servicos")
 }
 
 model Avaliacao {
-  id               Int      @id @default(autoincrement())
-  cliente_id       Int
-  prestador_id     Int
-  servico_id       Int
-  agendamento_id   Int?
-  nota             Decimal  @db.Decimal(2, 1)
-  comentario       String?  @db.Text
-  resposta_prestador String? @db.Text
-  data_avaliacao   DateTime @default(now())
-
-  cliente          Usuario  @relation("AvaliacaoCliente", fields: [cliente_id], references: [id])
-  prestador        Usuario  @relation("AvaliacaoPrestador", fields: [prestador_id], references: [id])
-  servico          Servico  @relation(fields: [servico_id], references: [id])
+  id                 Int      @id @default(autoincrement())
+  cliente_id         Int
+  prestador_id       Int
+  servico_id         Int
+  agendamento_id     Int?
+  nota               Decimal  @db.Decimal(2, 1)
+  comentario         String?
+  resposta_prestador String?
+  data_avaliacao     DateTime @default(now())
+  cliente            Usuario  @relation("AvaliacaoCliente", fields: [cliente_id], references: [id])
+  prestador          Usuario  @relation("AvaliacaoPrestador", fields: [prestador_id], references: [id])
+  servico            Servico  @relation(fields: [servico_id], references: [id])
 
   @@map("avaliacoes")
 }
 
 model Solicitacao {
-  id           Int       @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   cliente_id   Int
   servico_id   Int?
-  prestador_id Int?      // Novo campo para permitir chat direto sem serviço
-  descricao    String?   @db.Text
-  status       String    @default("pendente") @db.VarChar(30)
-  created_at   DateTime  @default(now())
-
-  cliente      Usuario   @relation("SolicitacaoCliente", fields: [cliente_id], references: [id])
-  prestador    Usuario?  @relation("SolicitacaoPrestador", fields: [prestador_id], references: [id])
-  servico      Servico?  @relation(fields: [servico_id], references: [id])
+  descricao    String?
+  status       String      @default("pendente") @db.VarChar(30)
+  created_at   DateTime    @default(now())
+  prestador_id Int?
+  mensagens    Mensagem[]
   orcamentos   Orcamento[]
-  mensagens   Mensagem[]
+  cliente      Usuario     @relation("SolicitacaoCliente", fields: [cliente_id], references: [id])
+  prestador    Usuario?    @relation("SolicitacaoPrestador", fields: [prestador_id], references: [id])
+  servico      Servico?    @relation(fields: [servico_id], references: [id])
 
   @@map("solicitacoes")
 }
 
 model Orcamento {
-  id              Int      @id @default(autoincrement())
-  solicitacao_id  Int
-  prestador_id    Int
-  valor           Decimal  @db.Decimal(10, 2)
-  descricao       String?  @db.Text
-  prazo_estimado  String?  @db.VarChar(50)
-  status          String   @default("enviado") @db.VarChar(30)
-  created_at      DateTime @default(now())
-
-  solicitacao     Solicitacao @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
-  prestador       Usuario     @relation("OrcamentoPrestador", fields: [prestador_id], references: [id])
+  id             Int         @id @default(autoincrement())
+  solicitacao_id Int
+  prestador_id   Int
+  valor          Decimal     @db.Decimal(10, 2)
+  descricao      String?
+  prazo_estimado String?     @db.VarChar(50)
+  status         String      @default("enviado") @db.VarChar(30)
+  created_at     DateTime    @default(now())
+  prestador      Usuario     @relation("OrcamentoPrestador", fields: [prestador_id], references: [id])
+  solicitacao    Solicitacao @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
 
   @@map("orcamentos")
 }
 
 model Mensagem {
-  id               Int      @id @default(autoincrement())
-  remetente_id     Int
-  destinatario_id  Int
-  solicitacao_id   Int?
-  conteudo         String   @db.Text
-  lida             Boolean  @default(false)
-  created_at       DateTime @default(now())
-
-  remetente        Usuario     @relation("MensagemRemetente", fields: [remetente_id], references: [id])
-  destinatario     Usuario     @relation("MensagemDestinatario", fields: [destinatario_id], references: [id])
-  solicitacao      Solicitacao? @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
+  id              Int          @id @default(autoincrement())
+  remetente_id    Int
+  destinatario_id Int
+  conteudo        String
+  lida            Boolean      @default(false)
+  created_at      DateTime     @default(now())
+  solicitacao_id  Int?
+  destinatario    Usuario      @relation("MensagemDestinatario", fields: [destinatario_id], references: [id])
+  remetente       Usuario      @relation("MensagemRemetente", fields: [remetente_id], references: [id])
+  solicitacao     Solicitacao? @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
 
   @@map("mensagens")
 }
 
 model Notificacao {
-  id          Int      @id @default(autoincrement())
-  usuario_id  Int
-  tipo        String   @db.VarChar(50)
-  titulo      String   @db.VarChar(255)
-  mensagem    String?  @db.Text
-  lida        Boolean  @default(false)
-  link        String?  @db.VarChar(255)
-  created_at  DateTime @default(now())
-
-  usuario     Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  usuario_id Int
+  tipo       String   @db.VarChar(50)
+  titulo     String   @db.VarChar(255)
+  mensagem   String?
+  lida       Boolean  @default(false)
+  link       String?  @db.VarChar(255)
+  created_at DateTime @default(now())
+  usuario    Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@map("notificacoes")
 }
 
 model Agendamento {
-  id                  Int      @id @default(autoincrement())
+  id                  Int         @id @default(autoincrement())
   cliente_id          Int
   prestador_id        Int
   servico_id          Int
   solicitacao_id      Int?
-  status              String   @default("pendente") @db.VarChar(30) // pendente, confirmado, cancelado, concluido
+  status              String      @default("pendente") @db.VarChar(30)
   data_agendamento    DateTime
   data_conclusao      DateTime?
-  descricao           String?  @db.Text
-  endereco_servico    String?  @db.VarChar(255)
-  valor_total         Decimal  @db.Decimal(10, 2)
-  valor_pago          Boolean  @default(false)
-  avaliacao_feita     Boolean  @default(false)
-  motivo_cancelamento String?  @db.Text
-  created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
-
-  cliente             Usuario      @relation("AgendamentoCliente", fields: [cliente_id], references: [id])
-  prestador           Usuario      @relation("AgendamentoPrestador", fields: [prestador_id], references: [id])
-  servico             Servico      @relation(fields: [servico_id], references: [id])
+  descricao           String?
+  endereco_servico    String?     @db.VarChar(255)
+  valor_total         Decimal     @db.Decimal(10, 2)
+  valor_pago          Boolean     @default(false)
+  avaliacao_feita     Boolean     @default(false)
+  motivo_cancelamento String?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+  cliente             Usuario     @relation("AgendamentoCliente", fields: [cliente_id], references: [id])
+  prestador           Usuario     @relation("AgendamentoPrestador", fields: [prestador_id], references: [id])
+  servico             Servico     @relation(fields: [servico_id], references: [id])
   transacoes          Transacao[]
 
   @@map("agendamentos")
 }
 
 model Carteira {
-  id                Int      @id @default(autoincrement())
-  usuario_id        Int      @unique
-  saldo              Decimal  @default(0) @db.Decimal(12, 2)
-  saldo_pendente     Decimal  @default(0) @db.Decimal(12, 2) // Earned by not yet settled
-  total_ganho        Decimal  @default(0) @db.Decimal(12, 2)
-  total_gasto        Decimal  @default(0) @db.Decimal(12, 2)
-  updated_at         DateTime @updatedAt
-  created_at         DateTime @default(now())
-
-  usuario            Usuario        @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
-  transacoes         Transacao[]
+  id             Int         @id @default(autoincrement())
+  usuario_id     Int         @unique
+  saldo          Decimal     @default(0) @db.Decimal(12, 2)
+  saldo_pendente Decimal     @default(0) @db.Decimal(12, 2)
+  total_ganho    Decimal     @default(0) @db.Decimal(12, 2)
+  total_gasto    Decimal     @default(0) @db.Decimal(12, 2)
+  updated_at     DateTime    @updatedAt
+  created_at     DateTime    @default(now())
+  usuario        Usuario     @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  transacoes     Transacao[]
 
   @@map("carteiras")
 }
 
 model Transacao {
-  id                  Int      @id @default(autoincrement())
-  carteira_id         Int
-  agendamento_id      Int?
-  tipo                String   @db.VarChar(30) // deposito, saque, pagamento, recebimento
-  valor               Decimal  @db.Decimal(12, 2)
-  status              String   @default("pendente") @db.VarChar(30) // pendente, concluido, falhado
-  data_solicitacao    DateTime @default(now())
-  data_processamento  DateTime?
-  descricao           String?  @db.Text
-  chave_pix           String?  @db.VarChar(255)
-  banco_agencia       String?  @db.VarChar(50)
-  banco_conta         String?  @db.VarChar(50)
-  tipo_conta          String?  @db.VarChar(30) // corrente, poupanca
-  metodo_pagamento    String?  @db.VarChar(30) // pix, transferencia, cartao
-  comprovante_url     String?  @db.VarChar(255)
-  updated_at          DateTime @updatedAt
-
-  carteira            Carteira    @relation(fields: [carteira_id], references: [id], onDelete: Cascade)
-  agendamento         Agendamento? @relation(fields: [agendamento_id], references: [id], onDelete: SetNull)
+  id                 Int          @id @default(autoincrement())
+  carteira_id        Int
+  agendamento_id     Int?
+  tipo               String       @db.VarChar(30)
+  valor              Decimal      @db.Decimal(12, 2)
+  status             String       @default("pendente") @db.VarChar(30)
+  data_solicitacao   DateTime     @default(now())
+  data_processamento DateTime?
+  descricao          String?
+  chave_pix          String?      @db.VarChar(255)
+  banco_agencia      String?      @db.VarChar(50)
+  banco_conta        String?      @db.VarChar(50)
+  tipo_conta         String?      @db.VarChar(30)
+  metodo_pagamento   String?      @db.VarChar(30)
+  comprovante_url    String?      @db.VarChar(255)
+  updated_at         DateTime     @updatedAt
+  agendamento        Agendamento? @relation(fields: [agendamento_id], references: [id])
+  carteira           Carteira     @relation(fields: [carteira_id], references: [id], onDelete: Cascade)
 
   @@map("transacoes")
 }
 
 model DadosBancarios {
-  id                  Int      @id @default(autoincrement())
-  usuario_id          Int      @unique
-  chave_pix           String?  @db.VarChar(255)
-  banco_nome          String?  @db.VarChar(100)
-  banco_codigo        String?  @db.VarChar(10)
-  agencia             String?  @db.VarChar(20)
-  conta               String?  @db.VarChar(20)
-  tipo_conta          String?  @db.VarChar(30) // corrente, poupanca
-  titular_nome        String?  @db.VarChar(255)
-  cpf_cnpj            String?  @db.VarChar(20)
-  verificado          Boolean  @default(false)
-  updated_at          DateTime @updatedAt
-  created_at          DateTime @default(now())
-
-  usuario             Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  id           Int      @id @default(autoincrement())
+  usuario_id   Int      @unique
+  chave_pix    String?  @db.VarChar(255)
+  banco_nome   String?  @db.VarChar(100)
+  banco_codigo String?  @db.VarChar(10)
+  agencia      String?  @db.VarChar(20)
+  conta        String?  @db.VarChar(20)
+  tipo_conta   String?  @db.VarChar(30)
+  titular_nome String?  @db.VarChar(255)
+  cpf_cnpj     String?  @db.VarChar(20)
+  verificado   Boolean  @default(false)
+  updated_at   DateTime @updatedAt
+  created_at   DateTime @default(now())
+  usuario      Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@map("dados_bancarios")
 }
 
-// ==========================================
-// NextAuth / Auth.js Models
-// ==========================================
-
 model Account {
-  id                 String  @id @default(cuid())
-  userId             Int
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
-
-  user Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -368,33 +338,80 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// ==========================================
-// Social Features Models
-// ==========================================
-
 model Seguidor {
-  id               Int      @id @default(autoincrement())
-  seguidor_id      Int
-  seguido_id       Int
-  created_at       DateTime @default(now())
-
-  seguidor         Usuario  @relation("SeguindoUsuario", fields: [seguidor_id], references: [id], onDelete: Cascade)
-  seguido          Usuario  @relation("SeguidoresUsuario", fields: [seguido_id], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  seguidor_id Int
+  seguido_id  Int
+  created_at  DateTime @default(now())
+  seguido     Usuario  @relation("SeguidoresUsuario", fields: [seguido_id], references: [id], onDelete: Cascade)
+  seguidor    Usuario  @relation("SeguindoUsuario", fields: [seguidor_id], references: [id], onDelete: Cascade)
 
   @@unique([seguidor_id, seguido_id])
   @@map("seguidores")
 }
 
 model PortfolioComentario {
-  id               Int      @id @default(autoincrement())
-  texto            String   @db.Text
-  usuario_id       Int
-  media_id         Int
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  usuario          Usuario        @relation("UsuarioComentarios", fields: [usuario_id], references: [id], onDelete: Cascade)
-  media            PortfolioMedia @relation("MediaComentarios", fields: [media_id], references: [id], onDelete: Cascade)
+  id         Int            @id @default(autoincrement())
+  texto      String
+  usuario_id Int
+  media_id   Int
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+  media      PortfolioMedia @relation("MediaComentarios", fields: [media_id], references: [id], onDelete: Cascade)
+  usuario    Usuario        @relation("UsuarioComentarios", fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@map("portfolio_comentarios")
+}
+
+model Postagem {
+  id                Int                       @id @default(autoincrement())
+  autorId           Int
+  titulo            String?                   @db.VarChar(200)
+  conteudo          String
+  imagens           String[]
+  videoUrl          String?                   @db.VarChar(500)
+  publico           Boolean                   @default(true)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  autor             Usuario                   @relation("PostagemAutor", fields: [autorId], references: [id], onDelete: Cascade)
+  curtidas          PostagemCurtida[]
+  comentarios       PostagemComentario[]
+  compartilhamentos PostagemCompartilhamento[]
+
+  @@map("postagens")
+}
+
+model PostagemCurtida {
+  id        Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([postagemId, usuarioId])
+  @@map("postagem_curtidas")
+}
+
+model PostagemComentario {
+  id         Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  conteudo   String
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("postagem_comentarios")
+}
+
+model PostagemCompartilhamento {
+  id         Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("postagem_compartilhamentos")
 }

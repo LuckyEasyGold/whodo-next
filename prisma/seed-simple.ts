@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   try {
-    console.log('🌱 Seeding database...')
+    console.log('🌱 Semeando banco de dados...')
 
     // Limpar
     await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0')

@@ -13,7 +13,7 @@ export default function LoginForm() {
     const [loading, setLoading] = useState(false)
     const [erro, setErro] = useState('')
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.SyntheticEvent) {
         e.preventDefault()
         setErro('')
         setLoading(true)
@@ -32,7 +32,7 @@ export default function LoginForm() {
                 return
             }
 
-            // Admin first-access: redirect to setup page
+            // Primeiro acesso do admin: redireciona para a pagina setup
             if (data.needsSetup) {
                 router.push('/admin/setup')
                 return
@@ -43,7 +43,7 @@ export default function LoginForm() {
             if (data.user && adminTypes.includes(data.user.tipo)) {
                 router.push('/admin')
             } else {
-                router.push('/')
+                router.push('/praca')
             }
             router.refresh()
         } catch {

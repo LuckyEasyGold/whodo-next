@@ -19,7 +19,7 @@ export default function LoginPage() {
 
                     {/* Form Card */}
                     <div className="bg-white rounded-2xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
-                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                        <div className="absolute top-0 inset-x-0 h-1 "></div>
                         <LoginForm />
                     </div>
 

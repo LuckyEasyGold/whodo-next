@@ -119,11 +119,11 @@ export default function Navbar() {
 
                     {/* Nav central — desktop */}
                     <div className="hidden md:flex flex-1 justify-center items-center gap-1">
-                        <Link href="/" className="px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
+                        <Link href="/praca" className="px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
                             Início
                         </Link>
                         <Link href="/buscar" className="px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
-                            Encontrar Serviços
+                            Profissionais
                         </Link>
                     </div>
 
