@@ -213,7 +213,7 @@ Após explorar a plataforma WhoDo! (um marketplace de serviços que conecta clie
 
 📱 FUNCIONALIDADES ADICIONAIS{
     {Existe aplicativo móvel do WhoDo!?
-        {Ao invés de baixar aplicativos pesados, criamos a infraestrutura em formato de Aplicação Móvel da Web. É usar pelo seu navegador tendo as interações ricas parecidas!. Mas vai ter sim}
+        {Ao invés de baixar aplicativos pesados, criamos a infraestrutura em formato de Aplicação Móvel da Web. É usar pelo seu navegador tendo as interações ricas parecidas! Mas vai ter sim}
     }
     {Posso compartilhar meu perfil nas redes sociais?
         {Sim. Os links das páginas do perfil de cada profissional permitem o 'copia e cola' onde você desejar no WhatsApp ou Bio.}
