@@ -5,9 +5,10 @@ import { getSession } from '@/lib/auth'
 // GET /api/postagens/[id] - Buscar postagem específica
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const session = await getSession()
         
         if (!session) {
@@ -17,7 +18,7 @@ export async function GET(
             )
         }
 
-        const postagemId = parseInt(params.id)
+        const postagemId = parseInt(id)
 
         const postagem = await prisma.postagem.findUnique({
             where: { id: postagemId },
@@ -80,9 +81,10 @@ export async function GET(
 // DELETE /api/postagens/[id] - Deletar postagem
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const session = await getSession()
         
         if (!session) {
@@ -92,7 +94,7 @@ export async function DELETE(
             )
         }
 
-        const postagemId = parseInt(params.id)
+        const postagemId = parseInt(id)
 
         // Verificar se a postagem existe e pertence ao usuário
         const postagem = await prisma.postagem.findUnique({

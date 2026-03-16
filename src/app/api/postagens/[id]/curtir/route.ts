@@ -5,9 +5,10 @@ import { getSession } from '@/lib/auth'
 // POST /api/postagens/[id]/curtir - Curtir/descurtir postagem
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const session = await getSession()
         
         if (!session) {
@@ -17,7 +18,7 @@ export async function POST(
             )
         }
 
-        const postagemId = parseInt(params.id)
+        const postagemId = parseInt(id)
 
         // Verificar se a postagem existe
         const postagem = await prisma.postagem.findUnique({
