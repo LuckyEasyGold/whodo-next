@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+
+  experimental: {
+    turbopack: false
+  },
+
   // Forçar geração mínima do SWC
   swcMinify: true,
 
@@ -55,7 +60,6 @@ const nextConfig: NextConfig = {
         ]
       },
       {
-        // Headers específicos para assets estáticos (cache)
         source: '/_next/static/:path*',
         headers: [
           {
@@ -67,7 +71,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Desabilitar header X-Powered-By
   poweredByHeader: false,
 };
 
