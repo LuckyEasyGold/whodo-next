@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import BuscarContent from './BuscarContent'
-import { calcularTitulo } from '@/app/api/ranking/route'
+import { calcularTitulo } from '@/lib/ranking'
 
 export const metadata = {
     title: 'Buscar Profissionais - WhoDo!',
