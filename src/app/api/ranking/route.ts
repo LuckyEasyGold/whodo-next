@@ -1,42 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { calcularTitulo } from '@/lib/ranking'
 
 // GET /api/ranking — calcula o ranking de contratos por percentil para o usuário logado
-// Títulos (do mais exclusivo ao mais comum):
-//   Diamante  → top 5%
-//   Ouro      → top 6–10%
-//   Prata     → top 11–15%
-//   Bronze    → top 16–20%
-//   Expert    → top 21–30%
-//   Empresário → top 31–40%
-//   Negociador → top 41–50%
-//   (sem título) → demais
-
-export type TituloRanking =
-    | '💎 Diamante'
-    | '🥇 Ouro'
-    | '🥈 Prata'
-    | '🥉 Bronze'
-    | '⭐ Expert'
-    | '💼 Empresário'
-    | '🤝 Negociador'
-    | null
-
-export function calcularTitulo(posicao: number, total: number): TituloRanking {
-    if (total === 0) return null
-    const percentil = posicao / total // 0 = maior, 1 = menor
-
-    if (percentil <= 0.05) return '💎 Diamante'
-    if (percentil <= 0.10) return '🥇 Ouro'
-    if (percentil <= 0.15) return '🥈 Prata'
-    if (percentil <= 0.20) return '🥉 Bronze'
-    if (percentil <= 0.30) return '⭐ Expert'
-    if (percentil <= 0.40) return '💼 Empresário'
-    if (percentil <= 0.50) return '🤝 Negociador'
-    return null
-}
-
 export async function GET() {
     try {
         const session = await getSession()
