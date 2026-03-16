@@ -2,12 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 
-  experimental: {
-    turbopack: false
-  },
-
-  // Forçar geração mínima do SWC
-  swcMinify: true,
 
   async headers() {
     return [
