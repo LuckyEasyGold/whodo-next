@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // --- INÍCIO DA ALTERAÇÃO RECOMENDADA ---
+  experimental: {
+    // Isso força a Vercel a incluir os arquivos do Prisma Client no build do servidor e middleware
+    outputFileTracingIncludes: {
+      '/*': ['./node_modules/@prisma/client/**/*'],
+    },
+  },
+  // --- FIM DA ALTERAÇÃO RECOMENDADA ---
+
   async headers() {
     return [
       {
