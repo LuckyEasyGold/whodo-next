@@ -102,7 +102,8 @@ export default function CardPostagem({ post, usuarioLogadoId, onLike, onShare, o
 
     useEffect(() => {
         if (contentRef.current) {
-            setIsOverflowing(contentRef.current.scrollHeight > 200)
+            // Quando o clamp de 4 linhas está ativo, scrollHeight será maior que clientHeight se houver overflow
+            setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight || contentRef.current.scrollHeight > 100);
         }
     }, [post.conteudo]);
 
@@ -116,9 +117,10 @@ export default function CardPostagem({ post, usuarioLogadoId, onLike, onShare, o
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
-                // Se o card não estiver visível e os comentários estiverem expandidos, recolhe.
-                if (!entry.isIntersecting && showAllComments) {
-                    setShowAllComments(false);
+                // Se o card não estiver visível, recolhe os comentários e o texto.
+                if (!entry.isIntersecting) {
+                    if (showAllComments) setShowAllComments(false);
+                    if (showFullContent) setShowFullContent(false);
                 }
             },
             { threshold: 0.1 } // Dispara quando menos de 10% do card está visível
@@ -132,7 +134,7 @@ export default function CardPostagem({ post, usuarioLogadoId, onLike, onShare, o
         return () => {
             if (currentCard) observer.unobserve(currentCard);
         };
-    }, [showAllComments]); // A dependência garante que o observer sempre tenha o estado mais recente.
+    }, [showAllComments, showFullContent]);
 
     const handleDelete = async () => {
         try {
@@ -432,6 +434,29 @@ export default function CardPostagem({ post, usuarioLogadoId, onLike, onShare, o
                     </div>
                 </div>
 
+                {/* Título e Conteúdo (Acima da Mídia) */}
+                {(post.titulo || post.conteudo) && (
+                    <div className="px-4 pb-3">
+                        {post.titulo && (
+                            <h4 className="font-bold text-sm text-slate-900 mb-1">{post.titulo}</h4>
+                        )}
+                        <div 
+                            ref={contentRef}
+                            className={`text-sm text-slate-800 whitespace-pre-wrap ${!showFullContent ? 'line-clamp-4' : ''}`}
+                        >
+                            {post.conteudo}
+                        </div>
+                        {isOverflowing && !showFullContent && (
+                            <button
+                                onClick={() => setShowFullContent(true)}
+                                className="text-slate-500 text-sm font-medium hover:text-slate-700 mt-1"
+                            >
+                                ... mais
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {/* Mídia (no topo estilo Instagram) */}
                 <div onClick={(e) => e.preventDefault()}>
                     {renderMediaGrid()}
@@ -488,31 +513,6 @@ export default function CardPostagem({ post, usuarioLogadoId, onLike, onShare, o
                             <Eye size={14} />
                             <span className="text-xs">{post.visualizacoes} visualizações</span>
                         </div>
-                    )}
-
-                    {/* Título e Conteúdo */}
-                    {(post.titulo || post.conteudo) && (
-                        <div className="mt-1">
-                            <span className="font-semibold text-sm mr-1">{post.autor?.nome}</span>
-                            {post.titulo && (
-                                <span className="font-semibold text-sm">{post.titulo}</span>
-                            )}
-                            <p 
-                                ref={contentRef}
-                                className={`text-sm text-slate-800 mt-0.5 ${!showFullContent ? 'line-clamp-2' : ''}`}
-                            >
-                                {post.conteudo}
-                            </p>
-                        </div>
-                    )}
-
-                    {isOverflowing && !showFullContent && (
-                        <button
-                            onClick={() => setShowFullContent(true)}
-                            className="mt-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
-                        >
-                            Ver mais <ChevronDown size={14} />
-                        </button>
                     )}
 
                     {/* Comentários Inline */}
