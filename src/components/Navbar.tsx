@@ -32,6 +32,7 @@ export default function Navbar() {
     const [notificacoes, setNotificacoes] = useState<Notificacao[]>([])
     const [totalNaoLidas, setTotalNaoLidas] = useState(0)
     const notifRef = useRef<HTMLDivElement>(null)
+    const userMenuRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         fetch('/api/auth/me')
@@ -59,11 +60,14 @@ export default function Navbar() {
         return () => clearInterval(intervalo)
     }, [user])
 
-    // Fecha dropdown de notificações ao clicar fora
+    // Fecha dropdowns ao clicar fora
     useEffect(() => {
         function fecharFora(e: MouseEvent) {
             if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
                 setNotifOpen(false)
+            }
+            if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+                setUserMenuOpen(false)
             }
         }
         document.addEventListener('mousedown', fecharFora)
@@ -207,7 +211,7 @@ export default function Navbar() {
                                 </div>
 
                                 {/* Avatar + menu do usuário */}
-                                <div className="relative">
+                                <div ref={userMenuRef} className="relative">
                                     <button
                                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                                         className="flex items-center p-1 rounded-full hover:bg-white/10 transition-all"
