@@ -53,7 +53,9 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'self'",
               "form-action 'self'",
               "base-uri 'self'",
-              "upgrade-insecure-requests"
+              "upgrade-insecure-requests",
+              "frame-src 'self' https://www.youtube.com https://www.instagram.com https://player.vimeo.com https://w.soundcloud.com",
+              "child-src 'self' https://www.youtube.com https://www.instagram.com https://player.vimeo.com"
             ].join('; ')
           }
         ]
