@@ -1,7 +1,7 @@
 # Plano de Implementação - Página da Praça
 
-> **Última atualização:** 2024-12-01
-> **Status:** FASE 4 Concluída
+> **Última atualização:** Março de 2026
+> **Status:** FASE 4 Concluída / Iniciando MMN
 
 ---
 
@@ -49,10 +49,31 @@
 - [x] Sistema de seguidores (API existente e funcional)
 - [x] Notificações automáticas ao seguir usuário
 
-### Novos Campos no Schema:
+### Funcionalidades de Banco (Prisma):
 - `visualizacoes` - Contador de visualizações
 - `videoYoutubeId` - ID do vídeo YouTube
 - `salva` - Relação com PostagemSalva
+
+---
+
+---
+
+## ✅ FASE 5: Otimizações e Imagens (CONCLUÍDA)
+
+### Itens Implementados:
+- [x] Utilitário de compressão de imagens via Canvas HTML5 (`src/lib/imageCompression.ts`)
+- [x] Paginação infinita completa na Praça (via componente `LoadMorePosts`)
+- [x] Controle de estado para carregamento seguro (hasMore e loading states)
+
+---
+
+## 💰 FASE 6: Monetização e Sistema MMN (NOVO)
+
+- [ ] Criar tabela `Comissao` no Prisma (id, user_id, source_user_id, nivel, valor, agendamento_id).
+- [ ] Lógica de cálculo determinística (4% da venda, distribuídos em 8%, 4%, 2%, 1% em até 4 níveis).
+- [ ] Disparo automático de comissão na mudança de status do Agendamento para "concluído"/"pago".
+- [ ] Integração do saldo gerado na `Carteira` do usuário.
+- [ ] Dashboard de ganhos de rede para o usuário acompanhar indicações.
 
 ---
 
@@ -64,20 +85,10 @@
 - [ ] Chat em tempo real (WebSocket)
 - [ ] Videochamadas
 
-### Monetização:
-- [ ] Planos premium para prestadores
-- [ ] Destaque de perfil
-- [ ] Anúncios
-
 ### Mobile:
 - [ ] PWA (Progressive Web App)
 - [ ] Notificações push
 - [ ] App nativo (Expo/React Native)
-
-### Otimizações:
-- [ ] Paginação infinita completa no feed
-- [ ] Cache de dados do usuário
-- [ ] Compressão de imagens
 
 ---
 
