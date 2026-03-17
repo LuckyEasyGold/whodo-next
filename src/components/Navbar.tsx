@@ -108,15 +108,15 @@ export default function Navbar() {
                         </span>
                     </Link>
 
-                    {/* Nav central */}
-                    <div className="hidden md:flex flex-1 justify-center items-center gap-1 mx-2">
+                    {/* Nav central responsivo */}
+                    <div className="flex flex-1 justify-center items-center gap-1 md:gap-2 mx-2">
                         <Link href="/praca" className="flex items-center gap-1.5 px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
-                            <Home size={18} />
-                            <span>Início</span>
+                            <Home size={22} className="md:hidden" />
+                            <span className="hidden md:inline">Início</span>
                         </Link>
                         <Link href="/buscar" className="flex items-center gap-1.5 px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
-                            <Search size={18} />
-                            <span>Profissionais</span>
+                            <Search size={22} className="md:hidden" />
+                            <span className="hidden md:inline">Profissionais</span>
                         </Link>
                     </div>
 
