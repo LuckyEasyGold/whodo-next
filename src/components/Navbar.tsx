@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, LogOut, LayoutDashboard, UserCircle, Menu, Bell } from 'lucide-react'
+import { X, LogOut, LayoutDashboard, UserCircle, Menu, Bell, Home, Search } from 'lucide-react'
 
 type SessionUser = {
     id: number
@@ -110,11 +110,13 @@ export default function Navbar() {
 
                     {/* Nav central */}
                     <div className="hidden md:flex flex-1 justify-center items-center gap-1 mx-2">
-                        <Link href="/praca" className="px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
-                            Início
+                        <Link href="/praca" className="flex items-center gap-1.5 px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
+                            <Home size={18} />
+                            <span>Início</span>
                         </Link>
-                        <Link href="/buscar" className="px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
-                            Profissionais
+                        <Link href="/buscar" className="flex items-center gap-1.5 px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
+                            <Search size={18} />
+                            <span>Profissionais</span>
                         </Link>
                     </div>
 
@@ -208,14 +210,13 @@ export default function Navbar() {
                                 <div className="relative">
                                     <button
                                         onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                        className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-white/10 transition-all"
+                                        className="flex items-center p-1 rounded-full hover:bg-white/10 transition-all"
                                     >
                                         <img
                                             src={user.foto || 'https://randomuser.me/api/portraits/men/1.jpg'}
                                             alt={user.nome}
                                             className="w-8 h-8 rounded-full object-cover ring-2 ring-white/30"
                                         />
-                                        <span className="text-sm font-medium text-white/90 max-w-[120px] truncate">{user.nome.split(' ')[0]}</span>
                                     </button>
 
                                     <AnimatePresence>

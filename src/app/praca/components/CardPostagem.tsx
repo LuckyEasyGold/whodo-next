@@ -111,6 +111,29 @@ export default function CardPostagem({ post, usuarioLogadoId, onLike, onShare, o
         setCarouselIndex(0);
     }, [post.id]);
 
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // Se o card não estiver visível e os comentários estiverem expandidos, recolhe.
+                if (!entry.isIntersecting && showAllComments) {
+                    setShowAllComments(false);
+                }
+            },
+            { threshold: 0.1 } // Dispara quando menos de 10% do card está visível
+        );
+
+        const currentCard = cardRef.current;
+        if (currentCard) {
+            observer.observe(currentCard);
+        }
+
+        return () => {
+            if (currentCard) observer.unobserve(currentCard);
+        };
+    }, [showAllComments]); // A dependência garante que o observer sempre tenha o estado mais recente.
+
     const handleDelete = async () => {
         try {
             await fetch(`/api/postagens/${post.id}`, {
@@ -302,7 +325,7 @@ export default function CardPostagem({ post, usuarioLogadoId, onLike, onShare, o
 
     return (
         <>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div ref={cardRef} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 {/* Cabeçalho do Card */}
                 <div className="p-4 pb-2 flex items-start justify-between">
                     <div className="flex items-center gap-3">
