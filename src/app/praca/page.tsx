@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 import PracaContent from './PracaContent'
 
 export const metadata = {
@@ -9,9 +10,9 @@ export const metadata = {
 
 export default async function PracaPage() {
     const session = await getSession()
-    
+
     if (!session) {
-        return { redirect: { destination: '/login', permanent: false } }
+        redirect('/login')
     }
 
     // Buscar dados do usuário logado com contagens
@@ -35,6 +36,19 @@ export default async function PracaPage() {
         select: { seguido_id: true }
     })
     const seguindoIds = seguindo.map(s => s.seguido_id)
+
+    // Buscar postagens salvas pelo usuário (separadamente para evitar erro de tipo)
+    let salvosIds = new Set<number>()
+    try {
+        const salvos = await (prisma as any).postagemSalva.findMany({
+            where: { usuarioId: session.id },
+            select: { postagemId: true }
+        })
+        salvosIds = new Set(salvos.map((s: any) => s.postagemId))
+    } catch (e) {
+        // Se a tabela ainda não existir, ignora
+        console.log('Tabela postagens_salvas ainda não existe')
+    }
 
     // Buscar postagens do feed
     const postagens = await prisma.postagem.findMany({
@@ -64,16 +78,30 @@ export default async function PracaPage() {
             curtidas: {
                 where: { usuarioId: session.id },
                 select: { id: true }
+            },
+            salva: {
+                where: { usuarioId: session.id },
+                select: { id: true }
+            },
+            comentarios: {
+                include: {
+                    usuario: {
+                        select: { id: true, nome: true, foto_perfil: true }
+                    }
+                },
+                orderBy: { createdAt: 'asc' }
             }
         },
         orderBy: { createdAt: 'desc' },
         take: 20
     })
 
-    // Transformar para adicionar campo 'curtido'
-    const postagensComCurtido = postagens.map(post => ({
+    // Transformar para adicionar campos 'curtido' e 'salvo'
+    const postagensFormatadas = (postagens as any[]).map(post => ({
         ...post,
-        curtido: post.curtidas.length > 0
+        curtido: post.curtidas?.length > 0,
+        salvo: salvosIds.has(post.id) || post.salva?.length > 0,
+        seguindo: seguindoIds.includes(post.autorId)
     }))
 
     // Buscar sugestões de perfis para seguir
@@ -98,10 +126,11 @@ export default async function PracaPage() {
     })
 
     return (
-        <PracaContent 
+        <PracaContent
             usuarioLogado={JSON.parse(JSON.stringify(usuarioLogado))}
-            postagens={JSON.parse(JSON.stringify(postagensComCurtido))}
+            postagens={JSON.parse(JSON.stringify(postagensFormatadas))}
             sugestoesPerfis={JSON.parse(JSON.stringify(sugestoesPerfis))}
+            grupos={[]}
         />
     )
 }

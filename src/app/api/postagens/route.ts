@@ -112,6 +112,18 @@ export async function GET(req: NextRequest) {
                 curtidas: {
                     where: { usuarioId: session.id },
                     select: { id: true }
+                },
+                salva: {
+                    where: { usuarioId: session.id },
+                    select: { id: true }
+                },
+                comentarios: {
+                    include: {
+                        usuario: {
+                            select: { id: true, nome: true, foto_perfil: true }
+                        }
+                    },
+                    orderBy: { createdAt: 'asc' }
                 }
             },
             orderBy: { createdAt: 'desc' },
@@ -119,10 +131,27 @@ export async function GET(req: NextRequest) {
             take: limit
         })
 
-        // Transformar para adicionar campo 'curtido'
-        const postagensComCurtido = postagens.map(post => ({
+        // Verificar quais autores o usuário segue
+        const autoresIds = postagens.map(p => p.autorId)
+        const seguidoresData = await prisma.seguidor.findMany({
+            where: {
+                AND: [
+                    { seguidor_id: session.id },
+                    { seguido_id: { in: autoresIds } }
+                ]
+            },
+            select: { seguido_id: true }
+        })
+        const seguindoMap = new Set(seguidoresData.map(s => s.seguido_id))
+
+        // Transformar para adicionar campos 'curtido', 'salvo', 'seguindo'
+        const postagensFormatadas = postagens.map(post => ({
             ...post,
-            curtido: post.curtidas.length > 0
+            // @ts-ignore - relaciones no incluyen en el tipo
+            curtido: (post as any).curtidas?.length > 0,
+            salvo: (post as any).salva?.length > 0,
+            seguindo: seguindoMap.has(post.autorId),
+            visualizacoes: post.visualizacoes
         }))
 
         // Contar total para paginação
@@ -136,7 +165,7 @@ export async function GET(req: NextRequest) {
         })
 
         return NextResponse.json({
-            postagens: postagensComCurtido,
+            postagens: postagensFormatadas,
             pagination: {
                 page,
                 limit,

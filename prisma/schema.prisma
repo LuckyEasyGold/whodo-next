@@ -65,6 +65,7 @@ model Usuario {
   curtidas              PostagemCurtida[]
   comentariosPostagem   PostagemComentario[]
   compartilhamentos     PostagemCompartilhamento[]
+  postagensSalvas       PostagemSalva[]
   servicos              Servico[]
   sessions              Session[]
   solicitacoesEnviadas  Solicitacao[]         @relation("SolicitacaoCliente")
@@ -370,13 +371,16 @@ model Postagem {
   conteudo          String
   imagens           String[]
   videoUrl          String?                   @db.VarChar(500)
-  publico           Boolean                   @default(true)
+  videoYoutubeId    String?                   @db.VarChar(50)
+  visualizacoes     Int                       @default(0)
+  publico            Boolean                   @default(true)
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
   autor             Usuario                   @relation("PostagemAutor", fields: [autorId], references: [id], onDelete: Cascade)
   curtidas          PostagemCurtida[]
   comentarios       PostagemComentario[]
   compartilhamentos PostagemCompartilhamento[]
+  salva             PostagemSalva[]
 
   @@map("postagens")
 }
@@ -413,5 +417,19 @@ model PostagemCompartilhamento {
   postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
   usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
+  @@unique([postagemId, usuarioId])
   @@map("postagem_compartilhamentos")
 }
+
+model PostagemSalva {
+  id        Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([postagemId, usuarioId])
+  @@map("postagens_salvas")
+}
+

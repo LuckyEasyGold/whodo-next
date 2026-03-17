@@ -7,27 +7,57 @@ import CardPostagem from './CardPostagem'
 type Props = {
     postagens: any[]
     usuarioLogadoId: number
+    onDeletePost?: (postId: number) => void
+    onUpdatePost?: (post: any) => void
 }
 
-export default function FeedCentral({ postagens, usuarioLogadoId }: Props) {
+export default function FeedCentral({ postagens, usuarioLogadoId, onDeletePost, onUpdatePost }: Props) {
     const [posts, setPosts] = useState(postagens)
 
-    const handleLike = (postId: number) => {
-        setPosts(posts.map(post => 
-            post.id === postId 
+    const handleLike = async (postId: number) => {
+        // Atualização otimista
+        setPosts(posts.map(post =>
+            post.id === postId
                 ? { ...post, curtido: !post.curtido, _count: { ...post._count, curtidas: post.curtido ? post._count.curtidas - 1 : post._count.curtidas + 1 } }
                 : post
         ))
+
+        // Chamar API
+        try {
+            await fetch(`/api/postagens/${postId}/curtir`, {
+                method: 'POST',
+            })
+        } catch (error) {
+            // Reverter em caso de erro
+            setPosts(postagens)
+        }
     }
 
-    const handleShare = (postId: number) => {
-        setPosts(posts.map(post => 
-            post.id === postId 
-                ? { ...post, _count: { ...post._count, compartilhamentos: post._count.compartilhamentos + 1 } }
-                : post
-        ))
-        // Aqui você pode adicionar lógica de compartilhamento
+    const handleShare = async (postId: number) => {
+        // Encontrar o post
+        const post = posts.find(p => p.id === postId)
+        if (!post) return
+
+        // Compartilhar via API
+        try {
+            await fetch(`/api/postagens/${postId}/compartilhar`, {
+                method: 'POST',
+            })
+        } catch (error) {
+            console.error('Erro ao compartilhar:', error)
+        }
     }
+
+    const handleDelete = (postId: number) => {
+        setPosts(posts.filter(post => post.id !== postId))
+        onDeletePost?.(postId)
+    }
+
+    const handleUpdate = (updatedPost: any) => {
+        setPosts(posts.map(post => post.id === updatedPost.id ? updatedPost : post))
+        onUpdatePost?.(updatedPost)
+    }
+
 
     return (
         <div className="space-y-4">
@@ -49,6 +79,8 @@ export default function FeedCentral({ postagens, usuarioLogadoId }: Props) {
                         usuarioLogadoId={usuarioLogadoId}
                         onLike={handleLike}
                         onShare={handleShare}
+                        onDelete={handleDelete}
+                        onUpdate={handleUpdate}
                     />
                 ))
             )}

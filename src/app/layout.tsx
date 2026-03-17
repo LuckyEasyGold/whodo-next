@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AiSupportWidget from "@/components/AiSupportWidget";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "whodo! — Encontre profissionais perto de você!",
@@ -26,7 +27,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased font-sans">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <AiSupportWidget />
       </body>
     </html>

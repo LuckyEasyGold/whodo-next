@@ -132,3 +132,79 @@ export async function DELETE(
         )
     }
 }
+
+// PUT /api/postagens/[id] - Editar postagem
+export async function PUT(
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params
+        const session = await getSession()
+        
+        if (!session) {
+            return NextResponse.json(
+                { error: 'Não autorizado' },
+                { status: 401 }
+            )
+        }
+
+        const postagemId = parseInt(id)
+        const body = await req.json()
+        const { titulo, conteudo } = body
+
+        // Verificar se a postagem existe e pertence ao usuário
+        const postagem = await prisma.postagem.findUnique({
+            where: { id: postagemId }
+        })
+
+        if (!postagem) {
+            return NextResponse.json(
+                { error: 'Postagem não encontrada' },
+                { status: 404 }
+            )
+        }
+
+        if (postagem.autorId !== session.id) {
+            return NextResponse.json(
+                { error: 'Você não tem permissão para editar esta postagem' },
+                { status: 403 }
+            )
+        }
+
+        // Atualizar postagem
+        const updatedPostagem = await prisma.postagem.update({
+            where: { id: postagemId },
+            data: {
+                titulo: titulo ?? postagem.titulo,
+                conteudo: conteudo ?? postagem.conteudo,
+            },
+            include: {
+                autor: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        foto_perfil: true,
+                        tipo: true,
+                        especialidade: true
+                    }
+                },
+                _count: {
+                    select: {
+                        curtidas: true,
+                        comentarios: true,
+                        compartilhamentos: true
+                    }
+                }
+            }
+        })
+
+        return NextResponse.json(updatedPostagem)
+    } catch (error) {
+        console.error('Erro ao editar postagem:', error)
+        return NextResponse.json(
+            { error: 'Erro interno do servidor' },
+            { status: 500 }
+        )
+    }
+}
