@@ -26,7 +26,6 @@ type Notificacao = {
 
 export default function Navbar() {
     const router = useRouter()
-    const [mobileOpen, setMobileOpen] = useState(false)
     const [user, setUser] = useState<SessionUser | null>(null)
     const [userMenuOpen, setUserMenuOpen] = useState(false)
     const [notifOpen, setNotifOpen] = useState(false)
@@ -85,7 +84,6 @@ export default function Navbar() {
         await fetch('/api/auth/logout', { method: 'POST' })
         setUser(null)
         setUserMenuOpen(false)
-        setMobileOpen(false)
         router.push('/')
         router.refresh()
     }
@@ -105,30 +103,23 @@ export default function Navbar() {
                             className="h-10 w-auto group-hover:scale-105 transition-transform"
                             style={{ filter: 'brightness(0) invert(1)' }}
                         />
-                        <span className="hidden md:block text-2xl font-black tracking-tight text-white">
+                        <span className="text-xl md:text-2xl font-black tracking-tight text-white">
                             WhoDo<span className="text-blue-300">!</span>
                         </span>
                     </Link>
 
-                    {/* Nome centralizado — só mobile */}
-                    <div className="flex-1 flex justify-center md:hidden">
-                        <Link href="/" className="text-xl font-black tracking-tight text-white">
-                            WhoDo<span className="text-blue-300">!</span>
-                        </Link>
-                    </div>
-
-                    {/* Nav central — desktop */}
-                    <div className="hidden md:flex flex-1 justify-center items-center gap-1">
-                        <Link href="/praca" className="px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
+                    {/* Nav central */}
+                    <div className="hidden md:flex flex-1 justify-center items-center gap-1 mx-2">
+                        <Link href="/praca" className="px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
                             Início
                         </Link>
-                        <Link href="/buscar" className="px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
+                        <Link href="/buscar" className="px-2 md:px-4 py-2 text-sm font-medium text-white/75 hover:text-white rounded-lg hover:bg-white/10 transition-all">
                             Profissionais
                         </Link>
                     </div>
 
-                    {/* Ações — direita (desktop) */}
-                    <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+                    {/* Ações — direita */}
+                    <div className="flex flex-1 md:flex-none justify-end items-center gap-2 flex-shrink-0">
                         {user ? (
                             <div className="flex items-center gap-2">
 
@@ -261,136 +252,21 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <>
-                                <Link href="/login" className="px-4 py-2 text-sm font-semibold text-white/80 hover:text-white transition-colors">
+                                <Link href="/login" className="px-2 md:px-4 py-2 text-xs md:text-sm font-semibold text-white/80 hover:text-white transition-colors">
                                     Entrar
                                 </Link>
-                                <Link href="/cadastro" className="px-5 py-2.5 text-sm font-semibold rounded-xl transition-all hover:-translate-y-0.5"
+                                <Link href="/cadastro" className="px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-semibold rounded-xl transition-all hover:-translate-y-0.5 whitespace-nowrap"
                                     style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}
                                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)')}
                                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)')}
                                 >
-                                    Cadastre-se grátis
+                                    Cadastre-se
                                 </Link>
                             </>
                         )}
                     </div>
-
-                    {/* Botão mobile direito */}
-                    <div className="md:hidden flex-shrink-0">
-                        {user ? (
-                            <button
-                                onClick={() => setMobileOpen(!mobileOpen)}
-                                className="relative p-0.5 rounded-full ring-2 ring-white/30 hover:ring-white/60 transition-all"
-                            >
-                                <img
-                                    src={user.foto || 'https://randomuser.me/api/portraits/men/1.jpg'}
-                                    alt={user.nome}
-                                    className="w-9 h-9 rounded-full object-cover"
-                                />
-                                {totalNaoLidas > 0 && (
-                                    <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                                        {totalNaoLidas > 9 ? '9+' : totalNaoLidas}
-                                    </span>
-                                )}
-                                {mobileOpen && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                                        <X size={10} className="text-[#1e3a5f]" />
-                                    </span>
-                                )}
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => setMobileOpen(!mobileOpen)}
-                                className="p-2 rounded-xl text-white/80 hover:bg-white/10 transition-colors"
-                            >
-                                {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-                            </button>
-                        )}
-                    </div>
                 </div>
             </div>
-
-            {/* Menu mobile */}
-            <AnimatePresence>
-                {mobileOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        style={{ backgroundColor: '#162e4d' }}
-                        className="md:hidden border-t border-white/10 overflow-hidden"
-                    >
-                        <div className="px-4 py-4 space-y-1">
-                            {user && (
-                                <div className="flex items-center gap-3 px-4 py-3 mb-2 border-b border-white/10">
-                                    <img
-                                        src={user.foto || 'https://randomuser.me/api/portraits/men/1.jpg'}
-                                        alt={user.nome}
-                                        className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
-                                    />
-                                    <div>
-                                        <p className="font-semibold text-white text-sm">{user.nome}</p>
-                                        <p className="text-xs text-white/40">{user.email}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Notificações no mobile — mostra as 5 primeiras não lidas */}
-                            {user && totalNaoLidas > 0 && (
-                                <div className="mx-1 mb-2 bg-indigo-900/40 rounded-xl overflow-hidden border border-indigo-500/20">
-                                    <div className="px-3 py-2 flex items-center justify-between">
-                                        <span className="text-xs font-bold text-indigo-300 flex items-center gap-1">
-                                            <Bell size={12} /> {totalNaoLidas} notificação{totalNaoLidas > 1 ? 'ões' : ''} não lida{totalNaoLidas > 1 ? 's' : ''}
-                                        </span>
-                                    </div>
-                                    {notificacoes.filter(n => !n.lida).slice(0, 3).map(n => (
-                                        <button
-                                            key={n.id}
-                                            onClick={() => { marcarComoLida(n); setMobileOpen(false) }}
-                                            className="w-full text-left px-3 py-2 border-t border-indigo-500/20 hover:bg-indigo-800/30 transition-colors"
-                                        >
-                                            <p className="text-xs font-semibold text-white truncate">{n.titulo}</p>
-                                            {n.mensagem && <p className="text-[10px] text-white/50 truncate">{n.mensagem}</p>}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
-                            <Link href="/" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-base font-medium text-white/80 rounded-xl hover:bg-white/10 hover:text-white transition-all">
-                                Início
-                            </Link>
-                            <Link href="/buscar" onClick={() => setMobileOpen(false)} className="block px-4 py-3 text-base font-medium text-white/80 rounded-xl hover:bg-white/10 hover:text-white transition-all">
-                                Encontrar Serviços
-                            </Link>
-
-                            {user ? (
-                                <>
-                                    <Link href={`/perfil/${user.id}`} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-base font-medium text-white/80 rounded-xl hover:bg-white/10 transition-all">
-                                        <UserCircle size={18} /> Meu Perfil
-                                    </Link>
-                                    {user.tipo === 'prestador' && (
-                                        <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-base font-medium text-white/80 rounded-xl hover:bg-white/10 transition-all">
-                                            <LayoutDashboard size={18} /> Dashboard
-                                        </Link>
-                                    )}
-                                    <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium text-red-300 rounded-xl hover:bg-white/5 transition-all">
-                                        <LogOut size={18} /> Sair
-                                    </button>
-                                </>
-                            ) : (
-                                <div className="pt-4 flex flex-col gap-2">
-                                    <Link href="/login" onClick={() => setMobileOpen(false)} className="block text-center px-4 py-3 text-base font-semibold text-white border border-white/20 rounded-xl hover:bg-white/10 transition-all">
-                                        Entrar
-                                    </Link>
-                                    <Link href="/cadastro" onClick={() => setMobileOpen(false)} className="block text-center px-4 py-3 text-base font-semibold text-[#1e3a5f] rounded-xl bg-white hover:bg-blue-50 transition-all">
-                                        Cadastre-se grátis
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </nav>
     )
 }
