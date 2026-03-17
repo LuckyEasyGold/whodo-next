@@ -33,7 +33,7 @@
 | Funcionalidade | Status |
 |---|---|
 | 🔐 Autenticação segura (e-mail + senha + JWT) | ✅ Completo |
-| 🔗 Login Social (Google, Facebook via Auth.js) | ✅ Completo |
+| 🔗 Login Social (Google, Facebook via NextAuth) | ✅ Completo |
 | 👤 Perfil Público estilo Instagram | ✅ Completo |
 | 🗂️ Portfólio com Lightbox interativa e Comentários | ✅ Completo |
 | 👥 Sistema de Seguir e Seguidores | ✅ Completo |
@@ -46,21 +46,23 @@
 | 🔧 Módulo de Serviços (fixo ou orçamento) | ✅ Completo |
 | 💰 Dashboard Financeiro (carteira + transações) | ✅ ~90% completo |
 | 💬 Mensageria instantânea (Chat) integrado ao Perfil | ✅ Completo |
-| 📅 Agendamentos de serviços | 🚧 Em desenvolvimento |
+| 📅 Agendamentos de serviços | ✅ Completo |
+| 📣 Feed Social (Praça) com postagens | ✅ Completo |
+| ❤️ Curtidas e comentários em postagens | ✅ Completo |
+| 📈 Sistema de Ranking de Prestadores | ✅ Completo |
+| 🔔 Sistema de Notificações | ✅ Completo |
 
 ---
 
 ## 🚀 Últimas Novidades
 
-Finalizamos recentemente uma grande atualização focada em **Recursos Sociais**, elevando o WhoDo! a um verdadeiro ecossistema engajado:
-- **Páginas Extras e SEO:** Criação nativa de subpáginas como Termos, Privacidade, Sobre, Blog e Carreiras.
-- **Integração Real-Time:** Usuários podem agora iniciar chats diretamente do perfil do prestador.
-- **Rede Interativa:** Lançamento do mecanismo de "Seguir" perfis, com contadores atualizados instantaneamente.
-- **Feedback Constante:** Implementação completa da função de comentar mídias no portfólio.
-- **Reputação Blindada:** Sistema de nota (1 a 5 estrelas) associado a comentários focado para transparecer a qualidade de cada profissional de serviço.
-- **Melhorias de Busca:** Busca de prestadores agora é contida em paginações otimizadas (Client-Side).
+O WhoDo! continua evoluindo com fokus em usabilidade e conversão:
 
-*Melhorias futuras previstas:* Lapidação de Gateway de Pagamento, fluxo de Agendamento direto sem passar por orçamentos prévios e um App Mobile nativo.*
+- **Feed Social (Praça):** Nova funcionalidade de postagens onde usuários podem compartilhar conteúdo, receber curtidas e comentários.
+- **Dashboard Financeiro:** Sistema completo de carteira virtual, transações e dados bancários para saques.
+- **Agendamentos aprimorados:** Fluxo completo de solicitação → aceite → confirmação → conclusão.
+- **Ranking de Prestadores:** Sistema de ranking baseado em avaliações e atividades.
+- *Próximas melhorias:* Gateway de pagamento integrado, App Mobile nativo e melhorias no fluxo de contratação.
 
 ---
 
@@ -72,7 +74,7 @@ Finalizamos recentemente uma grande atualização focada em **Recursos Sociais**
 - **Armazenamento de Arquivos:** [Supabase Storage](https://supabase.com/storage) — imagens de perfil e portfólio
 - **ORM:** [Prisma](https://www.prisma.io)
 - **Hospedagem:** [Vercel](https://vercel.com)
-- **Autenticação:** Cookies `httpOnly` + **JWT assinado via [`jose`](https://github.com/panva/jose)** + [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+- **Autenticação:** Cookies `httpOnly` + **JWT assinado via [`jose`](https://github.com/panva/jose)** + [bcryptjs](https://github.com/dcodeIO/bcrypt.js) + [NextAuth.js](https://next-auth.js.org)
 - **Animações:** [Framer Motion](https://www.framer.com/motion)
 - **Mapas:** [Leaflet](https://leafletjs.com) + [React-Leaflet](https://react-leaflet.js.org)
 - **Ícones:** [Lucide React](https://lucide.dev)
@@ -107,20 +109,34 @@ cp .env.example .env
 
 ```env
 # Banco de dados (Neon PostgreSQL)
-DATABASE_URL="postgresql://usuario:senha@host/neondb?sslmode=require"
+DATABASE_URL="postgresql://usuario:senha@host.neon.tech/whodo?sslmode=require"
 
 # Autenticação JWT (use uma chave longa e aleatória)
 NEXTAUTH_SECRET="sua-chave-secreta-super-longa-aqui"
 NEXTAUTH_URL="http://localhost:3000"
 
+# OAuth Google
+AUTH_GOOGLE_ID="seu-google-client-id"
+AUTH_GOOGLE_SECRET="seu-google-client-secret"
+
+# OAuth Facebook
+AUTH_FACEBOOK_ID="seu-facebook-app-id"
+AUTH_FACEBOOK_SECRET="seu-facebook-app-secret"
+
 # Supabase (armazenamento de imagens)
 NEXT_PUBLIC_SUPABASE_URL="https://seu-projeto.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="sua-chave-anon-aqui"
+
+# Email (SMTP - opcional)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="seu-email@gmail.com"
+SMTP_PASS="sua-senha-de-app"
 ```
 
 ```bash
 # 4. Aplique o schema no banco de dados
-npx prisma db push
+npx prisma migrate dev --name init
 
 # 5. Gere o cliente Prisma
 npx prisma generate
@@ -143,26 +159,43 @@ whodo-next/
 ├── prisma/
 │   ├── schema.prisma          # Schema do banco de dados
 │   └── seed.ts                # Dados de exemplo
+├── .agent/
+│   └── skills/
+│       └── whodo_core_arquitect/
+│           └── skill.md       # Skill do agente MCP
+├── public/                    # Arquivos estáticos
 └── src/
     ├── app/
     │   ├── api/               # API Routes (backend)
+    │   │   ├── admin/         # Scripts administrativos
+    │   │   ├── agendamento/   # API de agendamentos
     │   │   ├── auth/          # Login, logout, registro, sessão
-    │   │   ├── servicos/      # CRUD de serviços
-    │   │   ├── perfil/        # Atualização de perfil e foto
-    │   │   └── portfolio/     # Álbuns e upload de mídia
+    │   │   ├── avaliacoes/    # Sistema de avaliações
+    │   │   ├── carteira/      # Carteira virtual
+    │   │   ├── dados-bancarios/ # Dados bancários
+    │   │   ├── mensagens/    # Chat entre usuários
+    │   │   ├── notificacoes/  # Sistema de notificações
+    │   │   ├── perfil/       # Atualização de perfil
+    │   │   ├── portfolio/    # Álbuns e upload de mídia
+    │   │   ├── postagens/    # Feed social (Praça)
+    │   │   ├── ranking/      # Sistema de ranking
+    │   │   ├── servicos/     # CRUD de serviços
+    │   │   └── solicitacoes/ # Solicitações de serviço
     │   ├── buscar/            # Busca de profissionais + mapa
     │   ├── cadastro/          # Registro de usuário
     │   ├── dashboard/         # Área do usuário logado
-    │   │   ├── perfil/        # Edição de perfil
-    │   │   ├── portfolio/     # Gerenciamento de portfólio
-    │   │   ├── servicos/      # Gerenciamento de serviços
-    │   │   └── financeiro/    # Dashboard financeiro
+    │   │   ├── agendamentos/ # Gerenciamento de agendamentos
+    │   │   ├── configuracoes/ # Configurações da conta
+    │   │   ├── financeiro/    # Dashboard financeiro
+    │   │   ├── mensagens/     # Caixa de mensagens
+    │   │   ├── perfil/       # Edição de perfil
+    │   │   ├── portfolio/    # Gerenciamento de portfólio
+    │   │   └── servicos/     # Gerenciamento de serviços
     │   ├── login/             # Autenticação
-    │   └── perfil/[id]/       # Perfil público
+    │   └── [username]/       # Perfil público do prestador
     ├── components/
-    │   ├── landing/           # Seções da Landing Page
-    │   ├── MapComponent.tsx   # Mapa interativo com cluster
-    │   └── Navbar.tsx         # Cabeçalho com menu de usuário
+    │   ├── ui/               # Componentes de UI
+    │   └── ...
     └── lib/
         ├── auth.ts            # JWT: encrypt, decrypt, getSession
         ├── prisma.ts          # Cliente Prisma singleton
@@ -178,7 +211,27 @@ O núcleo da aplicação é o modelo unificado **`Usuario`**:
 - Campos de perfil pessoal (nome, foto, sobre, especialidade)
 - Campos de localização (cidade, estado, lat/lng) com geocodificação automática
 - Redes sociais (LinkedIn, Instagram, YouTube, TikTok, Kwai, etc.)
-- Relações com `Servico`, `PortfolioMedia`, `Avaliacao`, `Agendamento`, etc.
+- Sistema de carteira virtual e dados bancários
+
+### Principais Entidades:
+
+- **Usuario:** Modelo unificado (cliente + prestador)
+- **Servico:** Serviços oferecidos pelo prestador
+- **Categoria:** Categorias de serviços
+- **PortfolioMedia/PortfolioAlbum:** Portfólio do prestador
+- **Agendamento:** Agendamentos de serviços
+- **Carteira:** Carteira virtual do usuário
+- **Avaliacao:** Avaliações e notas
+- **Mensagem:** Conversas entre usuários
+- **Postagem:** Feed social (Praça)
+
+---
+
+## 📚 Documentação Adicional
+
+Para documentação completa, incluindo FAQ, guia de troubleshooting e referências avançadas, consulte:
+
+- **[WHODO_KNOWLEDGE_BASE.md](./WHODO_KNOWLEDGE_BASE.md)** — Base de conhecimento unificada com tudo sobre o projeto
 
 ---
 
@@ -189,7 +242,6 @@ O núcleo da aplicação é o modelo unificado **`Usuario`**:
 3. Commit suas mudanças: `git commit -m 'funcionalidade: adiciona nova funcionalidade'`
 4. Push: `git push origin funcionalidade/nova-funcionalidade`
 5. Abra um Pull Request
-
 
 
 
