@@ -38,7 +38,7 @@ export default function LoginForm() {
                 return
             }
 
-            // Normal redirect: admin panel or home based on role
+            // Redirecionamento normal: painel admin ou praça baseado no tipo
             const adminTypes = ['moderador', 'admin', 'super_admin']
             if (data.user && adminTypes.includes(data.user.tipo)) {
                 router.push('/admin')

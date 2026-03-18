@@ -10,7 +10,11 @@ import {
   Check,
   X,
   AlertCircle,
+  MessageSquare,
 } from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/components/Toast";
+import CheckoutModal from "@/components/CheckoutModal";
 
 interface Agendamento {
   id: number;
@@ -68,6 +72,13 @@ export default function AgendamentosContent() {
   );
   const [motivoCancelamento, setMotivoCancelamento] = useState("");
 
+  const { showToast } = useToast();
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
+  const [showSuggestDateModal, setShowSuggestDateModal] = useState<Agendamento | null>(null);
+  const [newSuggestedDate, setNewSuggestedDate] = useState("");
+
+
   useEffect(() => {
     carregarDados();
   }, [tipoView, filtroStatus]);
@@ -119,9 +130,9 @@ export default function AgendamentosContent() {
       setShowAcaoModal(null);
       setAcao(null);
       carregarDados();
-      alert("Agendamento confirmado!");
+      showToast("Agendamento confirmado!", "success");
     } catch (err: any) {
-      alert("Erro: " + err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -141,9 +152,9 @@ export default function AgendamentosContent() {
       setShowAcaoModal(null);
       setAcao(null);
       carregarDados();
-      alert("Agendamento concluído!");
+      showToast("Agendamento concluído!", "success");
     } catch (err: any) {
-      alert("Erro: " + err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -163,9 +174,37 @@ export default function AgendamentosContent() {
       setAcao(null);
       setMotivoCancelamento("");
       carregarDados();
-      alert("Agendamento cancelado!");
+      showToast("Agendamento cancelado!", "success");
     } catch (err: any) {
-      alert("Erro: " + err.message);
+      showToast(err.message, "error");
+    }
+  };
+
+  const handleSuggestNewDate = async () => {
+    if (!showSuggestDateModal || !newSuggestedDate) return;
+
+    try {
+      const res = await fetch('/api/mensagens/sugerir-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agendamentoId: showSuggestDateModal.id,
+          newSuggestedDate: new Date(newSuggestedDate).toISOString(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Falha ao enviar sugestão');
+      }
+
+      showToast("Sugestão de nova data enviada ao cliente via chat.", "success");
+      setShowSuggestDateModal(null);
+      setNewSuggestedDate("");
+
+    } catch (err: any) {
+      showToast(err.message, "error");
     }
   };
 
@@ -339,6 +378,9 @@ export default function AgendamentosContent() {
                   >
                     Ver Detalhes
                   </button>
+                  <Link href={`/dashboard/mensagens/${agendamento.id}`} className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                    <MessageSquare size={16} /> Abrir Chat
+                  </Link>
 
                   {tipoView === "prestador" &&
                     agendamento.status === "pendente" && (
@@ -351,6 +393,14 @@ export default function AgendamentosContent() {
                           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
                         >
                           <Check size={16} /> Confirmar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowSuggestDateModal(agendamento)
+                          }}
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
+                        >
+                          <Clock size={16} /> Sugerir Nova Data
                         </button>
                         <button
                           onClick={() => {
@@ -374,6 +424,20 @@ export default function AgendamentosContent() {
                         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
                       >
                         Marcar como Concluído
+                      </button>
+                    )}
+
+                  {tipoView === "cliente" &&
+                    agendamento.status === "confirmado" &&
+                    !agendamento.valor_pago && (
+                      <button
+                        onClick={() => {
+                          setSelectedAgendamento(agendamento);
+                          setShowCheckoutModal(true);
+                        }}
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                      >
+                        Pagar Agora
                       </button>
                     )}
 
@@ -566,6 +630,57 @@ export default function AgendamentosContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal Sugerir Nova Data */}
+      {showSuggestDateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full">
+            <h3 className="text-2xl font-bold mb-2">Sugerir Nova Data</h3>
+            <p className="text-gray-600 mb-6">
+              O cliente receberá uma mensagem no chat com a sua sugestão.
+            </p>
+            
+            <div className="space-y-4">
+              <input
+                type="datetime-local"
+                value={newSuggestedDate}
+                onChange={(e) => setNewSuggestedDate(e.target.value)}
+                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-6 mt-4 border-t">
+              <button
+                onClick={() => {
+                  setShowSuggestDateModal(null);
+                  setNewSuggestedDate("");
+                }}
+                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSuggestNewDate}
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition"
+              >
+                Enviar Sugestão
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCheckoutModal && selectedAgendamento && (
+          <CheckoutModal
+              isOpen={showCheckoutModal}
+              onClose={() => {
+                  setShowCheckoutModal(false);
+                  setSelectedAgendamento(null);
+                  carregarDados();
+              }}
+              agendamento={selectedAgendamento}
+          />
       )}
     </div>
   );

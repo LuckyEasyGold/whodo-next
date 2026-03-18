@@ -67,12 +67,44 @@
 
 ---
 
-## 💰 FASE 6: Monetização e Sistema MMN (NOVO)
+## 💰 FASE 6: Motor Financeiro e Pagamentos (EM ANDAMENTO)
+
+- [x] Configurar Conta Mestra da Plataforma (Usuário Mestre) para concentrar os ganhos.
+- [x] Integração com Gateway de Pagamento (Mercado Pago) para gerar PIX.
+- [x] Criação de Webhook para receber confirmação de pagamento em tempo real e executar o Split (96% e 4%).
+- [x] Modal de Checkout na interface (`CheckoutModal.tsx` e `BotaoPagarPix.tsx`).
+- [ ] **[PONTO DE PARADA]** Implementar o Fluxo Direto de Contratação na Tela de Detalhes do Agendamento (`/dashboard/agendamentos/[id]`):
+  - [ ] Para o Prestador: Criar botões de **Aceitar Pedido**, **Sugerir Nova Data** e **Recusar**.
+  - [ ] Para o Cliente: Exibir botão de **Pagar via Pix / Cartão** apenas após o prestador Aceitar.
+  - [ ] Para Ambos: Adicionar botão secundário **"Abrir Chat"** nos detalhes para comunicação opcional.
+- [ ] Permitir pagamento de contratos usando o próprio saldo da Carteira do usuário.
+
+### 💡 Detalhamento do Fluxo de Pagamento (Escrow)
+> **Princípio:** O WhoDo atua como intermediário central (escrow) em todas as transações para garantir segurança, controle e auditoria. O fluxo é sempre `Cliente -> WhoDo -> Prestador`.
+
+1.  **Gatilho:** Prestador aceita o serviço, o `Agendamento` muda para status `confirmado`. O valor acordado se torna um pagamento pendente.
+2.  **Ação do Cliente (Pagamento):** O cliente é direcionado para pagar. O sistema verifica o saldo em sua `Carteira`.
+    *   **Cenário A: Saldo suficiente na Carteira:**
+        *   O cliente aprova o pagamento. O valor é movido do `saldo` para um estado `bloqueado` (escrow) na plataforma. Uma `Transacao` interna registra essa movimentação.
+    *   **Cenário B: Sem saldo suficiente (Pagamento Externo):**
+        *   O cliente paga via gateway (ex: Mercado Pago).
+        *   O webhook do gateway confirma o pagamento ao WhoDo.
+        *   **Registro Duplo para Clareza:** Para o histórico do cliente, o sistema registrará **duas transações**:
+            1.  **Crédito:** Uma entrada no valor do pagamento (`+R$ 100,00 de Depósito via Gateway`).
+            2.  **Débito para Escrow:** Uma saída imediata do mesmo valor para a custódia do agendamento (`-R$ 100,00 para Pagamento do Serviço #123`).
+3.  **Liberação para o Prestador (Settlement):**
+    *   Após a finalização do serviço (`Agendamento` com status `concluído`), o sistema é acionado.
+    *   A comissão da plataforma (ex: 4%) é calculada.
+    *   O valor restante (ex: 96%) é transferido da custódia (escrow) para o `saldo` disponível na `Carteira` do prestador. Cada passo é registrado na tabela `Transacao`.
+
+---
+
+## 🌳 FASE 7: Sistema MMN (Marketing Multinível)
 
 - [ ] Criar tabela `Comissao` no Prisma (id, user_id, source_user_id, nivel, valor, agendamento_id).
 - [ ] Lógica de cálculo determinística (4% da venda, distribuídos em 8%, 4%, 2%, 1% em até 4 níveis).
 - [ ] Disparo automático de comissão na mudança de status do Agendamento para "concluído"/"pago".
-- [ ] Integração do saldo gerado na `Carteira` do usuário.
+- [ ] Integração do saldo gerado na `Carteira` dos patrocinadores (tirando do lucro da plataforma).
 - [ ] Dashboard de ganhos de rede para o usuário acompanhar indicações.
 
 ---

@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 60 * 60 * 24 * 7,
-            path: '/',
+            path: '/praca',
         })
 
         return NextResponse.json({ user: sessionData }, { status: 201 })

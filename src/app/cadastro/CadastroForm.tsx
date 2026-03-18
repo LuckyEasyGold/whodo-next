@@ -34,7 +34,7 @@ export default function CadastroForm() {
                 return
             }
 
-            router.push('/')
+            router.push('/login')
             router.refresh()
         } catch {
             setErro('Erro de conexão. Tente novamente.')

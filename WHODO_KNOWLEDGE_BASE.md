@@ -451,6 +451,16 @@ export async function GET(req: NextRequest) {
 | `concluido` | Serviço realizado |
 | `cancelado` | Cancelado por alguma das partes |
 
+### 6.5 Fluxo de Pagamento e Escrow
+
+- **Intermediário Central (Escrow):** O WhoDo atua como o intermediário financeiro em todas as transações. O dinheiro pago por um cliente por um serviço **não vai** diretamente para o prestador. Ele é mantido em custódia (escrow) pela plataforma.
+- **Liberação de Pagamento:** O valor só é liberado e transferido para a carteira do prestador após o `Agendamento` ser marcado como `concluído`, garantindo a segurança para ambas as partes.
+- **Fontes de Pagamento:** O cliente pode pagar por um serviço de duas formas:
+    1.  **Saldo da Carteira:** Usando fundos que ele já possui em sua carteira WhoDo.
+    2.  **Gateway Externo:** Usando um meio de pagamento como PIX ou Cartão de Crédito (ex: via Mercado Pago).
+- **Registro de Transações:** Independentemente da fonte, toda movimentação financeira é registrada. Pagamentos externos, para fins de clareza no extrato do cliente, são registrados como uma entrada de fundos na carteira seguida de um pagamento imediato para a custódia do serviço.
+- **Comissão da Plataforma:** No momento da liberação do pagamento para o prestador, a comissão acordada do WhoDo é automaticamente deduzida.
+
 ---
 
 ## 7. FAQ (Perguntas Frequentes)
