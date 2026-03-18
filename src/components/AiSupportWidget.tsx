@@ -201,7 +201,6 @@ export default function AiSupportWidget() {
                                 border: '4px solid white',
                                 boxShadow: '0 10px 25px rgba(99, 102, 241, 0.4)',
                                 fontSize: '28px',
-                                border: 'none',
                                 cursor: 'grab',
                             }}
                         >
