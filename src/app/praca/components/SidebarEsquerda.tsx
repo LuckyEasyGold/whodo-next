@@ -6,7 +6,7 @@ import {
     CalendarDays, Briefcase, MessageCircle,
     Wrench, LayoutDashboard, Bell,
     Newspaper, Settings, Bookmark, ChevronDown,
-    Globe, Linkedin, Instagram, Facebook, Plus
+    Globe, Linkedin, Instagram, Facebook, Plus, Youtube
 } from 'lucide-react'
 import CriarPostagemModal from './CriarPostagemModal'
 
@@ -25,7 +25,7 @@ export default function SidebarEsquerda({ usuario, onNovaPostagem }: Props) {
         { url: usuario.linkedin, icon: Linkedin },
         { url: usuario.instagram, icon: Instagram },
         { url: usuario.facebook, icon: Facebook },
-        { url: usuario.youtube, icon: Globe },
+        { url: usuario.youtube, icon: Youtube },
         { url: usuario.tiktok, icon: Globe },
         { url: usuario.kwai, icon: Globe },
     ].filter(link => link.url)
