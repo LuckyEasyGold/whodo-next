@@ -11,7 +11,7 @@ const suggestDateSchema = z.object({
 export async function POST(req: Request) {
   try {
     const session = await getSession();
-    if (!session?.user?.id) {
+    if (!session?.id) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
