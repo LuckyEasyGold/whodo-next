@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { 
-    Calendar, Briefcase, MessageCircle, 
-    Wrench, LayoutDashboard, Bell, Star, Bookmark,
-    Newspaper, Settings, MoreHorizontal, ChevronDown,
-    Globe, Github, Linkedin, Instagram, Facebook, Plus
+import {
+    CalendarDays, Briefcase, MessageCircle,
+    Wrench, LayoutDashboard, Bell,
+    Newspaper, Settings, Bookmark, ChevronDown,
+    Globe, Linkedin, Instagram, Facebook, Plus
 } from 'lucide-react'
 import CriarPostagemModal from './CriarPostagemModal'
 
@@ -31,18 +31,17 @@ export default function SidebarEsquerda({ usuario, onNovaPostagem }: Props) {
     ].filter(link => link.url)
 
     const linksMenu = [
-        { href: '/agenda', icon: Calendar, label: 'Agenda', count: null },
-        { href: '/portfolio', icon: Briefcase, label: 'Portfólio', count: null },
-        { href: '/mensagens', icon: MessageCircle, label: 'Mensagens', count: 3 },
-        { href: '/servicos', icon: Wrench, label: 'Serviços', count: usuario._count?.servicos || 0 },
+        { href: '/dashboard/agendamentos', icon: CalendarDays, label: 'Agenda', count: null },
+        { href: '/dashboard/portfolio', icon: Briefcase, label: 'Portfólio', count: null },
+        { href: '/dashboard/mensagens', icon: MessageCircle, label: 'Mensagens', count: null },
+        { href: '/dashboard/servicos', icon: Wrench, label: 'Serviços', count: usuario._count?.servicos || 0 },
         { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', count: null },
-        { href: '/notificacoes', icon: Bell, label: 'Notificações', count: 5 },
+        { href: '/dashboard/notificacoes', icon: Bell, label: 'Notificações', count: null },
         { href: '/itens-salvos', icon: Bookmark, label: 'Itens Salvos', count: 12 },
     ]
 
     const linksExtras = [
-        { href: '/configuracoes', icon: Settings, label: 'Configurações', count: null },
-        { href: '/ajuda', icon: MoreHorizontal, label: 'Ajuda', count: null },
+        { href: '/dashboard/configuracoes', icon: Settings, label: 'Configurações', count: null },
     ]
 
     return (
@@ -65,7 +64,7 @@ export default function SidebarEsquerda({ usuario, onNovaPostagem }: Props) {
                                 </h2>
                             </Link>
                             <p className="text-xs text-slate-500">@{usuario.nome?.toLowerCase().replace(/\s/g, '')}</p>
-                            
+
                             {/* Ícones de Links Sociais */}
                             {linksSociais.length > 0 && (
                                 <div className="flex gap-1 mt-2">
@@ -156,7 +155,7 @@ export default function SidebarEsquerda({ usuario, onNovaPostagem }: Props) {
                             <span>Mais itens</span>
                             <ChevronDown size={16} className={`transition-transform ${showMoreLinks ? 'rotate-180' : ''}`} />
                         </button>
-                        
+
                         {showMoreLinks && (
                             <div className="mt-1 space-y-1">
                                 {linksExtras.map((item) => (

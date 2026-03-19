@@ -1,12 +1,14 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
 
   async headers() {
-    return [
+    const commonHeaders = [
       {
         source: '/:path*',
         headers: [
@@ -57,6 +59,12 @@ const nextConfig: NextConfig = {
           }
         ]
       },
+    ];
+
+    // Cache agressivo para assets estáticos — aplicado APENAS em produção.
+    // Em desenvolvimento o Next.js precisa controlar o Cache-Control desses
+    // arquivos internamente; sobrescrevê-lo causa o aviso no terminal.
+    const prodHeaders = isProd ? [
       {
         source: '/_next/static/:path*',
         headers: [
@@ -66,10 +74,12 @@ const nextConfig: NextConfig = {
           }
         ]
       }
-    ];
+    ] : [];
+
+    return [...commonHeaders, ...prodHeaders];
   },
 
   poweredByHeader: false,
 };
 
-export default nextConfig;
+export default nextConfig;
