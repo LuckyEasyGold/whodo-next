@@ -1,7 +1,7 @@
 # Plano de Implementação - Página da Praça
 
 > **Última atualização:** Março de 2026
-> **Status:** FASE 4 Concluída / Iniciando MMN
+> **Status:** FASE 6 Em Andamento
 
 ---
 
@@ -56,8 +56,6 @@
 
 ---
 
----
-
 ## ✅ FASE 5: Otimizações e Imagens (CONCLUÍDA)
 
 ### Itens Implementados:
@@ -69,43 +67,180 @@
 
 ## 💰 FASE 6: Motor Financeiro e Pagamentos (EM ANDAMENTO)
 
+### Itens já Implementados:
 - [x] Configurar Conta Mestra da Plataforma (Usuário Mestre) para concentrar os ganhos.
 - [x] Integração com Gateway de Pagamento (Mercado Pago) para gerar PIX.
 - [x] Criação de Webhook para receber confirmação de pagamento em tempo real e executar o Split (96% e 4%).
 - [x] Modal de Checkout na interface (`CheckoutModal.tsx` e `BotaoPagarPix.tsx`).
-- [ ] **[PONTO DE PARADA]** Implementar o Fluxo Direto de Contratação na Tela de Detalhes do Agendamento (`/dashboard/agendamentos/[id]`):
-  - [ ] Para o Prestador: Criar botões de **Aceitar Pedido**, **Sugerir Nova Data** e **Recusar**.
-  - [ ] Para o Cliente: Exibir botão de **Pagar via Pix / Cartão** apenas após o prestador Aceitar.
-  - [ ] Para Ambos: Adicionar botão secundário **"Abrir Chat"** nos detalhes para comunicação opcional.
-- [ ] Permitir pagamento de contratos usando o próprio saldo da Carteira do usuário.
+- [x] Permitir pagamento de contratos usando o próprio saldo da Carteira do usuário.
 
-### 💡 Detalhamento do Fluxo de Pagamento (Escrow)
-> **Princípio:** O WhoDo atua como intermediário central (escrow) em todas as transações para garantir segurança, controle e auditoria. O fluxo é sempre `Cliente -> WhoDo -> Prestador`.
+### 📊 Schema do Banco - Campos do Agendamento
 
-1.  **Gatilho:** Prestador aceita o serviço, o `Agendamento` muda para status `confirmado`. O valor acordado se torna um pagamento pendente.
-2.  **Ação do Cliente (Pagamento):** O cliente é direcionado para pagar. O sistema verifica o saldo em sua `Carteira`.
-    *   **Cenário A: Saldo suficiente na Carteira:**
-        *   O cliente aprova o pagamento. O valor é movido do `saldo` para um estado `bloqueado` (escrow) na plataforma. Uma `Transacao` interna registra essa movimentação.
-    *   **Cenário B: Sem saldo suficiente (Pagamento Externo):**
-        *   O cliente paga via gateway (ex: Mercado Pago).
-        *   O webhook do gateway confirma o pagamento ao WhoDo.
-        *   **Registro Duplo para Clareza:** Para o histórico do cliente, o sistema registrará **duas transações**:
-            1.  **Crédito:** Uma entrada no valor do pagamento (`+R$ 100,00 de Depósito via Gateway`).
-            2.  **Débito para Escrow:** Uma saída imediata do mesmo valor para a custódia do agendamento (`-R$ 100,00 para Pagamento do Serviço #123`).
-3.  **Liberação para o Prestador (Settlement):**
-    *   Após a finalização do serviço (`Agendamento` com status `concluído`), o sistema é acionado.
-    *   A comissão da plataforma (ex: 4%) é calculada.
-    *   O valor restante (ex: 96%) é transferido da custódia (escrow) para o `saldo` disponível na `Carteira` do prestador. Cada passo é registrado na tabela `Transacao`.
+Adicionar ao modelo `Agendamento` no Prisma:
+```prisma
+model Agendamento {
+  // ... campos existentes
+  orcamento_aprovado     Boolean?  @default(false)
+  concluido_prestador   Boolean   @default(false)
+  concluido_cliente     Boolean   @default(false)
+  valor_orcamento       Decimal?  @db.Decimal(10, 2)
+  descricao_orcamento   String?
+  condicoes_orcamento   String?
+}
+```
+
+### 📊 Tabela de Auditoria - HistoricoAgendamento
+
+```prisma
+model HistoricoAgendamento {
+  id            String   @id @default(cuid())
+  agendamento_id String
+  acao          String   // ex: "STATUS_CHANGE", "PAYMENT", "APPROVAL", etc.
+  user_id       String
+  timestamp     DateTime @default(now())
+  metadata      Json?    // dados adicionais da ação
+  agendamento   Agendamento @relation(fields: [agendamento_id], references: [id])
+}
+```
+
+### 📌 Valores de Status (9 Estados)
+
+Os status do Agendamento devem seguir esta definição:
+
+| Status | Descrição |
+|--------|-----------|
+| `pendente` | Agendamento criado, aguardando resposta do prestador |
+| `aceito` | Prestador aceitou o serviço |
+| `aguardando_cliente` | Prestador sugeriu nova data, aguardando cliente |
+| `recusado` | Prestador recusou o serviço |
+| `orcamento_enviado` | Prestador enviou orçamento para aprovação |
+| `aguardando_pagamento` | Orçamento aprovado, aguardando pagamento do cliente |
+| `confirmado` | Pagamento confirmado (em execução) |
+| `aguardando_confirmacao_cliente` | Prestador marcou como concluído, aguardando validação |
+| `concluido` | Cliente confirmou - serviço finalizado e pago |
+
+### 🔄 Fluxo Completo do Contrato
+
+#### 1. CRIAÇÃO DO AGENDAMENTO (INÍCIO)
+- Status inicial: `pendente`
+- Campos necessários: `status`, `cliente_id`, `prestador_id`, `servico_id`, `descricao`, `data_sugerida`, `valor` (nullable)
+
+#### 2. AÇÃO DO PRESTADOR (Tela: `/dashboard/agendamentos/[id]`)
+
+**Botões do Prestador:**
+- ✅ **Aceitar Pedido** → `status = aceito`
+- 🔄 **Sugerir Nova Data** → `status = aguardando_cliente`
+- ❌ **Recusar** → `status = recusado`
+- 💬 **Abrir Chat** → Abre chat vinculado ao agendamento
+
+#### 3. ORÇAMENTO (SE NECESSÁRIO)
+- Se serviço não tem valor definido, prestador pode criar orçamento
+- Campos: `valor_orcamento`, `descricao_orcamento`, `condicoes_orcamento`
+- Status: `orcamento_enviado`
+- Cliente pode: Aprovar / Recusar / Negociar via chat
+- Se aprovado: `orcamento_aprovado = true`, `status = aguardando_pagamento`
+
+#### 4. PAGAMENTO (ESCROW)
+- **Regra Crítica:** Só permite pagamento se `status = aguardando_pagamento`
+- Cliente só vê botão de pagamento APÓS prestador aceitar
+- Opções: Pix, Cartão ou Saldo da Carteira
+
+**Fluxo de Pagamento com Carteira:**
+- Mover saldo → estado `bloqueado` (escrow)
+
+**Fluxo de Pagamento com Gateway:**
+- Registrar crédito (+)
+- Registrar débito para escrow (-)
+- Status após confirmado: `confirmado`
+
+#### 5. EXECUÇÃO DO SERVIÇO
+- Chat liberado durante toda a execução
+- Mensagens vinculadas ao `agendamento_id`
+
+#### 6. FINALIZAÇÃO (Two-Step Completion)
+
+**Prestador:**
+- Botão: "Marcar como concluído"
+- `concluido_prestador = true`
+- `status = aguardando_confirmacao_cliente`
+
+**Cliente:**
+- Botão: "Confirmar conclusão"
+- `concluido_cliente = true`
+- `status = concluido`
+
+#### 7. LIBERAÇÃO DO PAGAMENTO
+Após `status = concluido`:
+- Calcular comissão (4%)
+- Transferir 96% → carteira do prestador
+- Transferir 4% → conta da plataforma
+- Registrar tudo em `Transacao`
+
+### ⚠️ REGRAS CRÍTICAS
+
+| Regra | Descrição |
+|-------|-----------|
+| ❌ | Não permitir pagamento antes da aprovação do prestador |
+| ❌ | Não liberar dinheiro antes da confirmação do cliente |
+| ❌ | Não permitir conclusão sem ambas as partes |
+| ✅ | Tudo deve ser reversível até o pagamento |
+| ✅ | Tudo deve ser auditável via HistoricoAgendamento |
+
+### 📋 Tarefas Pendentes - Fase 6
+
+- [ ] Implementar Provider Actions na tela `/dashboard/agendamentos/[id]`:
+  - [ ] Botão Aceitar
+  - [ ] Botão Sugerir Nova Data
+  - [ ] Botão Recusar
+  - [ ] Botão Abrir Chat
+- [ ] Implementar Client Actions:
+  - [ ] Botão Pagar (Pix/Cartão) - visível apenas após provider aceitar
+  - [ ] Botão Aprovar/Recusar Orçamento
+  - [ ] Botão Confirmar Conclusão
+- [ ] Criar/migrar tabela `HistoricoAgendamento`
+- [ ] Adicionar campos `orcamento_aprovado`, `concluido_prestador`, `concluido_cliente` ao Agendamento
+- [ ] Implementar lógica de mudança de status
+- [ ] Implementar fluxo de Orçamento
+- [ ] Implementar fluxo de Two-Step Completion
+- [ ] Integrar chat com agendamentos
+- [ ] Implementar liberação de pagamento (96%/4%)
 
 ---
 
 ## 🌳 FASE 7: Sistema MMN (Marketing Multinível)
 
-- [ ] Criar tabela `Comissao` no Prisma (id, user_id, source_user_id, nivel, valor, agendamento_id).
-- [ ] Lógica de cálculo determinística (4% da venda, distribuídos em 8%, 4%, 2%, 1% em até 4 níveis).
-- [ ] Disparo automático de comissão na mudança de status do Agendamento para "concluído"/"pago".
-- [ ] Integração do saldo gerado na `Carteira` dos patrocinadores (tirando do lucro da plataforma).
-- [ ] Dashboard de ganhos de rede para o usuário acompanhar indicações.
+### Tabela Comissao
+
+```prisma
+model Comissao {
+  id              String   @id @default(cuid())
+  user_id         String   // Quem recebe a comissão
+  source_user_id  String   // Quem realizou a contratação
+  nivel           Int      // 1, 2, 3 ou 4
+  valor           Decimal  @db.Decimal(10, 2)
+  agendamento_id  String
+  percentual      Decimal  @db.Decimal(5, 2) // 8%, 4%, 2% ou 1%
+  created_at      DateTime @default(now())
+}
+```
+
+### Distribuição de Comissão (4% total)
+
+| Nível | Percentual | Descrição |
+|-------|------------|-----------|
+| 1 | 8% | Indicação direta |
+| 2 | 4% | Indicação indireta |
+| 3 | 2% | Terceiro nível |
+| 4 | 1% | Quarto nível |
+
+### Tarefas - Fase 7
+
+- [ ] Criar tabela `Comissao` no Prisma
+- [ ] Implementar lógica de cálculo determinística (4% da venda)
+- [ ] Implementar distribuição: 8%, 4%, 2%, 1% em até 4 níveis
+- [ ] Disparo automático na mudança de status para "concluido"
+- [ ] Integrar saldo gerado na `Carteira` dos patrocinadores
+- [ ] Criar dashboard de ganhos de rede
 
 ---
 
@@ -136,6 +271,7 @@
 - Feed (Praça): `/praca`
 - Itens Salvos: `/itens-salvos`
 - Agenda: `/agenda` → `/dashboard/agendamentos`
+- Detalhes Agendamento: `/dashboard/agendamentos/[id]`
 - Perfil: `/perfil/[id]`
 - Dashboard: `/dashboard`
 
@@ -150,6 +286,7 @@ npm install
 npx prisma generate
 npx prisma migrate dev --name add_postagem_salva
 npx prisma migrate dev --name add_visualizacoes_postagem
+npx prisma migrate dev --name add_campos_agendamento_and_historico
 npm run dev
 ```
 
