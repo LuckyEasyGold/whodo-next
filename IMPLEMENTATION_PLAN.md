@@ -1,7 +1,7 @@
 # Plano de Implementação - Página da Praça
 
 > **Última atualização:** Março de 2026
-> **Status:** FASE 6 Em Andamento
+> **Status:** FASE 7 Em Andamento
 
 ---
 
@@ -65,9 +65,33 @@
 
 ---
 
-## 💰 FASE 6: Motor Financeiro e Pagamentos (EM ANDAMENTO)
+## ✅ FASE 6: Motor Financeiro e Pagamentos (CONCLUÍDA)
 
-### Itens já Implementados:
+### Itens Implementados:
+- [x] Banco de Dados: Novos campos no Agendamento (`orcamento_aprovado`, `concluido_prestador`, `concluido_cliente`, `valor_orcamento`, `descricao_orcamento`, `condicoes_orcamento`)
+- [x] Tabela `HistoricoAgendamento` para auditoria
+- [x] Provider Actions na tela `/dashboard/agendamentos/[id]`:
+  - [x] Botão Aceitar → status = aceito
+  - [x] Botão Sugerir Nova Data → status = aguardando_cliente
+  - [x] Botão Recusar → status = recusado
+  - [x] Botão Enviar Orçamento
+  - [x] Botão Marcar como Concluído (para prestador)
+- [x] Client Actions:
+  - [x] Botão Pagar (Pix/Cartão) - visível apenas após prestador aceitar
+  - [x] Botão Aprovar/Recusar Orçamento
+  - [x] Botão Confirmar Conclusão
+  - [x] Botão Negociar (via chat)
+- [x] Lógica de Negócio:
+  - [x] Lógica de mudança de status (9+ estados)
+  - [x] Fluxo de Orçamento
+  - [x] Fluxo de Two-Step Completion
+  - [x] Integração com chat (botão disponível)
+  - [x] Histórico de auditoria (HistoricoAgendamento)
+- [x] Pagamentos:
+  - [x] Liberação de pagamento (96% prestador / 4% plataforma)
+  - [x] Regra: Só permite pagamento se status permite
+  - [x] Regra: Não liberar dinheiro antes da confirmação do cliente
+  - [x] Transações atômicas
 - [x] Configurar Conta Mestra da Plataforma (Usuário Mestre) para concentrar os ganhos.
 - [x] Integração com Gateway de Pagamento (Mercado Pago) para gerar PIX.
 - [x] Criação de Webhook para receber confirmação de pagamento em tempo real e executar o Split (96% e 4%).
@@ -186,28 +210,11 @@ Após `status = concluido`:
 | ✅ | Tudo deve ser reversível até o pagamento |
 | ✅ | Tudo deve ser auditável via HistoricoAgendamento |
 
-### 📋 Tarefas Pendentes - Fase 6
-
-- [ ] Implementar Provider Actions na tela `/dashboard/agendamentos/[id]`:
-  - [ ] Botão Aceitar
-  - [ ] Botão Sugerir Nova Data
-  - [ ] Botão Recusar
-  - [ ] Botão Abrir Chat
-- [ ] Implementar Client Actions:
-  - [ ] Botão Pagar (Pix/Cartão) - visível apenas após provider aceitar
-  - [ ] Botão Aprovar/Recusar Orçamento
-  - [ ] Botão Confirmar Conclusão
-- [ ] Criar/migrar tabela `HistoricoAgendamento`
-- [ ] Adicionar campos `orcamento_aprovado`, `concluido_prestador`, `concluido_cliente` ao Agendamento
-- [ ] Implementar lógica de mudança de status
-- [ ] Implementar fluxo de Orçamento
-- [ ] Implementar fluxo de Two-Step Completion
-- [ ] Integrar chat com agendamentos
-- [ ] Implementar liberação de pagamento (96%/4%)
+---
 
 ---
 
-## 🌳 FASE 7: Sistema MMN (Marketing Multinível)
+## 🌳 FASE 7: Sistema MMN (Marketing Multinível) (EM ANDAMENTO)
 
 ### Tabela Comissao
 
@@ -233,7 +240,7 @@ model Comissao {
 | 3 | 2% | Terceiro nível |
 | 4 | 1% | Quarto nível |
 
-### Tarefas - Fase 7
+### 📋 Tarefas - Fase 7
 
 - [ ] Criar tabela `Comissao` no Prisma
 - [ ] Implementar lógica de cálculo determinística (4% da venda)
