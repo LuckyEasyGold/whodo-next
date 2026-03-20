@@ -1,8 +1,8 @@
 ---
 name: whodo-core-architect
 description: Especialista no ecossistema WhoDo. Orienta o desenvolvimento do marketplace (Next.js/TS) e a transição para a plataforma de serviceplace escalável.
-version: 2.0.0
-last_updated: 2024-12-01
+version: 3.0.0
+last_updated: 2026-03-20
 ---
 
 # WhoDo Project Skill
