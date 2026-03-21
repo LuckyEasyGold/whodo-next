@@ -268,6 +268,175 @@ model Comissao {
 
 ---
 
+## 📋 PLANO DE EXECUÇÃO - SISTEMA DE CONTRATOS E AGENDAMENTOS
+
+### Fluxo Completo do Sistema de Contratos
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. CONTRATAÇÃO                                                               │
+│ ┌──────────────┐    ┌─────────────────┐    ┌────────────────────────────┐  │
+│ │ Cliente       │───▶│ Escolhe Serviço │───▶│ Seleciona Data/Hora        │  │
+│ │ Perfil Prest. │    │ do Prestador    │    │ (Consulta Agenda Prest.)  │  │
+│ └──────────────┘    └─────────────────┘    └────────────────────────────┘  │
+│                                                                       │
+│ ┌──────────────────────────────────────────────────────────────────┐    │
+│ │ Cria AGENDAMENTO (status: pendente)                              │    │
+│ │ - cliente_id, prestador_id, servico_id                           │    │
+│ │ - data_agendamento, valor_total                                  │    │
+│ │ - Link para chat vinculado                                        │    │
+│ └──────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. AGENDA vs AGENDAMENTO                                                    │
+│                                                                              │
+│ 📅 AGENDA = Disponibilidade do Prestador                                    │
+│    - Permite criar blocos de disponibilidade                                │
+│    - Mostra datas/horários disponíveis                                       │
+│    - Reserva automática ao contratar                                        │
+│                                                                              │
+│ 📋 AGENDAMENTO = Contrato entre as partes                                  │
+│    - Registro formal do serviço contratado                                  │
+│    - Histórico de mensagens relacionadas                                    │
+│    - Status do serviço (pendente → confirmado → concluído)                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. FLUXO APÓS CONTRATAÇÃO                                                  │
+│                                                                              │
+│ PRESTADOR (Agendamentos Recebidos):                                         │
+│ ┌─────────────────────────────────────────────────────────────────────┐    │
+│ │ Card com:                                                           │    │
+│ │ - Dados do cliente                                                  │    │
+│ │ - Serviço contratado                                                 │    │
+│ │ - Data/Hora agendada                                                │    │
+│ │ - Valor                                                             │    │
+│ │ BOTÕES:                                                             │    │
+│ │ ✓ Confirmar Solicitação                                             │    │
+│ │ ✗ Recusar (com motivo)                                             │    │
+│ │ 💬 Abrir Chat (negociação)                                         │    │
+│ └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│ CLIENTE (Meus Agendamentos):                                                │
+│ ┌─────────────────────────────────────────────────────────────────────┐    │
+│ │ Card com:                                                           │    │
+│ │ - Dados do prestador                                                │    │
+│ │ - Serviço contratado                                                 │    │
+│ │ - Status atual                                                      │    │
+│ │ BOTÕES:                                                             │    │
+│ │ - Aguardando resposta (se pendente)                                │    │
+│ │ - Pagar Agora (se confirmado)                                      │    │
+│ │ - Chat                                                              │    │
+│ └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. SISTEMA DE PAGAMENTO (ESCROW)                                           │
+│                                                                              │
+│ OPÇÕES DE PAGAMENTO:                                                         │
+│ 1. 💰 Saldo da Carteira do Cliente                                          │
+│ 2. 💳 Gateway (Mercado Pago) - PIX ou Cartão                               │
+│    - Cliente escolhe método no Mercado Pago                                 │
+│    - Importante: Mercado Pago comunica via API quando valor for enviado    │
+│                                                                              │
+│ FLUXO DO DINHEIRO:                                                          │
+│                                                                              │
+│ ┌─────────────────────────────────────────────────────────────────────┐    │
+│ │ Cliente paga → Valor entra na conta WHODE                          │    │
+│ │                                                                     │    │
+│ │ Cria registro:                                                     │    │
+│ │ - Débito na carteira do cliente                                    │    │
+│ │ - Crédito pendente na carteira do prestador                        │    │
+│ │ - Taxa (4%) para a plataforma                                      │    │
+│ └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│ 💡 O valor fica PENDENTE até serviço ser concluído                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. LIBERAÇÃO DO PAGAMENTO                                                   │
+│                                                                              │
+│ CONDIÇÕES PARA LIBERAÇÃO:                                                   │
+│ ┌─────────────────────────────────────────────────────────────────────┐    │
+│ │ 1. Prestador notifica fim do serviço                               │    │
+│ │ 2. Cliente confirma recebimento OU                                  │    │
+│ │ 3. Disputa resolvida (se houver)                                   │    │
+│ └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│ APÓS CONDIÇÕES ATENDIDAS:                                                   │
+│ ┌─────────────────────────────────────────────────────────────────────┐    │
+│ │ - Descontar taxa do WHODE (4%)                                     │    │
+│ │ - Transferir 96% para carteira do prestador                       │    │
+│ │ - Atualizar status do agendamento                                  │    │
+│ │ - Registrar transação completa                                     │    │
+│ └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│ DISPUTA/RECLAMAÇÃO:                                                         │
+│ - Cliente pode abrir disputa antes de confirmar                            │
+│ - Valor fica retido até WHODE resolver                                     │
+│ - Após resolução: valor vai para prestador OU retorna para cliente         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 6. AVALIAÇÕES OBRIGATÓRIAS                                                  │
+│                                                                              │
+│ APÓS CONCLUSÃO:                                                              │
+│ ┌─────────────────────────────────────────────────────────────────────┐    │
+│ │ AMBAS as partes DEVEM avaliar:                                     │    │
+│ │                                                                     │    │
+│ │ - Prestador avalia Cliente                                          │    │
+│ │ - Cliente avalia Prestador                                          │    │
+│ │                                                                     │    │
+│ │ Sistema calcula nova média de avaliações                            │    │
+│ └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Status do Agendamento (Estados)
+
+| Status | Descrição | Próximo Status |
+|--------|-----------|----------------|
+| `pendente` | Contrato criado, aguardando resposta do prestador | `aceito`, `recusado` |
+| `aceito` | Prestador confirmou o serviço | `confirmado` (após pagamento) |
+| `recusado` | Prestador recusou | FIM |
+| `confirmado` | Pagamento realizado, serviço em execução | `aguardando_confirmacao` |
+| `aguardando_confirmacao` | Prestador marcou como concluído | `concluido`, `disputa` |
+| `concluido` | Cliente confirmou - pago | FIM |
+| `disputa` | Reclamação aberta | `concluido` (após resolução) |
+
+### Tarefas do Plano de Execução
+
+**FASE 1: Estrutura Base (Concluir antes de prosseguir)**
+- [ ] 1.1 Separar conceitos: Agenda (disponibilidade) vs Agendamento (contrato)
+- [ ] 1.2 Criar tabela de Agenda/Disponibilidade do prestador
+- [ ] 1.3 Criar API de consulta de disponibilidade
+- [ ] 1.4 Integrar seleção de data/hora no fluxo de contratação
+
+**FASE 2: Contratação**
+- [ ] 2.1 Revisar fluxo de criação de agendamento
+- [ ] 2.2 Garantir que links para chat funcionem
+- [ ] 2.3 Mostrar cards corretos para prestador e cliente
+- [ ] 2.4 Implementar botões de confirmar/recusar
+
+**FASE 3: Pagamento**
+- [ ] 3.1 Revisar integração com Mercado Pago
+- [ ] 3.2 Implementar pagamento via saldo da carteira
+- [ ] 3.3 Criar registro de pagamento pendente
+- [ ] 3.4 Configurar webhook para confirmações
+
+**FASE 4: Conclusão**
+- [ ] 4.1 Implementar notificação de fim de serviço
+- [ ] 4.2 Criar botão de confirmação do cliente
+- [ ] 4.3 Implementar sistema de disputas
+- [ ] 4.4 Criar lógica de liberação de pagamento
+
+**FASE 5: Avaliações**
+- [ ] 5.1 Tornar avaliações obrigatórias
+- [ ] 5.2 Calcular média de avaliações
+
+---
+
 ## 📋 MELHORIAS DE BACKLOG (Futuro)
 
 ### FuncionalidadesAvançadas:

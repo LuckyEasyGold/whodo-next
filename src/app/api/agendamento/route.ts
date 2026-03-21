@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
     let agendamentos;
 
     // Inclui sempre cliente E prestador para evitar undefined no frontend
+    // OBS: Os campos do modelo Agendamento já são retornados automaticamente pelo Prisma
     const includeComum = {
       cliente: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
       prestador: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
