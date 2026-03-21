@@ -1,8 +1,8 @@
 ---
 name: whodo-core-architect
 description: Especialista no ecossistema WhoDo. Orienta o desenvolvimento do marketplace (Next.js/TS) e a transição para a plataforma de serviceplace escalável.
-version: 3.0.0
-last_updated: 2026-03-20
+version: 3.1.0
+last_updated: 2026-03-21
 ---
 
 # WhoDo Project Skill
@@ -49,6 +49,7 @@ src/app/
 │   ├── agendamento/       # API de agendamentos
 │   ├── auth/              # Autenticação (login, cadastro, logout, sync)
 │   ├── avaliacoes/        # Sistema de avaliações
+│   ├── busca/             # API de busca em tempo real (live search)
 │   ├── mensagens/         # Chat entre usuários
 │   ├── notificacoes/      # Sistema de notificações
 │   ├── carteira/          # Carteira virtual do usuário
@@ -61,6 +62,7 @@ src/app/
 │   ├── solicitacoes/      # Solicitações de serviço
 │   └── transacao/         # Transações financeiras
 ├── buscar/                # Página de busca de profissionais
+├── praca/                 # Feed social (Praça)
 ├── dashboard/             # Painel do usuário logado
 │   ├── agendamentos/     # Gerenciamento de agendamentos
 │   ├── configuracoes/     # Configurações da conta
@@ -346,7 +348,53 @@ npx prisma migrate reset
 npm run build
 ```
 
-## 12. Como Ajudar o Vinicius
+## 12. Sistema de Busca (Melhorado)
+
+### Funcionalidades Implementadas
+
+O sistema de busca foi completamente reformulado para oferecer uma experiência superior:
+
+| Funcionalidade | Descrição |
+|----------------|-----------|
+| **Case-Insensitive** | Aceita maiúsculas e minúsculas (ex: "JOÃO", "João", "joão") |
+| **Partial Match** | Encontra profissionais com parcial digitado (ex: "ele" encontra "eletricista") |
+| **Multi-Campo** | Busca por nome, especialidade, nome fantasia, serviço e categoria |
+| **Live Search** | Busca em tempo real a cada letra com debounce de 300ms |
+| **Indicador de Carregamento** | Feedback visual durante a busca |
+
+### Arquivos Principais
+
+```
+src/app/
+├── api/busca/route.ts       # API REST para busca em tempo real
+├── buscar/page.tsx          # Página Server Component com lógica de busca
+└── buscar/BuscarContent.tsx # Componente Client com live search
+```
+
+### Parâmetros da API de Busca
+
+A API `/api/busca` aceita os seguintes parâmetros:
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|----------|
+| `q` | string | Termo de busca (nome, especialidade, serviço, categoria) |
+| `categoria` | string | ID da categoria para filtrar |
+| `loc` | string | Localização (cidade/estado) |
+| `rating` | string | Nota mínima (ex: "4") |
+| `preco` | string | Preço máximo |
+| `verificado` | boolean | Filtrar apenas verificados |
+
+### Exemplo de Uso
+
+```typescript
+// Chamada para API de busca
+const response = await fetch('/api/busca?q=eletricista&loc=São Paulo&rating=4')
+const profissionais = await response.json()
+```
+
+---
+
+## 13. Como Ajudar o Vinicius
 
 - Quando ele pedir uma nova funcionalidade, verifique se ela respeita a escalabilidade do projeto
 - Sugira melhorias no código atual para reduzir dívida técnica

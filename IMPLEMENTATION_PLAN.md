@@ -1,7 +1,7 @@
 # Plano de Implementação - Página da Praça
 
 > **Última atualização:** Março de 2026
-> **Status:** FASE 7 Em Andamento
+> **Status:** FASE 8 Concluída
 
 ---
 
@@ -211,6 +211,23 @@ Após `status = concluido`:
 | ✅ | Tudo deve ser auditável via HistoricoAgendamento |
 
 ---
+
+---
+
+## ✅ FASE 8: Busca Melhorada (CONCLUÍDA)
+
+### Itens Implementados:
+- [x] **Case-Insensitive** - Busca aceita maiúsculas e minúsculas
+- [x] **Partial Match** - Encontra profissionais com parcial digitado (ex: "ele" encontra "eletricista")
+- [x] **Multi-Campo** - Busca por nome, especialidade, nome fantasia, serviço e categoria
+- [x] **Live Search** - Busca em tempo real a cada letra com debounce de 300ms
+- [x] **Indicador de Carregamento** - Feedback visual durante a busca
+- [x] **API de Busca** - Nova rota `/api/busca` para buscas em tempo real
+
+### Arquivos Criados/Modificados:
+- `src/app/api/busca/route.ts` - Nova API REST
+- `src/app/buscar/page.tsx` - Busca case-insensitive no backend
+- `src/app/buscar/BuscarContent.tsx` - Live search com debounce
 
 ---
 

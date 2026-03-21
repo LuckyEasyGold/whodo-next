@@ -40,6 +40,9 @@
 | ⭐ Sistema de Avaliações e Reviews (1 a 5 Estrelas) | ✅ Completo |
 | 🗺️ Busca Inteligente com Paginação e Mapa (Leaflet) | ✅ Completo |
 | 🔍 Filtros dinâmicos (preço, nota, localização) | ✅ Completo |
+| ⚡ **Busca em Tempo Real (Live Search)** | ✅ Completo |
+| 🔤 **Busca Case-Insensitive** | ✅ Completo |
+| 📝 **Busca por Partial Match** | ✅ Completo |
 | 📊 Dashboard do Usuário | ✅ Completo |
 | ✏️ Edição de Perfil + CEP automático + Geocodificação | ✅ Completo |
 | 🖼️ Upload de Portfólio (Supabase Storage) | ✅ Completo |
@@ -56,13 +59,14 @@
 
 ## 🚀 Últimas Novidades
 
-O WhoDo! continua evoluindo com fokus em usabilidade e conversão:
+O WhoDo! continua evoluindo com foco em usabilidade e conversão:
 
+- **Busca Melhorada (Live Search):** Busca em tempo real a cada letra digitada, aceita maiúsculas/minúsculas, encontra profissionais com partes do nome, busca por nome, especialidade, serviço ou categoria.
 - **Feed Social (Praça):** Nova funcionalidade de postagens onde usuários podem compartilhar conteúdo, receber curtidas e comentários.
 - **Dashboard Financeiro:** Sistema completo de carteira virtual, transações e dados bancários para saques.
 - **Agendamentos aprimorados:** Fluxo completo de solicitação → aceite → confirmação → conclusão.
 - **Ranking de Prestadores:** Sistema de ranking baseado em avaliações e atividades.
-- *Próximas melhorias:* Gateway de pagamento integrado, App Mobile nativo e melhorias no fluxo de contratação.
+- *Próximas melhorias:* Sistema de Marketing Multinível (MMN), App Mobile nativo e melhorias no fluxo de contratação.
 
 ---
 

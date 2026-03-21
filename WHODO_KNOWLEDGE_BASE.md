@@ -1,8 +1,8 @@
 ---
 title: WhoDo Knowledge Base
 description: Base de conhecimento unificada do projeto WhoDo - marketplace de serviços
-version: 2.0.0
-last_updated: 2024-12-01
+version: 2.1.0
+last_updated: 2026-03-21
 tags: [whodo, marketplace, serviceplace, nextjs, typescript, prisma]
 ---
 
@@ -79,11 +79,15 @@ tags: [whodo, marketplace, serviceplace, nextjs, typescript, prisma]
 
 | Funcionalidade | Status |
 |----------------|--------|
-| Busca inteligente de profissionais | ✅ Completo |
+| Busca inteligente de profissionais | ✅ Completo (Melhorado!) |
 | Mapa com Leaflet | ✅ Completo |
 | Filtros dinâmicos (preço, nota, localização) | ✅ Completo |
 | Paginação otimizada | ✅ Completo |
 | Profissional Verificado | ✅ Completo |
+| **Busca Case-Insensitive** | ✅ Completo |
+| **Partial Match** | ✅ Completo |
+| **Live Search (busca em tempo real)** | ✅ Completo |
+| **Busca por múltiplos campos** | ✅ Completo |
 
 ### 2.5 Sistema de Serviços
 
@@ -354,6 +358,7 @@ src/app/api/
 │   ├── recuperar-senha/  # Recuperação de senha
 │   └── verificar-email/ # Verificação de e-mail
 ├── avaliacoes/          # Sistema de avaliações
+├── busca/               # API de busca em tempo real (live search)
 ├── carteira/            # Carteira do usuário
 ├── dados-bancarios/     # Dados bancários
 ├── mensagens/
