@@ -35,7 +35,7 @@ export default function Footer() {
                         <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Contato</h3>
                         <ul className="space-y-3">
                             <li><span className="text-sm">ajuda@whodo.com.br</span></li>
-                            <li><span className="text-sm">(43) 99999-0000</span></li>
+                            <li><span className="text-sm">(42) 99153-29622</span></li>
                         </ul>
                     </div>
                 </div>

@@ -47,3 +47,11 @@ next-env.d.ts
 ../whodo-populator/
 
 .vercel
+
+# arquivos diversos
+
+./contexto.md
+./IMPLEMENTATION_PLAN.md
+./meu_backup_seguro.sql
+./WHODO_KNOWLEDGE_BASE.md
+

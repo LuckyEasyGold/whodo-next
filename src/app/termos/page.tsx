@@ -18,7 +18,7 @@ export default function TermosPage() {
                         </section>
                         <section>
                             <h2 className="text-xl font-bold text-slate-900 mb-2">2. Uso da Plataforma</h2>
-                            <p>A plataforma WhoDo! conecta clientes a prestadores de serviços. Somos um intermediador e não nos responsabilizamos diretamente pela execução dos serviços contratados entre as partes.</p>
+                            <p>O WhoDo! conecta clientes a prestadores de serviços. Somos uma ferramenta especializada em conectar clientes a prestadores de serviços. Mantemos todo o historioco de necogiação para uso das partes que assim precisarem.</p>
                         </section>
                         <section>
                             <h2 className="text-xl font-bold text-slate-900 mb-2">3. Cadastro e Responsabilidades</h2>

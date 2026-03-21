@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { sendWelcomeEmail } from "@/lib/email"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const authOptions = {
     providers: [
         Google({
             clientId: process.env.AUTH_GOOGLE_ID as string,
@@ -64,4 +64,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session: {
         strategy: "jwt"
     }
-})
+}
+
+export default authOptions
