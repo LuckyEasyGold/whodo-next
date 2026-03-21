@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Search, MapPin, Star, CheckCircle, SlidersHorizontal, Filter, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react'
+import { Search, MapPin, Star, CheckCircle, Filter, ChevronLeft, ChevronRight, ChevronDown, X, Loader2 } from 'lucide-react'
 
 import MapWrapper from '@/components/MapWrapper'
 
@@ -36,7 +36,7 @@ type Props = {
     vcQuisDizer?: string | null
 }
 
-export default function BuscarContent({ profissionais, categorias, queryInicial, categoriaInicial, defaultCity, vcQuisDizer }: Props) {
+export default function BuscarContent({ profissionais: profissionaisIniciais, categorias, queryInicial, categoriaInicial, defaultCity, vcQuisDizer }: Props) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -46,6 +46,78 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
     const [distance, setDistance] = useState(Number(searchParams.get('dist')) || 10)
     const [minRating, setMinRating] = useState(Number(searchParams.get('rating')) || 0)
     const [onlyVerified, setOnlyVerified] = useState(searchParams.get('verificado') === 'true')
+
+    // Live search states
+    const [searchQuery, setSearchQuery] = useState(queryInicial)
+    const [profissionais, setProfissionais] = useState(profissionaisIniciais)
+    const [isSearching, setIsSearching] = useState(false)
+    const [hasSearched, setHasSearched] = useState(false)
+
+    // Debounce para live search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== queryInicial || hasSearched) {
+                buscarProfissionais(searchQuery)
+            }
+        }, 300) // 300ms de delay
+
+        return () => clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery, categoriaInicial, location, minRating, priceRange, onlyVerified])
+
+    // Buscar profissionais via API
+    const buscarProfissionais = async (query: string) => {
+        if (query.length === 0 && !hasSearched) {
+            setProfissionais(profissionaisIniciais)
+            return
+        }
+
+        setIsSearching(true)
+        setHasSearched(true)
+
+        try {
+            const params = new URLSearchParams()
+            if (query) params.set('q', query)
+            if (categoriaInicial) params.set('categoria', categoriaInicial)
+            if (location) params.set('loc', location)
+            if (minRating > 0) params.set('rating', minRating.toString())
+            if (priceRange < 1000) params.set('preco', priceRange.toString())
+            if (onlyVerified) params.set('verificado', 'true')
+
+            const response = await fetch(`/api/busca?${params.toString()}`)
+            const data = await response.json()
+
+            if (Array.isArray(data)) {
+                // Formatar dados da API para o formato esperado
+                const formatted = data.map((p: any) => ({
+                    ...p,
+                    avaliacoesRecebidas: [],
+                    ranking: p.verificado ? { posicao: 0, totalContratos: 0, titulo: null } : null
+                }))
+                setProfissionais(formatted)
+            }
+        } catch (error) {
+            console.error('Erro na busca:', error)
+        } finally {
+            setIsSearching(false)
+        }
+    }
+
+    // Handler para mudança no input de busca
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value)
+    }
+
+    // Handler para submit do form (busca tradicional)
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        // Atualiza URL com parâmetros
+        const params = new URLSearchParams()
+        if (searchQuery) params.set('q', searchQuery)
+        if (categoriaInicial) params.set('categoria', categoriaInicial)
+        if (location) params.set('loc', location)
+        router.push(`/buscar?${params.toString()}`)
+    }
 
     // Paginação
     const itemsPerPage = 20
@@ -84,20 +156,24 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-6">
                         Encontre o profissional perfeito
                     </h1>
-                    <form className="relative" action="/buscar" method="GET">
+                    <form className="relative" onSubmit={handleSearchSubmit}>
                         <div className="flex gap-2 p-2 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20">
                             <div className="relative flex-1">
                                 <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
                                 <input
                                     type="text"
                                     name="q"
-                                    defaultValue={queryInicial}
-                                    placeholder="O que você precisa?"
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    placeholder="O que você precisa? (ex: eletricista, João, painter)"
                                     className="w-full pl-11 pr-4 py-3.5 bg-white/10 rounded-xl text-white placeholder:text-white/40 border border-white/10 focus:border-white/30 focus:outline-none text-base"
                                 />
+                                {isSearching && (
+                                    <Loader2 size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 animate-spin" />
+                                )}
                             </div>
-                            <button type="submit" className="px-6 py-3.5 bg-white text-indigo-700 font-bold rounded-xl hover:bg-indigo-50 transition-all shadow-lg text-sm">
-                                Buscar
+                            <button type="submit" className="px-6 py-3.5 bg-white text-indigo-700 font-bold rounded-xl hover:bg-indigo-50 transition-all shadow-lg text-sm flex items-center gap-2">
+                                <span>Buscar</span>
                             </button>
                         </div>
 
@@ -133,7 +209,16 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                         Filtros
                         <ChevronDown size={16} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
                     </button>
-                    <span className="text-sm text-slate-400">{profissionais.length} profissionais</span>
+                    <span className="text-sm text-slate-400">
+                        {isSearching ? (
+                            <span className="flex items-center gap-1">
+                                <Loader2 size={14} className="animate-spin" />
+                                Buscando...
+                            </span>
+                        ) : (
+                            `${profissionais.length} profissionais`
+                        )}
+                    </span>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -244,7 +329,16 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
                                 <div>
                                     <h2 className="text-xl font-extrabold text-slate-900">Profissionais</h2>
-                                    <p className="text-slate-500 text-sm mt-0.5"><span className="font-semibold text-slate-900">{profissionais.length}</span> resultados</p>
+                                    <p className="text-slate-500 text-sm mt-0.5">
+                                        {isSearching ? (
+                                            <span className="flex items-center gap-1">
+                                                <Loader2 size={14} className="animate-spin" />
+                                                Buscando...
+                                            </span>
+                                        ) : (
+                                            <><span className="font-semibold text-slate-900">{profissionais.length}</span> resultados</>
+                                        )}
+                                    </p>
                                 </div>
                                 <select className="mt-3 sm:mt-0 pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer">
                                     <option value="relevancia">Relevância</option>
@@ -263,7 +357,12 @@ export default function BuscarContent({ profissionais, categorias, queryInicial,
                                 </div>
                             )}
 
-                            {profissionais.length === 0 ? (
+                            {isSearching ? (
+                                <div className="text-center py-20">
+                                    <Loader2 size={48} className="animate-spin text-indigo-600 mx-auto mb-4" />
+                                    <p className="text-slate-500">Buscando profissionais...</p>
+                                </div>
+                            ) : profissionais.length === 0 ? (
                                 <div className="text-center py-20">
                                     <Search size={48} className="mx-auto text-slate-300 mb-4" />
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">Nenhum profissional encontrado</h3>

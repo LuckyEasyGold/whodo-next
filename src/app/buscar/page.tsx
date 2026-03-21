@@ -34,10 +34,11 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
         where.AND = [
             {
                 OR: [
-                    { nome: { contains: params.q } },
-                    { especialidade: { contains: params.q } },
-                    { nome_fantasia: { contains: params.q } },
-                    { servicos: { some: { titulo: { contains: params.q } } } },
+                    { nome: { contains: params.q, mode: 'insensitive' } },
+                    { especialidade: { contains: params.q, mode: 'insensitive' } },
+                    { nome_fantasia: { contains: params.q, mode: 'insensitive' } },
+                    { servicos: { some: { titulo: { contains: params.q, mode: 'insensitive' } } } },
+                    { servicos: { some: { categoria: { nome: { contains: params.q, mode: 'insensitive' } } } } },
                 ]
             }
         ]
@@ -52,8 +53,8 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
     if (params.loc) {
         const locFilter = {
             OR: [
-                { cidade: { contains: params.loc } },
-                { estado: { contains: params.loc } }
+                { cidade: { contains: params.loc, mode: 'insensitive' } },
+                { estado: { contains: params.loc, mode: 'insensitive' } }
             ]
         }
         if (where.AND) where.AND.push(locFilter)
