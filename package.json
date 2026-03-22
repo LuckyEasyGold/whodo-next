@@ -46,6 +46,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dependency-cruiser": "^17.3.9",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "prisma": "^5.22.0",

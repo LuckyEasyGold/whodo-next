@@ -1,0 +1,265 @@
+{
+  "apiFiles": [
+    "app/api/admin/scripts/boas-vindas/route.ts",
+    "app/api/admin/setup/route.ts",
+    "app/api/admin/stats/route.ts",
+    "app/api/admin/users/route.ts",
+    "app/api/admin/users/[id]/promote/route.ts",
+    "app/api/admin/users/[id]/session/route.ts",
+    "app/api/admin/users/[id]/status/route.ts",
+    "app/api/agendamento/route.ts",
+    "app/api/agendamento/[id]/aceitar/route.ts",
+    "app/api/agendamento/[id]/aprovar-orcamento/route.ts",
+    "app/api/agendamento/[id]/concluir-servico/route.ts",
+    "app/api/agendamento/[id]/confirmar-conclusao/route.ts",
+    "app/api/agendamento/[id]/enviar-orcamento/route.ts",
+    "app/api/agendamento/[id]/liberar-pagamento/route.ts",
+    "app/api/agendamento/[id]/recusar/route.ts",
+    "app/api/agendamento/[id]/recusar-conclusao/route.ts",
+    "app/api/agendamento/[id]/recusar-orcamento/route.ts",
+    "app/api/agendamento/[id]/route.ts",
+    "app/api/agendamento/[id]/sugerir-data/route.ts",
+    "app/api/auth/cadastro/route.ts",
+    "app/api/auth/login/route.ts",
+    "app/api/auth/logout/route.ts",
+    "app/api/auth/me/route.ts",
+    "app/api/auth/recuperar-senha/route.ts",
+    "app/api/auth/redefinir-senha/route.ts",
+    "app/api/auth/sync/route.ts",
+    "app/api/auth/verificar-email/route.ts",
+    "app/api/auth/[...nextauth]/route.ts",
+    "app/api/avaliacoes/cliente/route.ts",
+    "app/api/avaliacoes/route.ts",
+    "app/api/busca/route.ts",
+    "app/api/carteira/route.ts",
+    "app/api/dados-bancarios/route.ts",
+    "app/api/mensagens/iniciar/route.ts",
+    "app/api/mensagens/sugerir-data/route.ts",
+    "app/api/mensagens/[solicitacaoId]/route.ts",
+    "app/api/notificacoes/route.ts",
+    "app/api/notificacoes/[id]/lida/route.ts",
+    "app/api/perfil/desativar/route.ts",
+    "app/api/perfil/email/route.ts",
+    "app/api/perfil/senha/route.ts",
+    "app/api/perfil/update/route.ts",
+    "app/api/portfolio/albums/route.ts",
+    "app/api/portfolio/albums/[id]/route.ts",
+    "app/api/portfolio/comentarios/[mediaId]/route.ts",
+    "app/api/portfolio/upload/route.ts",
+    "app/api/portfolio/[id]/route.ts",
+    "app/api/postagens/route.ts",
+    "app/api/postagens/[id]/comentarios/route.ts",
+    "app/api/postagens/[id]/compartilhar/route.ts",
+    "app/api/postagens/[id]/curtir/route.ts",
+    "app/api/postagens/[id]/route.ts",
+    "app/api/postagens/[id]/salvar/route.ts",
+    "app/api/postagens/[id]/visualizacoes/route.ts",
+    "app/api/ranking/route.ts",
+    "app/api/seguidores/route.ts",
+    "app/api/servicos/categorias/route.ts",
+    "app/api/servicos/route.ts",
+    "app/api/servicos/[id]/route.ts",
+    "app/api/solicitacoes/route.ts",
+    "app/api/suporte/chat/route.ts",
+    "app/api/transacao/pagar-com-saldo/route.ts",
+    "app/api/transacao/pix/route.ts",
+    "app/api/transacao/route.ts",
+    "app/api/transacao/[id]/route.ts"
+  ],
+  "fetchCalls": {
+    "/api/admin/stats": [
+      "app/admin/AdminDashboard.tsx"
+    ],
+    "/api/admin/users?${params}": [
+      "app/admin/AdminDashboard.tsx"
+    ],
+    "/api/admin/users/${userId}/session": [
+      "app/admin/AdminDashboard.tsx"
+    ],
+    "/api/admin/users/${userId}/status": [
+      "app/admin/AdminDashboard.tsx"
+    ],
+    "/api/admin/users/${user.id}/promote": [
+      "app/admin/AdminDashboard.tsx"
+    ],
+    "/api/auth/logout": [
+      "app/admin/AdminDashboard.tsx"
+    ],
+    "/api/admin/setup": [
+      "app/admin/setup/page.tsx"
+    ],
+    "/api/auth/me": [
+      "app/agenda/agendar/page.tsx",
+      "app/agenda/page.tsx",
+      "app/dashboard/AgendamentosContent.tsx",
+      "app/dashboard/mensagens/page.tsx"
+    ],
+    "/api/servicos/${servicoId}": [
+      "app/agenda/agendar/page.tsx"
+    ],
+    "/api/agendamento?prestador_id=${prestadorId}": [
+      "app/agenda/agendar/page.tsx"
+    ],
+    "/api/agendamento": [
+      "app/agenda/agendar/page.tsx",
+      "app/agenda/page.tsx"
+    ],
+    "/api/solicitacoes": [
+      "app/agenda/page.tsx",
+      "app/dashboard/mensagens/page.tsx",
+      "app/perfil/[id]/ContratarModal.tsx"
+    ],
+    "/api/busca?${params.toString()}": [
+      "app/buscar/BuscarContent.tsx"
+    ],
+    "/api/auth/cadastro": [
+      "app/cadastro/CadastroForm.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/aceitar": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/recusar": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/sugerir-data": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/aprovar-orcamento": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/recusar-orcamento": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx",
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/confirmar-conclusao": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/recusar-conclusao": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/enviar-orcamento": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento/${agendamento.id}/concluir-servico": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/transacao/pagar-com-saldo": [
+      "app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx"
+    ],
+    "/api/agendamento?tipo=${tipo}": [
+      "app/dashboard/AgendamentosContent.tsx"
+    ],
+    "/api/agendamento/${agendamentoId}/aceitar": [
+      "app/dashboard/AgendamentosContent.tsx"
+    ],
+    "/api/agendamento/${agendamentoId}/concluir-servico": [
+      "app/dashboard/AgendamentosContent.tsx"
+    ],
+    "/api/agendamento/${agendamentoId}/recusar": [
+      "app/dashboard/AgendamentosContent.tsx"
+    ],
+    "/api/mensagens/sugerir-data": [
+      "app/dashboard/AgendamentosContent.tsx"
+    ],
+    "/api/perfil/email": [
+      "app/dashboard/configuracoes/ConfiguracoesClient.tsx"
+    ],
+    "/api/perfil/senha": [
+      "app/dashboard/configuracoes/ConfiguracoesClient.tsx"
+    ],
+    "/api/perfil/desativar": [
+      "app/dashboard/configuracoes/ConfiguracoesClient.tsx"
+    ],
+    "/api/carteira": [
+      "app/dashboard/FinanceiroContent.tsx"
+    ],
+    "/api/transacao": [
+      "app/dashboard/FinanceiroContent.tsx",
+      "app/dashboard/FinanceiroContent.tsx",
+      "app/dashboard/FinanceiroContent.tsx"
+    ],
+    "/api/dados-bancarios": [
+      "app/dashboard/FinanceiroContent.tsx",
+      "app/dashboard/FinanceiroContent.tsx"
+    ],
+    "/api/mensagens/${solicitacaoId}": [
+      "app/dashboard/mensagens/page.tsx"
+    ],
+    "/api/mensagens/${conversaAtiva}": [
+      "app/dashboard/mensagens/page.tsx"
+    ],
+    "/api/perfil/update": [
+      "app/dashboard/perfil/EditarPerfilForm.tsx"
+    ],
+    "/api/portfolio/upload": [
+      "app/dashboard/portfolio/PortfolioContent.tsx"
+    ],
+    "/api/portfolio/albums/${album.id}": [
+      "app/dashboard/portfolio/PortfolioContent.tsx",
+      "app/dashboard/portfolio/PortfolioContent.tsx",
+      "app/dashboard/portfolio/PortfolioContent.tsx"
+    ],
+    "/api/portfolio/${editingMedia.id}": [
+      "app/dashboard/portfolio/PortfolioContent.tsx"
+    ],
+    "/api/portfolio/${id}": [
+      "app/dashboard/portfolio/PortfolioContent.tsx"
+    ],
+    "/api/portfolio/albums": [
+      "app/dashboard/portfolio/PortfolioContent.tsx"
+    ],
+    "/api/servicos/categorias": [
+      "app/dashboard/servicos/components/ServicoForm.tsx"
+    ],
+    "/api/servicos": [
+      "app/dashboard/ServicosContent.tsx"
+    ],
+    "/api/auth/login": [
+      "app/login/LoginForm.tsx"
+    ],
+    "/api/avaliacoes": [
+      "app/perfil/[id]/AvaliarModal.tsx"
+    ],
+    "/api/portfolio/comentarios/${item.id}": [
+      "app/perfil/[id]/ProfileContent.tsx",
+      "app/perfil/[id]/ProfileContent.tsx"
+    ],
+    "/api/seguidores": [
+      "app/perfil/[id]/ProfileContent.tsx",
+      "app/praca/components/CardPostagem.tsx"
+    ],
+    "/api/mensagens/iniciar": [
+      "app/perfil/[id]/ProfileContent.tsx"
+    ],
+    "/api/postagens/${post.id}": [
+      "app/praca/components/CardPostagem.tsx",
+      "app/praca/components/CardPostagem.tsx"
+    ],
+    "/api/postagens/${post.id}/comentarios": [
+      "app/praca/components/CardPostagem.tsx"
+    ],
+    "/api/postagens/${post.id}/compartilhar": [
+      "app/praca/components/CardPostagem.tsx"
+    ],
+    "/api/postagens/${post.id}/salvar": [
+      "app/praca/components/CardPostagem.tsx",
+      "app/praca/components/CardPostagem.tsx"
+    ],
+    "/api/postagens": [
+      "app/praca/components/CriarPostagemModal.tsx"
+    ],
+    "/api/postagens/${postId}/curtir": [
+      "app/praca/components/FeedCentral.tsx"
+    ],
+    "/api/postagens/${postId}/compartilhar": [
+      "app/praca/components/FeedCentral.tsx"
+    ],
+    "/api/auth/recuperar-senha": [
+      "app/recuperar-senha/page.tsx"
+    ],
+    "/api/auth/redefinir-senha": [
+      "app/redefinir-senha/page.tsx"
+    ]
+  },
+  "orphanCount": 16
+}
