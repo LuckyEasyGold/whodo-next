@@ -43,11 +43,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ solicitacao_id: solicitacaoExistente.id, ja_existe: true }, { status: 200 });
         }
 
-        // Criar a solicitação
+        // Criar a solicitação (para serviços de orçamento)
         const solicitacao = await prisma.solicitacao.create({
             data: {
                 cliente_id: session.id,
                 servico_id: servico.id,
+                prestador_id: servico.usuario_id,
                 descricao: descricao || mensagem_inicial || `Interesse no serviço: ${servico.titulo}`,
                 status: "pendente",
             }

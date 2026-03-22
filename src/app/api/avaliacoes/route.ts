@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { prestador_id, servico_id, nota, comentario } = body;
+        const { prestador_id, servico_id, nota, comentario, agendamento_id } = body;
 
         if (!prestador_id || !servico_id || !nota) {
             return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
@@ -34,14 +34,22 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Serviço inválido" }, { status: 400 });
         }
 
+        // Criar avaliação
+        const avaliacaoData: any = {
+            cliente_id: session.id,
+            prestador_id: parseInt(prestador_id),
+            servico_id: parseInt(servico_id),
+            nota: numNota,
+            comentario: comentario?.trim() || null
+        };
+
+        // Vincular ao agendamento se fornecido
+        if (agendamento_id) {
+            avaliacaoData.agendamento_id = parseInt(agendamento_id);
+        }
+
         const avaliacao = await prisma.avaliacao.create({
-            data: {
-                cliente_id: session.id,
-                prestador_id: parseInt(prestador_id),
-                servico_id: parseInt(servico_id),
-                nota: numNota,
-                comentario: comentario?.trim() || null
-            },
+            data: avaliacaoData,
             include: {
                 cliente: {
                     select: { nome: true, foto_perfil: true }
@@ -51,6 +59,14 @@ export async function POST(req: NextRequest) {
                 }
             }
         });
+
+        // Se há um agendamento vinculado, marcar avaliação como feita
+        if (agendamento_id) {
+            await prisma.agendamento.update({
+                where: { id: parseInt(agendamento_id) },
+                data: { avaliacao_feita: true }
+            });
+        }
 
         // Atualizar média do prestador via Trigger ou Query (aqui faremos via Query por simplicidade)
         const todasAsAvaliacoes = await prisma.avaliacao.findMany({

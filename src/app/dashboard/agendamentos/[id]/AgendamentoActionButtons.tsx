@@ -47,6 +47,8 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
   const [isSuggestingDate, setIsSuggestingDate] = useState(false);
   const [isNegotiating, setIsNegotiating] = useState(false);
   const [isSendingBudget, setIsSendingBudget] = useState(false);
+  const [isRefusingCompletion, setIsRefusingCompletion] = useState(false);
+  const [refuseReason, setRefuseReason] = useState('');
   const [suggestedDate, setSuggestedDate] = useState('');
   const [suggestionMessage, setSuggestionMessage] = useState('');
   const [negotiationValues, setNegotiationValues] = useState({
@@ -63,6 +65,22 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
 
   const { showToast } = useToast();
 
+  // Helper para tratar respostas de API
+  async function handleApiResponse(response: Response): Promise<any> {
+    const contentType = response.headers.get('content-type');
+    if (!response.ok) {
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro na requisição.');
+      }
+      throw new Error('Erro do servidor. Tente novamente.');
+    }
+    if (contentType && contentType.includes('application/json')) {
+      return response.json();
+    }
+    return null;
+  }
+
   // Handle accepting a scheduling (prestador)
   const handleAccept = async () => {
     setIsLoading('aceitar');
@@ -72,10 +90,7 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
         headers: { 'Content-Type': 'application/json' },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Falha ao aceitar o agendamento.');
-      }
+      await handleApiResponse(response);
 
       showToast('Agendamento aceito com sucesso!', 'success');
       router.refresh();
@@ -258,7 +273,40 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
         throw new Error(errorData.error || 'Falha ao confirmar conclusão.');
       }
 
-      showToast('Conclusão confirmada com sucesso!', 'success');
+      showToast('Conclusão confirmada com sucesso! O pagamento foi liberado para o prestador.', 'success');
+      router.refresh();
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : 'Erro desconhecido.';
+      showToast(`Erro: ${message}`, 'error');
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
+  // Handle refusing completion (cliente)
+  const handleRefuseCompletion = async () => {
+    if (!refuseReason.trim()) {
+      showToast('Por favor, informe o motivo da recusa.', 'error');
+      return;
+    }
+
+    setIsLoading('recusar_conclusao');
+    try {
+      const response = await fetch(`/api/agendamento/${agendamento.id}/recusar-conclusao`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo: refuseReason }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha ao recusar conclusão.');
+      }
+
+      showToast('Conclusão recusada. O prestador será notificado.', 'success');
+      setIsRefusingCompletion(false);
+      setRefuseReason('');
       router.refresh();
     } catch (error: unknown) {
       console.error(error);
@@ -343,8 +391,13 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Falha ao processar o pagamento.');
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Falha ao processar o pagamento.');
+        } else {
+          throw new Error('Erro do servidor. Tente novamente.');
+        }
       }
 
       showToast('Pagamento realizado com sucesso!', 'success');
@@ -374,16 +427,21 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
 
   const hasSufficientBalance = saldo >= (agendamento.valor ?? 0);
 
-  // Check if payment is available (when status is 'aceito' or 'orcamento_aprovado')
-  const canPay = agendamento.status === 'aceito' || agendamento.orcamento_aprovado === true;
+  // Check if payment is available (when status is 'pendente', 'aceito' or 'orcamento_aprovado')
+  const canPay = agendamento.status === 'pendente' || agendamento.status === 'aceito' || agendamento.orcamento_aprovado === true;
 
   // Check if budget actions are available (when status is 'orcamento_enviado')
   const canHandleBudget = agendamento.status === 'orcamento_enviado';
 
   // Check if can confirm completion (when provider marked as done)
-  const canConfirmCompletion = (agendamento.status === 'confirmado' || agendamento.status === 'aguardando_confirmacao_cliente') &&
-    agendamento.concluido_prestador === true &&
-    agendamento.concluido_cliente !== true;
+  // Convert to boolean in case it's a string from the API
+  const concluidoPrestador = Boolean(agendamento.concluido_prestador);
+  const concluidoCliente = Boolean(agendamento.concluido_cliente);
+  const canConfirmCompletion = (
+    agendamento.status === 'confirmado' ||
+    agendamento.status === 'aguardando_confirmacao_cliente' ||
+    agendamento.status === 'aceito'
+  ) && concluidoPrestador === true && !concluidoCliente;
 
   // Check if provider can send budget (status is 'aceito')
   // Note: This variable is reserved for future use
@@ -652,6 +710,75 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
         </div>
       )}
 
+      {/* Modal de Recusar Conclusão (Cliente) */}
+      {isRefusingCompletion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                Recusar Conclusão do Serviço
+              </h3>
+              <button
+                onClick={() => setIsRefusingCompletion(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                <p className="text-sm text-yellow-800">
+                  Ao recusar a conclusão, o prestador será notificado e deverá resolver os problemas encontrados.
+                  O pagamento permanecerá bloqueado até que o serviço seja aceito ou mediado.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Motivo da Recusa *
+                </label>
+                <textarea
+                  value={refuseReason}
+                  onChange={(e) => setRefuseReason(e.target.value)}
+                  placeholder="Descreva o motivo pelo qual você está recusando a conclusão do serviço..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setIsRefusingCompletion(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRefuseCompletion}
+                  disabled={isLoading === 'recusar_conclusao' || !refuseReason.trim()}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading === 'recusar_conclusao' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-4 h-4" />
+                      Recusar Conclusão
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-4 items-center">
 
         {/* ==================== AÇÕES DO PRESTADOR ==================== */}
@@ -856,20 +983,37 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
           </>
         )}
 
-        {/* 4. Status confirmado/aguardando_confirmacao_cliente - Confirmar Conclusão (quando prestador marcou como done) */}
+        {/* 4. Status confirmado/aguardando_confirmacao_cliente - Confirmar/Recusar Conclusão (quando prestador marcou como done) */}
         {!isPrestador && canConfirmCompletion && (
-          <button
-            onClick={handleConfirmCompletion}
-            disabled={isLoading === 'confirmar_conclusao'}
-            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors"
-          >
-            {isLoading === 'confirmar_conclusao' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Check className="w-4 h-4" />
-            )}
-            Confirmar Conclusão
-          </button>
+          <>
+            {/* Botão Aceitar */}
+            <button
+              onClick={handleConfirmCompletion}
+              disabled={isLoading === 'confirmar_conclusao'}
+              className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors"
+            >
+              {isLoading === 'confirmar_conclusao' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              Aceitar e Finalizar
+            </button>
+
+            {/* Botão Recusar */}
+            <button
+              onClick={() => setIsRefusingCompletion(true)}
+              disabled={isLoading === 'recusar_conclusao'}
+              className="bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors"
+            >
+              {isLoading === 'recusar_conclusao' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <X className="w-4 h-4" />
+              )}
+              Recusar
+            </button>
+          </>
         )}
 
         {/* 5. Status aguardando_pagamento - Mostrar status para cliente */}
@@ -892,7 +1036,7 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
         {!isPrestador && agendamento.status === 'aguardando_confirmacao_cliente' && !canConfirmCompletion && (
           <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded">
             <Clock className="w-5 h-5" />
-            <span className="font-medium">Aguardando conclusão do prestador</span>
+            <span className="font-medium">Aguardando sua confirmação</span>
           </div>
         )}
 
@@ -922,6 +1066,22 @@ const AgendamentoActionButtons = ({ agendamento, isPrestador, saldo }: Agendamen
           <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded">
             <Clock className="w-5 h-5" />
             <span className="font-medium">Aguardando execução do serviço</span>
+          </div>
+        )}
+
+        {/* Status conclusao_recusada - Cliente */}
+        {!isPrestador && agendamento.status === 'conclusao_recusada' && (
+          <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded">
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-medium">Conclusão recusada. Aguarde contato do prestador.</span>
+          </div>
+        )}
+
+        {/* Status conclusao_recusada - Prestador */}
+        {isPrestador && agendamento.status === 'conclusao_recusada' && (
+          <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded">
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-medium">Conclusão recusada pelo cliente. Entre em contato para resolver.</span>
           </div>
         )}
       </div>

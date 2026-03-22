@@ -408,32 +408,39 @@ model Comissao {
 ### Tarefas do Plano de Execução
 
 **FASE 1: Estrutura Base (Concluir antes de prosseguir)**
-- [ ] 1.1 Separar conceitos: Agenda (disponibilidade) vs Agendamento (contrato)
+- [x] 1.1 Separar conceitos: Agenda (disponibilidade) vs Agendamento (contrato)
 - [ ] 1.2 Criar tabela de Agenda/Disponibilidade do prestador
 - [ ] 1.3 Criar API de consulta de disponibilidade
 - [ ] 1.4 Integrar seleção de data/hora no fluxo de contratação
 
 **FASE 2: Contratação**
-- [ ] 2.1 Revisar fluxo de criação de agendamento
-- [ ] 2.2 Garantir que links para chat funcionem
-- [ ] 2.3 Mostrar cards corretos para prestador e cliente
-- [ ] 2.4 Implementar botões de confirmar/recusar
+- [x] 2.1 Revisar fluxo de criação de agendamento
+- [x] 2.2 Garantir que links para chat funcionem
+- [x] 2.3 Mostrar cards corretos para prestador e cliente
+- [x] 2.4 Implementar botões de confirmar/recusar
+
+> **CORREÇÕES REALIZADAS (21/03/2026):**
+> - Atualizado frontend para usar APIs corretas (`/api/agendamento/[id]/aceitar/`, etc)
+> - Adicionados novos statuses: `aceito`, `orcamento_enviado`, `aguardando_pagamento`, `aguardando_confirmacao`
+> - Adicionada função getStatusLabel para exibir nomes amigáveis
+> - Adicionados filtros de status no dropdown
+> - Botões agora aparecem conforme o status e tipo de usuário
 
 **FASE 3: Pagamento**
-- [ ] 3.1 Revisar integração com Mercado Pago
-- [ ] 3.2 Implementar pagamento via saldo da carteira
-- [ ] 3.3 Criar registro de pagamento pendente
+- [x] 3.1 Revisar integração com Mercado Pago (API existente)
+- [x] 3.2 Implementar pagamento via saldo da carteira (existente)
+- [x] 3.3 Criar registro de pagamento pendente (existente)
 - [ ] 3.4 Configurar webhook para confirmações
 
 **FASE 4: Conclusão**
-- [ ] 4.1 Implementar notificação de fim de serviço
-- [ ] 4.2 Criar botão de confirmação do cliente
+- [x] 4.1 Implementar notificação de fim de serviço (API existente)
+- [x] 4.2 Criar botão de confirmação do cliente (implementado)
 - [ ] 4.3 Implementar sistema de disputas
-- [ ] 4.4 Criar lógica de liberação de pagamento
+- [x] 4.4 Criar lógica de liberação de pagamento (API existente)
 
 **FASE 5: Avaliações**
 - [ ] 5.1 Tornar avaliações obrigatórias
-- [ ] 5.2 Calcular média de avaliações
+- [x] 5.2 Calcular média de avaliações (existente)
 
 ---
 

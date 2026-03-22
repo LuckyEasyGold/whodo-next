@@ -237,8 +237,9 @@ model Agendamento {
   valor_pago_valor   Decimal?    @db.Decimal(10, 2)
   data_pagamento     DateTime?
   comissao           Decimal?    @db.Decimal(10, 2)
-  avaliacao_feita     Boolean     @default(false)
-  motivo_cancelamento String?
+  avaliacao_feita            Boolean     @default(false)
+  avaliacao_prestador_feita Boolean     @default(false)
+  motivo_cancelamento       String?
   orcamento_aprovado  Boolean     @default(false)
   concluido_prestador Boolean     @default(false)
   concluido_cliente   Boolean     @default(false)

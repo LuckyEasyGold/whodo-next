@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Você não é o cliente deste agendamento' }, { status: 403 });
     }
 
-    if (agendamento.status !== 'confirmado') {
+    if (agendamento.status !== 'confirmado' && agendamento.status !== 'pendente') {
       return NextResponse.json({ error: 'Este agendamento não está confirmado e não pode ser pago' }, { status: 409 });
     }
 

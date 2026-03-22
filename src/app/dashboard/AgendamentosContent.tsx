@@ -30,6 +30,16 @@ interface Agendamento {
   valor_pago: boolean;
   avaliacao_feita: boolean;
   motivo_cancelamento: string | null;
+  // Novos campos do Prisma
+  orcamento_aprovado?: boolean;
+  concluido_prestador?: boolean;
+  concluido_cliente?: boolean;
+  valor_orcamento?: number | null;
+  descricao_orcamento?: string | null;
+  condicoes_orcamento?: string | null;
+  valor_pago_valor?: number | null;
+  data_pagamento?: string | null;
+  comissao?: number | null;
   cliente: {
     id: number;
     nome: string;
@@ -119,13 +129,15 @@ export default function AgendamentosContent() {
 
   const handleConfirmarAgendamento = async (agendamentoId: number) => {
     try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}`, {
-        method: "PUT",
+      const res = await fetch(`/api/agendamento/${agendamentoId}/aceitar`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "confirmado" }),
       });
 
-      if (!res.ok) throw new Error("Erro ao confirmar agendamento");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erro ao confirmar agendamento");
+      }
 
       setShowAcaoModal(null);
       setAcao(null);
@@ -138,21 +150,20 @@ export default function AgendamentosContent() {
 
   const handleConcluirAgendamento = async (agendamentoId: number) => {
     try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}`, {
-        method: "PUT",
+      const res = await fetch(`/api/agendamento/${agendamentoId}/concluir-servico`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "concluido",
-          data_conclusao: new Date().toISOString(),
-        }),
       });
 
-      if (!res.ok) throw new Error("Erro ao concluir agendamento");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erro ao concluir agendamento");
+      }
 
       setShowAcaoModal(null);
       setAcao(null);
       carregarDados();
-      showToast("Agendamento concluído!", "success");
+      showToast("Serviço marcado como concluído! Aguardando confirmação do cliente.", "success");
     } catch (err: any) {
       showToast(err.message, "error");
     }
@@ -160,15 +171,18 @@ export default function AgendamentosContent() {
 
   const handleCancelarAgendamento = async (agendamentoId: number) => {
     try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}`, {
-        method: "DELETE",
+      const res = await fetch(`/api/agendamento/${agendamentoId}/recusar`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          motivo_cancelamento: motivoCancelamento,
+          motivo: motivoCancelamento,
         }),
       });
 
-      if (!res.ok) throw new Error("Erro ao cancelar agendamento");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erro ao cancelar agendamento");
+      }
 
       setShowAcaoModal(null);
       setAcao(null);
@@ -211,11 +225,33 @@ export default function AgendamentosContent() {
   const getStatusBadge = (status: string) => {
     const colors: { [key: string]: string } = {
       pendente: "bg-yellow-100 text-yellow-800",
+      aceito: "bg-blue-100 text-blue-800",
       confirmado: "bg-blue-100 text-blue-800",
+      orcamento_enviado: "bg-purple-100 text-purple-800",
+      aguardando_pagamento: "bg-orange-100 text-orange-800",
+      aguardando_confirmacao: "bg-indigo-100 text-indigo-800",
       concluido: "bg-green-100 text-green-800",
+      recusado: "bg-red-100 text-red-800",
       cancelado: "bg-red-100 text-red-800",
+      disputa: "bg-red-100 text-red-800",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: { [key: string]: string } = {
+      pendente: "Pendente",
+      aceito: "Aceito",
+      confirmado: "Confirmado",
+      orcamento_enviado: "Orçamento Enviado",
+      aguardando_pagamento: "Aguardando Pagamento",
+      aguardando_confirmacao: "Aguardando Confirmação",
+      concluido: "Concluído",
+      recusado: "Recusado",
+      cancelado: "Cancelado",
+      disputa: "Em Disputa",
+    };
+    return labels[status] || status;
   };
 
   const formatarData = (data: string) => {
@@ -276,8 +312,13 @@ export default function AgendamentosContent() {
         >
           <option value="todos">Todos os Status</option>
           <option value="pendente">Pendente</option>
+          <option value="aceito">Aceito</option>
           <option value="confirmado">Confirmado</option>
+          <option value="orcamento_enviado">Orçamento Enviado</option>
+          <option value="aguardando_pagamento">Aguardando Pagamento</option>
+          <option value="aguardando_confirmacao">Aguardando Confirmação</option>
           <option value="concluido">Concluído</option>
+          <option value="recusado">Recusado</option>
           <option value="cancelado">Cancelado</option>
         </select>
       </div>
@@ -338,7 +379,7 @@ export default function AgendamentosContent() {
                       agendamento.status
                     )}`}
                   >
-                    {agendamento.status}
+                    {getStatusLabel(agendamento.status)}
                   </span>
                 </div>
 
@@ -382,68 +423,26 @@ export default function AgendamentosContent() {
                     <MessageSquare size={16} /> Abrir Chat
                   </Link>
 
-                  {tipoView === "prestador" &&
-                    agendamento.status === "pendente" && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setShowAcaoModal(agendamento);
-                            setAcao("confirmar");
-                          }}
-                          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
-                        >
-                          <Check size={16} /> Confirmar
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowSuggestDateModal(agendamento)
-                          }}
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
-                        >
-                          <Clock size={16} /> Sugerir Nova Data
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowAcaoModal(agendamento);
-                            setAcao("cancelar");
-                          }}
-                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
-                        >
-                          <X size={16} /> Recusar
-                        </button>
-                      </>
-                    )}
-
-                  {tipoView === "prestador" &&
-                    agendamento.status === "confirmado" && (
+                  {/* BOTÕES DO PRESTADOR */}
+                  {tipoView === "prestador" && agendamento.status === "pendente" && (
+                    <>
                       <button
                         onClick={() => {
                           setShowAcaoModal(agendamento);
-                          setAcao("concluir");
+                          setAcao("confirmar");
                         }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
                       >
-                        Marcar como Concluído
+                        <Check size={16} /> Aceitar
                       </button>
-                    )}
-
-                  {tipoView === "cliente" &&
-                    agendamento.status === "confirmado" &&
-                    !agendamento.valor_pago && (
                       <button
                         onClick={() => {
-                          setSelectedAgendamento(agendamento);
-                          setShowCheckoutModal(true);
+                          setShowSuggestDateModal(agendamento)
                         }}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
                       >
-                        Pagar Agora
+                        <Clock size={16} /> Sugerir Nova Data
                       </button>
-                    )}
-
-                  {tipoView === "cliente" &&
-                    (agendamento.status === "pendente" ||
-                      agendamento.status === "confirmado") && (
                       <button
                         onClick={() => {
                           setShowAcaoModal(agendamento);
@@ -451,7 +450,89 @@ export default function AgendamentosContent() {
                         }}
                         className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
                       >
-                        <X size={16} /> Cancelar Agendamento
+                        <X size={16} /> Recusar
+                      </button>
+                    </>
+                  )}
+
+                  {/* PRESTADOR: Status aceito - pode enviar orçamento ou aguardar pagamento */}
+                  {tipoView === "prestador" && agendamento.status === "aceito" && (
+                    <div className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded">
+                      Aguardando pagamento do cliente...
+                    </div>
+                  )}
+
+                  {/* PRESTADOR: Status confirmado - pode concluir */}
+                  {tipoView === "prestador" && agendamento.status === "confirmado" && (
+                    <button
+                      onClick={() => {
+                        setShowAcaoModal(agendamento);
+                        setAcao("concluir");
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                      Marcar como Concluído
+                    </button>
+                  )}
+
+                  {/* PRESTADOR: Status aguardando_confirmacao - aguardando cliente */}
+                  {tipoView === "prestador" && agendamento.status === "aguardando_confirmacao" && (
+                    <div className="text-sm text-indigo-600 bg-indigo-50 px-3 py-2 rounded">
+                      Aguardando confirmação do cliente...
+                    </div>
+                  )}
+
+                  {/* BOTÕES DO CLIENTE */}
+                  {tipoView === "cliente" && agendamento.status === "pendente" && (
+                    <div className="text-sm text-yellow-600 bg-yellow-50 px-3 py-2 rounded">
+                      Aguardando resposta do prestador...
+                    </div>
+                  )}
+
+                  {/* CLIENTE: Status aceito - mostrar para pagar */}
+                  {tipoView === "cliente" && agendamento.status === "aceito" && !agendamento.valor_pago && (
+                    <button
+                      onClick={() => {
+                        setSelectedAgendamento(agendamento);
+                        setShowCheckoutModal(true);
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                      Pagar Agora
+                    </button>
+                  )}
+
+                  {/* CLIENTE: Status confirmado - pode aguardando conclusão ou cancelar */}
+                  {tipoView === "cliente" && agendamento.status === "confirmado" && (
+                    <div className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded">
+                      Serviço em execução...
+                    </div>
+                  )}
+
+                  {/* CLIENTE: Status aguardando_confirmacao - confirmar conclusão */}
+                  {tipoView === "cliente" && agendamento.status === "aguardando_confirmacao" && (
+                    <button
+                      onClick={() => {
+                        // Confirmar conclusão
+                        window.location.href = `/dashboard/agendamentos/${agendamento.id}`
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                      Confirmar Recebimento
+                    </button>
+                  )}
+
+                  {/* CLIENTE: Status pendente ou aceito pode cancelar */}
+                  {tipoView === "cliente" &&
+                    (agendamento.status === "pendente" || agendamento.status === "aceito") && (
+                      <button
+                        onClick={() => {
+                          setShowAcaoModal(agendamento);
+                          setAcao("cancelar");
+                        }}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
+                      >
+                        <X size={16} /> Cancelar
                       </button>
                     )}
                 </div>
@@ -640,7 +721,7 @@ export default function AgendamentosContent() {
             <p className="text-gray-600 mb-6">
               O cliente receberá uma mensagem no chat com a sua sugestão.
             </p>
-            
+
             <div className="space-y-4">
               <input
                 type="datetime-local"
@@ -672,15 +753,15 @@ export default function AgendamentosContent() {
       )}
 
       {showCheckoutModal && selectedAgendamento && (
-          <CheckoutModal
-              isOpen={showCheckoutModal}
-              onClose={() => {
-                  setShowCheckoutModal(false);
-                  setSelectedAgendamento(null);
-                  carregarDados();
-              }}
-              agendamento={selectedAgendamento}
-          />
+        <CheckoutModal
+          isOpen={showCheckoutModal}
+          onClose={() => {
+            setShowCheckoutModal(false);
+            setSelectedAgendamento(null);
+            carregarDados();
+          }}
+          agendamento={selectedAgendamento}
+        />
       )}
     </div>
   );

@@ -46,9 +46,17 @@ export default function ContratarModal({ usuario, isOpen, onClose }: Props) {
 
   function selecionarServico(s: Servico) {
     setServicoSelecionado(s)
-    const prefixo = s.cobranca_tipo === 'FIXO'
-      ? `Olá! Gostaria de agendar o serviço "${s.titulo}". Qual seria a sua disponibilidade?`
-      : `Olá! Tenho interesse no serviço "${s.titulo}". Poderia me informar mais detalhes e valor?`
+
+    // Se for serviço FIXO, redirecionar para escolha de data/hora
+    if (s.cobranca_tipo === 'FIXO') {
+      // Redireciona para página de escolha de data/hora
+      router.push(`/agenda/agendar?servico=${s.id}&prestador=${usuario.id}`)
+      onClose()
+      return
+    }
+
+    // Se for orçamento, continua com o fluxo de mensagem
+    const prefixo = `Olá! Tenho interesse no serviço "${s.titulo}". Poderia me informar mais detalhes e valor?`
     setMensagem(prefixo)
     setStep('detalhes')
   }
@@ -212,8 +220,8 @@ export default function ContratarModal({ usuario, isOpen, onClose }: Props) {
                     onClick={confirmar}
                     disabled={!mensagem.trim() || enviando}
                     className={`w-full mt-4 py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg disabled:opacity-50 ${servicoSelecionado.cobranca_tipo === 'FIXO'
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25'
-                        : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-blue-500/25'
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25'
+                      : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-blue-500/25'
                       }`}
                   >
                     {enviando ? (
@@ -236,21 +244,48 @@ export default function ContratarModal({ usuario, isOpen, onClose }: Props) {
                   <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle size={32} className="text-emerald-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Solicitação enviada!</h3>
-                  <p className="text-sm text-slate-500 mb-6">
-                    Sua mensagem foi enviada para <strong>{usuario.nome_fantasia || usuario.nome}</strong>.
-                    Acompanhe a conversa no painel de mensagens.
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
+                    {servicoSelecionado?.cobranca_tipo === 'FIXO' ? 'Serviço Agendado!' : 'Solicitação enviada!'}
+                  </h3>
+                  <p className="text-sm text-slate-500 mb-4">
+                    {servicoSelecionado?.cobranca_tipo === 'FIXO' ? (
+                      <>
+                        O serviço foi agendado com <strong>{usuario.nome_fantasia || usuario.nome}</strong>.
+                        Você pode acompanhar na <strong>Agenda</strong> ou nas <strong>Mensagens</strong>.
+                      </>
+                    ) : (
+                      <>
+                        Sua mensagem foi enviada para <strong>{usuario.nome_fantasia || usuario.nome}</strong>.
+                        Acompanhe a conversa no painel de mensagens.
+                      </>
+                    )}
                   </p>
-                  <div className="flex gap-3">
-                    <button onClick={fechar} className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-all">
-                      Fechar
-                    </button>
-                    <button
-                      onClick={() => { fechar(); router.push(`/dashboard/mensagens?conversa=${solicitacaoId}`) }}
-                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-indigo-500/25"
-                    >
-                      <MessageSquare size={14} className="inline mr-1.5" />Ver conversa
-                    </button>
+                  <div className="space-y-3">
+                    {servicoSelecionado?.cobranca_tipo === 'FIXO' ? (
+                      <div className="flex gap-3">
+                        <button onClick={fechar} className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-all">
+                          Fechar
+                        </button>
+                        <button
+                          onClick={() => { fechar(); router.push('/agenda') }}
+                          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-indigo-500/25"
+                        >
+                          <Calendar size={14} className="inline mr-1.5" />Ver Agenda
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-3">
+                        <button onClick={fechar} className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-all">
+                          Fechar
+                        </button>
+                        <button
+                          onClick={() => { fechar(); router.push(`/dashboard/mensagens?conversa=${solicitacaoId}`) }}
+                          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-indigo-500/25"
+                        >
+                          <MessageSquare size={14} className="inline mr-1.5" />Ver conversa
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

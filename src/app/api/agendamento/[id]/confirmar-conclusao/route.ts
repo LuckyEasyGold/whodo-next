@@ -188,6 +188,36 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
             },
         });
 
+        // =============================================
+        // SOLICITAR AVALIAÇÕES OBRIGATÓRIAS (Item 6)
+        // =============================================
+        
+        // Notificar prestador para avaliar cliente
+        if (!agendamento.avaliacao_prestador_feita) {
+            await prisma.notificacao.create({
+                data: {
+                    usuario_id: agendamento.prestador_id,
+                    tipo: "avaliacao_pendente",
+                    titulo: "Avalie o Cliente!",
+                    mensagem: `O serviço foi concluído. Por favor, avalie o cliente para ajudar outros prestadores.`,
+                    link: `/dashboard/agendamentos/${agendamentoId}`,
+                }
+            });
+        }
+
+        // Notificar cliente para avaliar prestador
+        if (!agendamento.avaliacao_feita) {
+            await prisma.notificacao.create({
+                data: {
+                    usuario_id: agendamento.cliente_id,
+                    tipo: "avaliacao_pendente",
+                    titulo: "Avalie o Serviço!",
+                    mensagem: `O serviço foi concluído. Por favor, avalie o prestador para ajudar outros clientes.`,
+                    link: `/dashboard/agendamentos/${agendamentoId}`,
+                }
+            });
+        }
+
         return NextResponse.json({
             success: true,
             message: "Conclusão confirmada e pagamento liberado com sucesso",

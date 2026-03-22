@@ -17,18 +17,26 @@ export async function GET(req: NextRequest) {
     const userId = session.id;
     const { searchParams } = new URL(req.url);
     const tipo = searchParams.get("tipo"); // "cliente" ou "prestador"
+    const prestadorIdParam = searchParams.get("prestador_id"); // Para ver disponibilidade de outro prestador
 
     let agendamentos;
 
     // Inclui sempre cliente E prestador para evitar undefined no frontend
-    // OBS: Os campos do modelo Agendamento já são retornados automaticamente pelo Prisma
     const includeComum = {
       cliente: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
       prestador: { select: { id: true, nome: true, foto_perfil: true, avaliacao_media: true } },
       servico: { select: { id: true, titulo: true, descricao: true } },
     }
 
-    if (tipo === "prestador") {
+    // Se passou prestador_id, retorna os agendamentos desse prestador (para verificar disponibilidade)
+    if (prestadorIdParam) {
+      const prestadorId = parseInt(prestadorIdParam);
+      agendamentos = await prisma.agendamento.findMany({
+        where: { prestador_id: prestadorId },
+        include: includeComum,
+        orderBy: { data_agendamento: "asc" },
+      });
+    } else if (tipo === "prestador") {
       agendamentos = await prisma.agendamento.findMany({
         where: { prestador_id: userId },
         include: includeComum,
@@ -96,12 +104,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Criar solicitacao primeiro (para ter a conversa vinculada)
+    const solicitacao = await prisma.solicitacao.create({
+      data: {
+        cliente_id: clienteId,
+        prestador_id: parseInt(prestador_id),
+        servico_id: parseInt(servico_id),
+        descricao: descricao || `Agendamento para ${servico.titulo}`,
+        status: "pendente",
+      }
+    });
+
+    // Criar primeira mensagem automática
+    await prisma.mensagem.create({
+      data: {
+        remetente_id: clienteId,
+        destinatario_id: parseInt(prestador_id),
+        solicitacao_id: solicitacao.id,
+        conteudo: descricao || `Olá! Gostaria de agendar o serviço "${servico.titulo}" para ${new Date(data_agendamento).toLocaleDateString('pt-BR')}.`,
+      }
+    });
+
     // Criar agendamento
     const agendamento = await prisma.agendamento.create({
       data: {
         cliente_id: clienteId,
         prestador_id: parseInt(prestador_id),
         servico_id: parseInt(servico_id),
+        solicitacao_id: solicitacao.id,
         data_agendamento: new Date(data_agendamento),
         descricao,
         endereco_servico,
@@ -126,7 +156,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(agendamento, { status: 201 });
+    return NextResponse.json({
+      ...agendamento,
+      solicitacao_id: solicitacao.id
+    }, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar agendamento:", error);
     return NextResponse.json(

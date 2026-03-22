@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
+// GET: Buscar um serviço específico
+export async function GET(
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params;
+        const servicoId = parseInt(id);
+
+        const servico = await prisma.servico.findUnique({
+            where: { id: servicoId },
+            include: {
+                usuario: { select: { id: true, nome: true, foto_perfil: true } },
+                categoria: { select: { id: true, nome: true } }
+            }
+        });
+
+        if (!servico) {
+            return NextResponse.json(
+                { error: "Serviço não encontrado" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json(servico, { status: 200 });
+    } catch (error) {
+        console.error("Erro ao buscar serviço:", error);
+        return NextResponse.json(
+            { error: "Erro ao buscar serviço" },
+            { status: 500 }
+        );
+    }
+}
+
 // PUT: Atualizar um serviço existente
 export async function PUT(
     req: NextRequest,
