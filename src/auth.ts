@@ -5,7 +5,14 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { sendWelcomeEmail } from "@/lib/email"
 
+// Verificar se as variáveis necessárias existem
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
+if (!authSecret) {
+    console.warn("AVISO: AUTH_SECRET ou NEXTAUTH_SECRET não está definido!")
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     providers: [
         Google({
             clientId: process.env.AUTH_GOOGLE_ID as string,
