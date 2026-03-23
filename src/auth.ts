@@ -5,11 +5,11 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { sendWelcomeEmail } from "@/lib/email"
 
-// Verificar se as variáveis necessárias existem
-const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
-if (!authSecret) {
-    console.warn("AVISO: AUTH_SECRET ou NEXTAUTH_SECRET não está definido!")
-}
+// Debug: verificar variáveis
+console.log("AUTH_SECRET:", process.env.AUTH_SECRET ? "definida" : "undefined")
+console.log("NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET ? "definida" : "undefined")
+console.log("AUTH_GOOGLE_ID:", process.env.AUTH_GOOGLE_ID ? "definida" : "undefined")
+console.log("AUTH_GOOGLE_SECRET:", process.env.AUTH_GOOGLE_SECRET ? "definida" : "undefined")
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
@@ -23,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             clientSecret: process.env.AUTH_FACEBOOK_SECRET as string,
         })
     ],
-    adapter: PrismaAdapter(prisma),
+    adapter: PrismaAdapter(prisma) as any,
     pages: {
         signIn: '/login',
         error: '/login',
