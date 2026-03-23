@@ -1,13 +1,34 @@
+'use client'
+
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import LoginForm from './LoginForm'
 import Navbar from '@/components/Navbar'
 
-export const metadata = {
-    title: 'Entrar - WhoDo!',
-    description: 'Faça login na sua conta WhoDo! para encontrar profissionais.',
-}
-
 export default function LoginPage() {
+    const searchParams = useSearchParams()
+    const error = searchParams.get('error')
+    const errorDescription = searchParams.get('error_description')
+
+    const getErrorMessage = () => {
+        if (!error) return null
+
+        switch (error) {
+            case 'Configuration':
+                return 'Erro de configuração. Tente fazer login com email e senha.'
+            case 'OauthSessionFailed':
+                return 'Erro na conexão com o Google. Tente fazer login com email e senha.'
+            case 'AccessDenied':
+                return 'Acesso negado. Tente novamente.'
+            case 'Verification':
+                return 'Token expirado. Tente fazer login novamente.'
+            default:
+                return errorDescription || 'Erro ao fazer login. Tente novamente.'
+        }
+    }
+
+    const errorMessage = getErrorMessage()
+
     return (
         <>
             <Navbar />
@@ -16,6 +37,18 @@ export default function LoginPage() {
                     <div className="text-center mb-8 flex flex-col items-center">
                         <p className="text-indigo-200 mt-2 font-medium">Whodo — Quem precisa encontra. Quem faz escolhe.</p>
                     </div>
+
+                    {/* Erro do OAuth */}
+                    {errorMessage && (
+                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                            <p className="text-red-700 text-sm font-medium">
+                                ⚠️ {errorMessage}
+                            </p>
+                            <p className="text-red-600 text-xs mt-1">
+                                Você pode fazer login com email e senha abaixo.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Form Card */}
                     <div className="bg-white rounded-2xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
