@@ -201,7 +201,7 @@ export default function MensagensPage() {
             </div>
 
             {/* Área do chat */}
-            <div className={`flex-col min-w-0 ${!conversaAtiva ? 'hidden md:flex flex-1' : 'flex fixed inset-0 z-[60] bg-slate-50 md:relative md:z-auto md:flex-1'}`}>
+            <div className={`flex-col min-w-0 ${!conversaAtiva ? 'hidden md:flex flex-1' : 'flex fixed inset-0 pt-16 pb-16 z-[60] bg-slate-50 md:relative md:z-auto md:flex-1 md:pt-0 md:pb-0'}`}>
                 {!conversaAtiva ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
                         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-4">
