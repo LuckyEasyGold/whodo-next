@@ -24,7 +24,12 @@ export default async function PracaPage() {
                     servicos: true,
                     seguidores: true,
                     seguindo: true,
-                    avaliacoesRecebidas: true
+                    avaliacoesRecebidas: true,
+                    portfolioAlbuns: true,
+                    mensagensRecebidas: true,
+                    mensagensEnviadas: true,
+                    notificacoes: true,
+                    postagensSalvas: true
                 }
             }
         }

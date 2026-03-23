@@ -31,14 +31,17 @@ export default function SidebarEsquerda({ usuario, onNovaPostagem, grupos = [] }
         { url: usuario.kwai, icon: Globe },
     ].filter(link => link.url)
 
+    // Calcular total de mensagens (recebidas + enviadas)
+    const totalMensagens = (usuario._count?.mensagensRecebidas || 0) + (usuario._count?.mensagensEnviadas || 0)
+    
     const linksMenu = [
         { href: './agenda', icon: CalendarDays, label: 'Agenda', count: null },
-        { href: '/dashboard/portfolio', icon: Briefcase, label: 'Portfólio', count: usuario._count?.portfolio || 0 },
-        { href: '/dashboard/mensagens', icon: MessageCircle, label: 'Mensagens', count: usuario._count?.mensagens || 0 },
+        { href: '/dashboard/portfolio', icon: Briefcase, label: 'Portfólio', count: usuario._count?.portfolioAlbuns || 0 },
+        { href: '/dashboard/mensagens', icon: MessageCircle, label: 'Mensagens', count: totalMensagens },
         { href: '/dashboard/servicos', icon: Wrench, label: 'Serviços', count: usuario._count?.servicos || 0 },
         { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', count: null },
         { href: '/dashboard/notificacoes', icon: Bell, label: 'Notificações', count: usuario._count?.notificacoes || 0 },
-        { href: '/itens-salvos', icon: Bookmark, label: 'Itens Salvos', count: usuario._count?.itensSalvos || 0 },
+        { href: '/itens-salvos', icon: Bookmark, label: 'Itens Salvos', count: usuario._count?.postagensSalvas || 0 },
     ]
 
     const linksExtras = [
