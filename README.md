@@ -9,6 +9,7 @@
     <a href="https://neon.tech"><img alt="Neon" src="https://img.shields.io/badge/Neon-PostgreSQL-00E699?style=for-the-badge&logo=postgresql"></a>
     <a href="https://supabase.com"><img alt="Supabase" src="https://img.shields.io/badge/Supabase-Storage-3ECF8E?style=for-the-badge&logo=supabase"></a>
     <a href="https://vercel.com"><img alt="Vercel" src="https://img.shields.io/badge/Vercel-Deploy-black?style=for-the-badge&logo=vercel"></a>
+    <img alt="Version" src="https://img.shields.io/badge/versão-2.2.0-orange?style=for-the-badge">
     
   </p>
 
@@ -51,7 +52,10 @@
 | 🔧 Módulo de Serviços (fixo ou orçamento) | ✅ Completo |
 | 💰 Dashboard Financeiro (carteira + transações) | ✅ ~90% completo |
 | 💬 Mensageria instantânea (Chat) integrado ao Perfil | ✅ Completo |
-| 📅 Agendamentos de serviços | ✅ Completo |
+| 📅 **Agendamentos com máquina de estados completa** | ✅ Completo |
+| 🔄 **API unificada de ações de agendamento** | ✅ Completo |
+| 💳 Pagamento via Pix / Cartão (Mercado Pago) | ✅ Completo |
+| 💼 Pagamento com saldo da Carteira (Escrow) | ✅ Completo |
 | 📣 Feed Social (Praça) com postagens | ✅ Completo |
 | ❤️ Curtidas e comentários em postagens | ✅ Completo |
 | 📈 Sistema de Ranking de Prestadores | ✅ Completo |
@@ -63,12 +67,13 @@
 
 O WhoDo! continua evoluindo com foco em usabilidade e conversão:
 
-- **Busca Melhorada (Live Search):** Busca em tempo real a cada letra digitada, aceita maiúsculas/minúsculas, encontra profissionais com partes do nome, busca por nome, especialidade, serviço ou categoria.
-- **Feed Social (Praça):** Nova funcionalidade de postagens onde usuários podem compartilhar conteúdo, receber curtidas e comentários.
-- **Dashboard Financeiro:** Sistema completo de carteira virtual, transações e dados bancários para saques.
-- **Agendamentos aprimorados:** Fluxo completo de solicitação → aceite → confirmação → conclusão.
-- **Ranking de Prestadores:** Sistema de ranking baseado em avaliações e atividades.
-- *Próximas melhorias:* Sistema de Marketing Multinível (MMN), App Mobile nativo e melhorias no fluxo de contratação.
+- **API Unificada de Agendamentos (v2.2.0):** Todas as ações do ciclo de vida de um agendamento agora passam por um único endpoint `/api/agendamento/[id]/acoes`, usando dispatch por campo `acao`. Facilita manutenção, testes e evolução do fluxo.
+- **Máquina de Estados Completa:** 11 estados documentados — `pendente`, `aceito`, `aguardando_cliente`, `orcamento_enviado`, `aguardando_pagamento`, `confirmado`, `em_andamento`, `aguardando_confirmacao_cliente`, `concluido`, `cancelado`, `avaliado`.
+- **Novos Botões:** "Iniciar Serviço" (prestador após pagamento) e "Cancelar Agendamento" (ambas as partes).
+- **Busca Melhorada (Live Search):** Busca em tempo real a cada letra digitada, aceita maiúsculas/minúsculas, encontra profissionais com partes do nome.
+- **Feed Social (Praça):** Postagens, curtidas, comentários e compartilhamentos.
+- **Dashboard Financeiro:** Carteira virtual, transações, dados bancários e split automático (96%/4%).
+- *Próximas melhorias:* Sistema de Marketing Multinível (MMN), avaliações obrigatórias pós-serviço e App Mobile nativo.
 
 ---
 
@@ -175,6 +180,7 @@ whodo-next/
     │   ├── api/               # API Routes (backend)
     │   │   ├── admin/         # Scripts administrativos
     │   │   ├── agendamento/   # API de agendamentos
+    │   │   │   └── [id]/acoes/  # ← Endpoint unificado de ações
     │   │   ├── auth/          # Login, logout, registro, sessão
     │   │   ├── avaliacoes/    # Sistema de avaliações
     │   │   ├── carteira/      # Carteira virtual
@@ -237,7 +243,9 @@ O núcleo da aplicação é o modelo unificado **`Usuario`**:
 
 Para documentação completa, incluindo FAQ, guia de troubleshooting e referências avançadas, consulte:
 
-- **[WHODO_KNOWLEDGE_BASE.md](./WHODO_KNOWLEDGE_BASE.md)** — Base de conhecimento unificada com tudo sobre o projeto
+- **[WHODO_KNOWLEDGE_BASE.md](./WHODO_KNOWLEDGE_BASE.md)** — Base de conhecimento unificada com tudo sobre o projeto (v2.2.0)
+- **[IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)** — Histórico de fases implementadas e backlog
+- **[PLANO_REFATORACAO_AGENDAMENTO.md](./PLANO_REFATORACAO_AGENDAMENTO.md)** — Especificação detalhada do fluxo de agendamentos
 
 ---
 

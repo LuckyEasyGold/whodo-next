@@ -1,7 +1,8 @@
 # Plano de Implementação - Página da Praça
 
 > **Última atualização:** Março de 2026
-> **Status:** FASE 8 Concluída
+> **Versão:** 2.2.0
+> **Status:** FASE 9 Concluída
 
 ---
 
@@ -231,7 +232,24 @@ Após `status = concluido`:
 
 ---
 
-## 🌳 FASE 7: Sistema MMN (Marketing Multinível) (EM ANDAMENTO)
+## ✅ FASE 9: Refatoração e Unificação da API de Agendamentos (CONCLUÍDA)
+
+### Itens Implementados:
+- [x] **API Unificada** — `POST /api/agendamento/[id]/acoes` com dispatch por campo `acao`
+- [x] 10 rotas individuais removidas e substituídas pelo endpoint único
+- [x] **Nova ação `iniciar_servico`** — `confirmado` → `em_andamento`
+- [x] **Nova ação `cancelar`** — disponível para ambas as partes em qualquer status ativo
+- [x] **Bug `canPay` corrigido** — pagamento não aparece mais no status `pendente`
+- [x] `AgendamentoActionButtons.tsx` reescrito para usar a nova API
+- [x] Documentação dos 4 arquivos de conhecimento atualizada para v2.2.0
+
+### Arquivos Criados/Modificados:
+- `src/app/api/agendamento/[id]/acoes/route.ts` — API unificada (NOVO)
+- `src/app/dashboard/agendamentos/[id]/AgendamentoActionButtons.tsx` — reescrito
+- `WHODO_KNOWLEDGE_BASE.md`, `SKILL.md`, `IMPLEMENTATION_PLAN.md`, `README.md` — atualizados
+
+---
+
 
 ### Tabela Comissao
 

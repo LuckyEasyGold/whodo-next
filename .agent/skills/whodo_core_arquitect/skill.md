@@ -1,8 +1,8 @@
 ---
 name: whodo-core-architect
 description: Especialista no ecossistema WhoDo. Orienta o desenvolvimento do marketplace (Next.js/TS) e a transição para a plataforma de serviceplace escalável.
-version: 3.1.0
-last_updated: 2026-03-21
+version: 3.2.0
+last_updated: 2026-03-23
 ---
 
 # WhoDo Project Skill
@@ -128,14 +128,34 @@ model Servico {
 #### Agendamento
 ```prisma
 model Agendamento {
-  id              Int      @id @default(autoincrement())
-  servico_id      Int
-  cliente_id      Int
-  prestador_id    Int
-  data_agendamento DateTime
-  status          String   @default("pendente")  // pendente, confirmado, concluido, cancelado
-  valor           Decimal?
-  // ...
+  id                          Int      @id @default(autoincrement())
+  cliente_id                  Int
+  prestador_id                Int
+  servico_id                  Int
+  solicitacao_id              Int?
+  status                      String   @default("pendente")  // ver tabela abaixo
+  data_agendamento            DateTime
+  data_sugerida               DateTime?
+  data_conclusao              DateTime?
+  data_pagamento              DateTime?
+  descricao                   String?
+  endereco_servico            String?
+  valor_total                 Decimal
+  valor_pago                  Boolean  @default(false)
+  valor_pago_valor            Decimal?
+  comissao                    Decimal?
+  // Orçamento
+  orcamento_aprovado          Boolean  @default(false)
+  valor_orcamento             Decimal?
+  descricao_orcamento         String?
+  condicoes_orcamento         String?
+  // Two-Step Completion
+  concluido_prestador         Boolean  @default(false)
+  concluido_cliente           Boolean  @default(false)
+  // Avaliações
+  avaliacao_feita             Boolean  @default(false)
+  avaliacao_prestador_feita   Boolean  @default(false)
+  motivo_cancelamento         String?
 }
 ```
 
@@ -259,10 +279,24 @@ export async function GET(req: NextRequest) {
 - `ORCAMENTO`: Preço a combinar (negociação via chat)
 
 ### Status de Agendamento
-- `pendente`: Aguardando confirmação do prestador
-- `confirmado`: Confirmado pelo prestador
-- `concluido`: Serviço realizado
-- `cancelado`: Cancelado por alguma das partes
+
+Endpoint unificado: `POST /api/agendamento/[id]/acoes` com campo `acao` no body.
+
+| Status | Ação que origina |
+|--------|------------------|
+| `pendente` | criação |
+| `aceito` | `aceitar` (prestador) |
+| `aguardando_cliente` | `sugerir_data` (prestador) |
+| `orcamento_enviado` | `enviar_orcamento` (prestador) |
+| `negociacao` | `recusar_orcamento` (cliente) |
+| `aguardando_pagamento` | `aprovar_orcamento` (cliente) |
+| `confirmado` | pagamento via gateway/saldo |
+| `em_andamento` | `iniciar_servico` (prestador) |
+| `aguardando_confirmacao_cliente` | `concluir_servico` (prestador) |
+| `conclusao_recusada` | `recusar_conclusao` (cliente) |
+| `concluido` | `confirmar_conclusao` (cliente) |
+| `cancelado` | `cancelar` (ambos) |
+| `avaliado` | `avaliar` (ambos) |
 
 ## 8. Como Adicionar Novas Features
 
@@ -405,4 +439,4 @@ const profissionais = await response.json()
 
 ---
 
-**Última atualização:** Este skill deve ser atualizado sempre que uma nova feature significativa for adicionada ao projeto.
+**Última atualização:** v3.2.0 — 2026-03-23. Atualizar sempre que nova feature significativa for adicionada.

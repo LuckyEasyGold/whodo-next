@@ -1,8 +1,8 @@
 ---
 title: WhoDo Knowledge Base
 description: Base de conhecimento unificada do projeto WhoDo - marketplace de serviços
-version: 2.1.0
-last_updated: 2026-03-21
+version: 2.2.0
+last_updated: 2026-03-23
 tags: [whodo, marketplace, serviceplace, nextjs, typescript, prisma]
 ---
 
@@ -122,7 +122,14 @@ tags: [whodo, marketplace, serviceplace, nextjs, typescript, prisma]
 | Solicitação de serviço | ✅ Completo |
 | Agendamento de data/hora | ✅ Completo |
 | Aceite/Recusa de agendamento | ✅ Completo |
-| Status de agendamento | ✅ Completo |
+| Máquina de estados completa (11 estados) | ✅ Completo |
+| API unificada `/api/agendamento/[id]/acoes` | ✅ Completo |
+| Sugestão de nova data pelo prestador | ✅ Completo |
+| Fluxo de orçamento (enviar/aprovar/recusar) | ✅ Completo |
+| Iniciar Serviço (PAGO → EM_ANDAMENTO) | ✅ Completo |
+| Two-Step Completion (prestador + cliente) | ✅ Completo |
+| Cancelamento por ambas as partes | ✅ Completo |
+| Histórico de auditoria (HistoricoAgendamento) | ✅ Completo |
 
 ### 2.9 Financeiro
 
@@ -348,7 +355,15 @@ src/app/api/
 │   ├── stats/           # Estatísticas
 │   └── users/           # Gerenciamento de usuários
 ├── agendamento/
-│   ├── [id]/            # Detalhe de agendamento
+│   ├── route.ts          # GET (listar) / POST (criar)
+│   └── [id]/
+│       ├── route.ts      # GET / PUT / DELETE por ID
+│       └── acoes/
+│           └── route.ts  # POST — endpoint unificado de ações
+│                         # acao: aceitar | recusar | sugerir_data
+│                         # acao: enviar_orcamento | aprovar_orcamento | recusar_orcamento
+│                         # acao: iniciar_servico | concluir_servico
+│                         # acao: confirmar_conclusao | recusar_conclusao | cancelar
 ├── auth/
 │   ├── [...nextauth]/   # NextAuth handler
 │   ├── login/           # Login tradicional
@@ -447,14 +462,30 @@ export async function GET(req: NextRequest) {
 - **Preço Fixo (FIXO):** O prestador define um valor cerrado
 - **Sob Orçamento (ORCAMENTO):** O valor será negociado via chat
 
-### 6.4 Agendamentos
+### 6.4 Agendamentos — Máquina de Estados
 
-| Status | Descrição |
-|--------|-----------|
-| `pendente` | Aguardando confirmação do prestador |
-| `confirmado` | Confirmado pelo prestador |
-| `concluido` | Serviço realizado |
-| `cancelado` | Cancelado por alguma das partes |
+Endpoint unificado: `POST /api/agendamento/[id]/acoes` com campo `acao` no body.
+
+| Status | Descrição | Ação que chega aqui |
+|--------|-----------|---------------------|
+| `pendente` | Aguardando resposta do prestador | criação |
+| `aceito` | Prestador aceitou | `aceitar` |
+| `aguardando_cliente` | Prestador sugeriu nova data | `sugerir_data` |
+| `orcamento_enviado` | Prestador enviou orçamento | `enviar_orcamento` |
+| `negociacao` | Cliente recusou e propôs novos termos | `recusar_orcamento` |
+| `aguardando_pagamento` | Orçamento aprovado, aguardando pagamento | `aprovar_orcamento` |
+| `confirmado` | Pagamento confirmado | webhook/pagar-com-saldo |
+| `em_andamento` | Prestador iniciou a execução | `iniciar_servico` |
+| `aguardando_confirmacao_cliente` | Prestador concluiu, aguardando cliente | `concluir_servico` |
+| `conclusao_recusada` | Cliente recusou a conclusão | `recusar_conclusao` |
+| `concluido` | Cliente confirmou + pagamento liberado | `confirmar_conclusao` |
+| `cancelado` | Cancelado por qualquer parte | `cancelar` |
+| `avaliado` | Avaliado por ambas as partes | `avaliar` |
+
+**Regras críticas:**
+- Pagamento (`canPay`) só disponível nos status `aceito` (sem orçamento) ou `aguardando_pagamento`
+- Split financeiro: 96% prestador / 4% plataforma — liberado apenas no `confirmar_conclusao`
+- Toda transição gera registro em `HistoricoAgendamento`
 
 ### 6.5 Fluxo de Pagamento e Escrow
 
