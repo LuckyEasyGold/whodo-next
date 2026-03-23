@@ -13,11 +13,11 @@
   </p>
 
   <br/>
-  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/upload/profiles/whodo (2).jpeg" alt="WhoDo! Preview" width="780" />
-  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/upload/profiles/whodo (1).jpeg" alt="WhoDo! Preview" width="780" />
-  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/upload/profiles/whodo (3).jpeg" alt="WhoDo! Preview" width="780" />
-  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/upload/profiles/whodo (i).png" alt="WhoDo! Preview" width="780" />
-  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/upload/profiles/whodo (2).png" alt="WhoDo! Preview" width="780" />
+  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/uploads/profiles/whodo (2).jpeg" alt="WhoDo! Preview" width="780" />
+  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/uploads/profiles/whodo (1).jpeg" alt="WhoDo! Preview" width="780" />
+  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/uploads/profiles/whodo (3).jpeg" alt="WhoDo! Preview" width="780" />
+  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/uploads/profiles/whodo (i).png" alt="WhoDo! Preview" width="780" />
+  <img src="https://raw.githubusercontent.com/LuckyEasyGold/whodo-next/main/public/uploads/profiles/whodo (2).png" alt="WhoDo! Preview" width="780" />
   
 </div>
 
