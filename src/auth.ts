@@ -1,7 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import Facebook from "next-auth/providers/facebook"
-import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -16,61 +15,87 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             clientSecret: process.env.AUTH_FACEBOOK_SECRET as string,
         })
     ],
-    adapter: PrismaAdapter(prisma),
+    // Sem PrismaAdapter por enquanto - vamos testar assim
     pages: {
         signIn: '/login',
         error: '/login',
     },
     callbacks: {
         async signIn({ user, account, profile }) {
-            // Verificar se o usuário já existe no banco pelo email
-            if (user.email) {
-                const existingUser = await prisma.usuario.findUnique({
+            if (!user.email) return false
+
+            try {
+                // Verificar se usuário já existe
+                let dbUser = await prisma.usuario.findUnique({
                     where: { email: user.email }
                 })
 
-                // Se o usuário existe mas não tem conta OAuth vinculada, vinculamos
-                if (existingUser) {
-                    // Verificar se já existe conta vinculada a este provider
-                    const existingAccount = await prisma.account.findFirst({
-                        where: {
-                            provider: account?.provider,
-                            providerAccountId: account?.providerAccountId
+                // Se não existe, criar
+                if (!dbUser) {
+                    dbUser = await prisma.usuario.create({
+                        data: {
+                            email: user.email,
+                            nome: user.name || "Usuário",
+                            foto_perfil: user.image || null,
+                            status: 'ativo',
+                            tipo: 'usuario',
+                            email_verificado: true
                         }
                     })
-
-                    // Se não existe conta vinculada, cria
-                    if (!existingAccount) {
-                        await prisma.account.create({
-                            data: {
-                                userId: existingUser.id,
-                                type: account?.type || 'oauth',
-                                provider: account?.provider || 'google',
-                                providerAccountId: account?.providerAccountId || '',
-                                refresh_token: account?.refresh_token,
-                                access_token: account?.access_token,
-                                expires_at: account?.expires_at,
-                                token_type: account?.token_type,
-                                scope: account?.scope,
-                                id_token: account?.id_token,
-                            }
-                        })
-                    }
-                    return true
                 }
+
+                // Criar/actualizar conta OAuth
+                if (account) {
+                    await prisma.account.upsert({
+                        where: {
+                            provider_providerAccountId: {
+                                provider: account.provider,
+                                providerAccountId: account.providerAccountId
+                            }
+                        },
+                        create: {
+                            userId: dbUser.id,
+                            type: account.type || 'oauth',
+                            provider: account.provider,
+                            providerAccountId: account.providerAccountId,
+                            refresh_token: account.refresh_token,
+                            access_token: account.access_token,
+                            expires_at: account.expires_at,
+                            token_type: account.token_type,
+                            scope: account.scope,
+                            id_token: account.id_token,
+                        },
+                        update: {
+                            refresh_token: account.refresh_token,
+                            access_token: account.access_token,
+                            expires_at: account.expires_at,
+                        }
+                    })
+                }
+
+                return true
+            } catch (error) {
+                console.error("Erro no login OAuth:", error)
+                return false
             }
-            return true
         },
-        async session({ session, token }) {
-            // Adicionar ID do usuário na sessão
-            if (session.user?.email && token.sub) {
+        async jwt({ token, user, account }) {
+            // Adicionar ID do usuário ao token
+            if (user?.email) {
                 const dbUser = await prisma.usuario.findUnique({
-                    where: { email: session.user.email },
+                    where: { email: user.email },
                     select: { id: true }
                 })
-                if (dbUser && session.user) {
-                    (session.user as any).id = dbUser.id
+                if (dbUser) {
+                    token.id = dbUser.id
                 }
+            }
+            return token
+        },
+        async session({ session, token }) {
+            // Adicionar ID do usuário à sessão
+            if (token?.id) {
+                (session.user as any).id = token.id
             }
             return session
         }
