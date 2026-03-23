@@ -5,9 +5,9 @@ import AgendamentoActionButtons from './AgendamentoActionButtons';
 import { getStatusLabel, getStatusColor } from '@/lib/status-utils';
 
 type AgendamentoDetalhePageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 const AgendamentoDetalhePage = async ({ params }: AgendamentoDetalhePageProps) => {
@@ -16,7 +16,8 @@ const AgendamentoDetalhePage = async ({ params }: AgendamentoDetalhePageProps) =
     redirect('/login');
   }
 
-  const agendamentoId = parseInt(params.id);
+  const resolvedParams = await params;
+  const agendamentoId = parseInt(resolvedParams.id);
   if (isNaN(agendamentoId)) {
     notFound();
   }

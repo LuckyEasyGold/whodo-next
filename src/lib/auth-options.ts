@@ -22,7 +22,7 @@ const authOptions = {
         error: '/login',
     },
     callbacks: {
-        async signIn({ user, account, profile }) {
+        async signIn({ user, account, profile }: { user: any; account: any; profile: any }) {
             if (!user.email) return false;
 
             try {
@@ -53,10 +53,10 @@ const authOptions = {
                 return false;
             }
         },
-        async session({ session, user }) {
+        async session({ session, user }: { session: any; user: any }) {
             return session;
         },
-        async redirect({ url, baseUrl }) {
+        async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
             if (url.includes('/api/auth/sync')) return url;
             return baseUrl;
         }

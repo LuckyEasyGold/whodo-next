@@ -33,25 +33,23 @@ export async function POST(
         }
 
         // Verificar se já curtiu
-        const curtidaExistente = await prisma.curtida.findUnique({
+        const curtidaExistente = await prisma.postagemCurtida.findFirst({
             where: {
-                usuarioId_postagemId: {
-                    usuarioId: session.id,
-                    postagemId: postagemId
-                }
+                usuarioId: session.id,
+                postagemId: postagemId
             }
         })
 
         if (curtidaExistente) {
             // Descurtir
-            await prisma.curtida.delete({
+            await prisma.postagemCurtida.delete({
                 where: { id: curtidaExistente.id }
             })
             
             return NextResponse.json({ curtido: false })
         } else {
             // Curtir
-            await prisma.curtida.create({
+            await prisma.postagemCurtida.create({
                 data: {
                     usuarioId: session.id,
                     postagemId: postagemId

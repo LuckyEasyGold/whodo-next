@@ -1,22 +1,21 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { encrypt } from '@/lib/auth'
 import { cookies } from 'next/headers'
-import authOptions from '@/lib/auth-options'
 
 export async function GET(req: Request) {
     try {
         // Valida se a sessão do NextAuth foi gerada com sucesso
-        const session = await getServerSession(authOptions)
+        const session = await getSession()
 
-        if (!session?.user?.email) {
+        if (!session?.email) {
             return NextResponse.redirect(new URL('/login?error=OauthSessionFailed', req.url))
         }
 
         // Busca o usuário recém-criado/verificado no signIn provider (auth.ts)
         const dbUser = await prisma.usuario.findUnique({
-            where: { email: session.user.email }
+            where: { email: session.email }
         })
 
         if (!dbUser) {

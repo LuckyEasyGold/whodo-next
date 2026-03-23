@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
 
         // Buscar o agendamento
         const agendamento = await prisma.agendamento.findUnique({
-            where: { id: parseInt(agendamento_id) }
+            where: { id: parseInt(agendamento_id) },
+            include: { servico: { select: { titulo: true } } }
         });
 
         if (!agendamento) {

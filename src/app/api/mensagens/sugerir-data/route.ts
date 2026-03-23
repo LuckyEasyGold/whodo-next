@@ -27,14 +27,14 @@ export async function POST(req: Request) {
     // Verificar se o usuário é o prestador do agendamento
     const agendamento = await prisma.agendamento.findUnique({
       where: { id: agendamentoId },
-      select: { prestador_id: true, cliente_id: true },
+      select: { prestador_id: true, cliente_id: true, solicitacao_id: true },
     });
 
     if (!agendamento) {
       return NextResponse.json({ error: 'Agendamento não encontrado' }, { status: 404 });
     }
 
-    if (agendamento.prestador_id !== parseInt(session.user.id)) {
+    if (!agendamento || agendamento.prestador_id !== session.id) {
       return NextResponse.json({ error: 'Acesso negado. Você não é o prestador deste serviço.' }, { status: 403 });
     }
 
@@ -49,12 +49,12 @@ export async function POST(req: Request) {
 
     const mensagem = `[SISTEMA] O prestador sugeriu uma nova data/hora: ${formattedDate}.`;
 
-    // Criar a mensagem no chat
+    // Criar a mensagem no chat usando o solicitacao_id do agendamento
     await prisma.mensagem.create({
       data: {
-        agendamento_id: agendamentoId,
-        remetente_id: parseInt(session.user.id),
-        destinatario_id: agendamento.cliente_id,
+        solicitacao_id: agendamento?.solicitacao_id || null,
+        remetente_id: session.id,
+        destinatario_id: agendamento?.cliente_id,
         conteudo: mensagem,
         lida: false,
       },

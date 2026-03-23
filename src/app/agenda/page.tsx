@@ -16,6 +16,8 @@ type Agendamento = {
   endereco_servico: string | null
   valor_total: number
   valor_pago: boolean | null
+  prestador_id: number
+  cliente_id: number
   servico: { id: number; titulo: string }
   cliente: { id: number; nome: string; foto_perfil: string | null }
   prestador: { id: number; nome: string; foto_perfil: string | null; especialidade: string | null }
@@ -25,6 +27,8 @@ type Solicitacao = {
   id: number
   created_at: string
   status: string
+  prestador_id: number | null
+  cliente_id: number
   servico: { id: number; titulo: string } | null
   cliente: { id: number; nome: string; foto_perfil: string | null }
   prestador: { id: number; nome: string; foto_perfil: string | null } | null

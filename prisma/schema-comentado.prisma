@@ -1,0 +1,758 @@
+// =========================================================================================
+// SCHEMA DO BANCO DE DADOS - WHODO COM DOCUMENTAÇÃO
+// =========================================================================================
+//
+// Este arquivo contém a documentação de todas as tabelas do banco de dados.
+// Baseado no schema.prisma original.
+//
+// BANCO DE DADOS: Neon (PostgreSQL)
+// Storage adicional: Supabase (apenas para arquivos)
+//
+// TOTAIS:
+// - 25 tabelas/models
+// - 19 com dados
+// - 6 vazias
+// =========================================================================================
+
+// =========================================================================================
+// TABELA: usuarios
+// =========================================================================================
+// Armazena todos os usuários do sistema (clientes e prestadores de serviço).
+// Cada usuário pode ser tanto cliente quanto prestador, dependendo do contexto.
+// 
+// Campos importantes:
+// - tipo: Define se é 'usuario', 'admin', 'prestador', etc.
+// - verificado: Indica se o perfil foi verificado pela plataforma
+// - avaliacao_media: Média das avaliações recebidas (calculada automaticamente)
+// - patrocinador_id: Permite sistema de indicações/referências
+// 
+// Relações:
+// - Agendamentos como cliente e como prestador
+// - Serviços oferecidos (se prestador)
+// - Carteira, dados bancários, portfólio, postagens, etc.
+// 
+// Registros atuais: 76
+// =========================================================================================
+model Usuario {
+  id                    Int                   @id @default(autoincrement())
+  nome                  String                @db.VarChar(100)
+  nome_fantasia         String?               @db.VarChar(100)
+  email                 String                @unique @db.VarChar(100)
+  senha                 String?               @db.VarChar(255)
+  telefone              String?               @db.VarChar(20)
+  documento             String?               @unique @db.VarChar(20)
+  tipo                  String                @default("usuario") @db.VarChar(20)
+  foto_perfil           String?               @db.VarChar(255)
+  especialidade         String?               @db.VarChar(255)
+  sobre                 String?
+  avaliacao_media       Decimal               @default(0) @db.Decimal(3, 2)
+  verificado            Boolean               @default(false)
+  disponibilidade       String?               @db.VarChar(255)
+  endereco              String?               @db.VarChar(255)
+  cidade                String?               @db.VarChar(100)
+  estado                String?               @db.VarChar(2)
+  cep                   String?               @db.VarChar(10)
+  latitude              Decimal?              @db.Decimal(10, 8)
+  longitude             Decimal?              @db.Decimal(11, 8)
+  website               String?               @db.VarChar(255)
+  linkedin              String?               @db.VarChar(255)
+  facebook              String?               @db.VarChar(255)
+  instagram             String?               @db.VarChar(255)
+  youtube               String?               @db.VarChar(255)
+  tiktok                String?               @db.VarChar(255)
+  kwai                  String?               @db.VarChar(255)
+  perfil_academico      String?               @db.VarChar(255)
+  status                String                @default("ativo") @db.VarChar(20)
+  email_verificado      Boolean               @default(false)
+  token_verificacao     String?               @db.VarChar(255)
+  patrocinador_id       Int?
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @updatedAt
+  emailVerified         DateTime?
+  reset_token           String?               @db.VarChar(255)
+  reset_token_expires   DateTime?
+  accounts              Account[]
+  agendamentosCliente   Agendamento[]         @relation("AgendamentoCliente")
+  agendamentosPrestador Agendamento[]         @relation("AgendamentoPrestador")
+  historicoAgendamentos HistoricoAgendamento[]
+  avaliacoesFeitas      Avaliacao[]           @relation("AvaliacaoCliente")
+  avaliacoesRecebidas   Avaliacao[]           @relation("AvaliacaoPrestador")
+  carteira              Carteira?
+  dadosBancarios        DadosBancarios?
+  mensagensRecebidas    Mensagem[]            @relation("MensagemDestinatario")
+  mensagensEnviadas     Mensagem[]            @relation("MensagemRemetente")
+  notificacoes          Notificacao[]
+  orcamentosEnviados    Orcamento[]           @relation("OrcamentoPrestador")
+  portfolioAlbuns       PortfolioAlbum[]
+  comentariosPortfolio  PortfolioComentario[] @relation("UsuarioComentarios")
+  portfolio             PortfolioMedia[]
+  seguidores            Seguidor[]            @relation("SeguidoresUsuario")
+  seguindo              Seguidor[]            @relation("SeguindoUsuario")
+  postagens             Postagem[]            @relation("PostagemAutor")
+  curtidas              PostagemCurtida[]
+  comentariosPostagem   PostagemComentario[]
+  compartilhamentos     PostagemCompartilhamento[]
+  postagensSalvas       PostagemSalva[]
+  servicos              Servico[]
+  sessions              Session[]
+  solicitacoesEnviadas  Solicitacao[]         @relation("SolicitacaoCliente")
+  solicitacoesRecebidas Solicitacao[]         @relation("SolicitacaoPrestador")
+  patrocinador          Usuario?              @relation("Patrocinador", fields: [patrocinador_id], references: [id])
+  patrocinados          Usuario[]             @relation("Patrocinador")
+
+  @@map("usuarios")
+}
+
+// =========================================================================================
+// TABELA: portfolio_media
+// =========================================================================================
+// Armazena mídias (imagens, vídeos) do portfólio dos prestadores de serviço.
+// Cada mídia pertence a um usuário (prestador) e pode pertencer a um álbum.
+// 
+// Campos importantes:
+// - tipo: Define o tipo de mídia ('imagem', 'video', etc.)
+// - citacao: Permite adicionar citações às mídias do portfólio
+// 
+// Registros atuais: 30
+// =========================================================================================
+model PortfolioMedia {
+  id          Int                   @id @default(autoincrement())
+  usuario_id  Int
+  album_id    Int?
+  url         String                @db.VarChar(255)
+  tipo        String                @default("imagem") @db.VarChar(20)
+  titulo      String?               @db.VarChar(255)
+  descricao   String?
+  citacao     String?
+  created_at  DateTime              @default(now())
+  comentarios PortfolioComentario[] @relation("MediaComentarios")
+  album       PortfolioAlbum?       @relation(fields: [album_id], references: [id])
+  usuario     Usuario               @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_media")
+}
+
+// =========================================================================================
+// TABELA: portfolio_albums
+// =========================================================================================
+// Álbuns para organizar as mídias do portfólio dos prestadores.
+// Permite agrupar trabalhos por categoria ou projeto.
+// 
+// Registros atuais: 10
+// =========================================================================================
+model PortfolioAlbum {
+  id         Int              @id @default(autoincrement())
+  usuario_id Int
+  nome       String           @db.VarChar(255)
+  descricao  String?
+  capa_url   String?          @db.VarChar(255)
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  usuario    Usuario          @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  medias     PortfolioMedia[]
+
+  @@map("portfolio_albums")
+}
+
+// =========================================================================================
+// TABELA: categorias
+// =========================================================================================
+// Categorias de serviços disponíveis na plataforma.
+// Exemplos: "Beleza", "Reformas", "Aulas", "Saúde", etc.
+// 
+// Usada para classificar os serviços oferecidos pelos prestadores.
+// 
+// Registros atuais: 15
+// =========================================================================================
+model Categoria {
+  id        Int       @id @default(autoincrement())
+  nome      String    @db.VarChar(100)
+  descricao String?
+  icone     String?   @db.VarChar(50)
+  imagem    String?   @db.VarChar(255)
+  servicos  Servico[]
+
+  @@map("categorias")
+}
+
+// =========================================================================================
+// TABELA: servicos
+// =========================================================================================
+// Serviços específicos oferecidos pelos prestadores.
+// Cada serviço pertence a uma categoria e a um prestador (usuário).
+// 
+// Campos importantes:
+// - preco_base: Preço base do serviço
+// - cobranca_tipo: Tipo de cobrança (FIXO, POR_HORA, etc.)
+// - destaque: Se o serviço deve ser destacado na busca
+// - tempo_estimado: Tempo estimado para выполнения serviço
+// 
+// Registros atuais: 54
+// =========================================================================================
+model Servico {
+  id             Int           @id @default(autoincrement())
+  usuario_id     Int
+  categoria_id   Int
+  titulo         String        @db.VarChar(255)
+  descricao      String?
+  preco_base     Decimal       @default(0) @db.Decimal(10, 2)
+  unidade_medida String?       @db.VarChar(50)
+  destaque       Boolean       @default(false)
+  status         String        @default("ativo") @db.VarChar(20)
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+  cobranca_tipo  String        @default("FIXO") @db.VarChar(20)
+  tempo_estimado String?       @db.VarChar(50)
+  agendamentos   Agendamento[]
+  avaliacoes     Avaliacao[]
+  categoria      Categoria     @relation(fields: [categoria_id], references: [id])
+  usuario        Usuario       @relation(fields: [usuario_id], references: [id])
+  solicitacoes   Solicitacao[]
+
+  @@map("servicos")
+}
+
+// =========================================================================================
+// TABELA: avaliacoes
+// =========================================================================================
+// Avaliações deixadas por clientes sobre serviços prestados.
+// Avaliações são vinculadas ao cliente, prestador, serviço e opcionalmente ao agendamento.
+// 
+// Campos importantes:
+// - nota: Nota de 0 a 5 (ou decimal)
+// - resposta_prestador: Possibilidade do prestador responder a avaliação
+// 
+// Registros atuais: 8
+// =========================================================================================
+model Avaliacao {
+  id                 Int      @id @default(autoincrement())
+  cliente_id         Int
+  prestador_id       Int
+  servico_id         Int
+  agendamento_id     Int?
+  nota               Decimal  @db.Decimal(2, 1)
+  comentario         String?
+  resposta_prestador String?
+  data_avaliacao     DateTime @default(now())
+  cliente            Usuario  @relation("AvaliacaoCliente", fields: [cliente_id], references: [id])
+  prestador          Usuario  @relation("AvaliacaoPrestador", fields: [prestador_id], references: [id])
+  servico            Servico  @relation(fields: [servico_id], references: [id])
+
+  @@map("avaliacoes")
+}
+
+// =========================================================================================
+// TABELA: solicitacoes
+// =========================================================================================
+// Solicitações de serviço feitas por clientes.
+// Quando um cliente busca um serviço e entra em contato com um prestador.
+// 
+// Fluxo:
+// 1. Cliente cria solicitação descrevendo o serviço needed
+// 2. Prestador pode enviar orçamentos em resposta
+// 3. Conversationa happens via mensagens
+// 
+// Campos importantes:
+// - status: pendente, aceita, recusada, etc.
+// 
+// Registros atuais: 37
+// =========================================================================================
+model Solicitacao {
+  id           Int         @id @default(autoincrement())
+  cliente_id   Int
+  servico_id   Int?
+  descricao    String?
+  status       String      @default("pendente") @db.VarChar(30)
+  created_at   DateTime    @default(now())
+  prestador_id Int?
+  mensagens    Mensagem[]
+  orcamentos   Orcamento[]
+  cliente      Usuario     @relation("SolicitacaoCliente", fields: [cliente_id], references: [id])
+  prestador    Usuario?    @relation("SolicitacaoPrestador", fields: [prestador_id], references: [id])
+  servico      Servico?    @relation(fields: [servico_id], references: [id])
+
+  @@map("solicitacoes")
+}
+
+// =========================================================================================
+// TABELA: orcamentos
+// =========================================================================================
+// Orçamentos enviados por prestadores em resposta a solicitações de clientes.
+// 
+// Campos importantes:
+// - valor: Valor estimado do serviço
+// - prazo_estimado: Tempo estimado para conclusão
+// - status: enviado, aprovado, recusado
+// 
+// OBSERVAÇÃO: Tabela VAZIA (0 registros)
+// 可能 a funcionalidade de orçamentos ainda não foi utilizada.
+// =========================================================================================
+model Orcamento {
+  id             Int         @id @default(autoincrement())
+  solicitacao_id Int
+  prestador_id   Int
+  valor          Decimal     @db.Decimal(10, 2)
+  descricao      String?
+  prazo_estimado String?     @db.VarChar(50)
+  status         String      @default("enviado") @db.VarChar(30)
+  created_at     DateTime    @default(now())
+  prestador      Usuario     @relation("OrcamentoPrestador", fields: [prestador_id], references: [id])
+  solicitacao    Solicitacao @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
+
+  @@map("orcamentos")
+}
+
+// =========================================================================================
+// TABELA: mensagens
+// =========================================================================================
+// Sistema de mensagens entre clientes e prestadores.
+// Vinculado a uma solicitação (opcional) para manter contexto da conversa.
+// 
+// Campos importantes:
+// - lida: Indica se a mensagem foi lida pelo destinatário
+// - solicitacao_id: Relaciona a mensagem a uma solicitação específica
+// 
+// Registros atuais: 58
+// =========================================================================================
+model Mensagem {
+  id              Int          @id @default(autoincrement())
+  remetente_id    Int
+  destinatario_id Int
+  conteudo        String
+  lida            Boolean      @default(false)
+  created_at      DateTime     @default(now())
+  solicitacao_id  Int?
+  destinatario    Usuario      @relation("MensagemDestinatario", fields: [destinatario_id], references: [id])
+  remetente       Usuario      @relation("MensagemRemetente", fields: [remetente_id], references: [id])
+  solicitacao     Solicitacao? @relation(fields: [solicitacao_id], references: [id], onDelete: Cascade)
+
+  @@map("mensagens")
+}
+
+// =========================================================================================
+// TABELA: notificacoes
+// =========================================================================================
+// Sistema de notificações para manter usuários informados sobre atividades.
+// 
+// Campos importantes:
+// - tipo: Tipo de notificação (agendamento, mensagem, avaliação, etc.)
+// - link: Link para onde a notificação leva ao clicar
+// - lida: Indica se foi visualizada
+// 
+// Registros atuais: 100
+// =========================================================================================
+model Notificacao {
+  id         Int      @id @default(autoincrement())
+  usuario_id Int
+  tipo       String   @db.VarChar(50)
+  titulo     String   @db.VarChar(255)
+  mensagem   String?
+  lida       Boolean  @default(false)
+  link       String?  @db.VarChar(255)
+  created_at DateTime @default(now())
+  usuario    Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("notificacoes")
+}
+
+// =========================================================================================
+// TABELA: agendamentos
+// =========================================================================================
+// Agendamentos de serviços entre clientes e prestadores.
+// Representa a contratação e execução de um serviço.
+// 
+// Fluxo completo:
+// 1. Cliente agenda → status: pendente
+// 2. Prestador aceita/recusa
+// 3. Prestador pode enviar orçamento
+// 4. Cliente aprova orçamento (opcional)
+// 5. Serviço é executado
+// 6. Prestador conclui → cliente confirma
+// 7. Pagamento é liberado
+// 
+// Campos importantes:
+// - status: pendente, confirmado, em_andamento, concluido, cancelado
+// - valor_total: Valor do serviço
+// - valor_orcamento: Valor aprovado via orçamento
+// - avaliacao_feita / avaliacao_prestador_feita: Controle de avaliações
+// 
+// Registros atuais: 4
+// =========================================================================================
+model Agendamento {
+  id                  Int         @id @default(autoincrement())
+  cliente_id          Int
+  prestador_id        Int
+  servico_id          Int
+  solicitacao_id      Int?
+  status              String      @default("pendente") @db.VarChar(30)
+  data_agendamento    DateTime
+  data_conclusao      DateTime?
+  data_sugerida       DateTime?
+  descricao           String?
+  endereco_servico    String?     @db.VarChar(255)
+  valor_total         Decimal     @db.Decimal(10, 2)
+  valor_pago          Boolean     @default(false)
+  valor_pago_valor   Decimal?    @db.Decimal(10, 2)
+  data_pagamento     DateTime?
+  comissao           Decimal?    @db.Decimal(10, 2)
+  avaliacao_feita            Boolean     @default(false)
+  avaliacao_prestador_feita Boolean     @default(false)
+  motivo_cancelamento       String?
+  orcamento_aprovado  Boolean     @default(false)
+  concluido_prestador Boolean     @default(false)
+  concluido_cliente   Boolean     @default(false)
+  valor_orcamento     Decimal?    @db.Decimal(10, 2)
+  descricao_orcamento String?
+  condicoes_orcamento String?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+  cliente             Usuario     @relation("AgendamentoCliente", fields: [cliente_id], references: [id])
+  prestador           Usuario     @relation("AgendamentoPrestador", fields: [prestador_id], references: [id])
+  servico             Servico     @relation(fields: [servico_id], references: [id])
+  transacoes          Transacao[]
+  historico           HistoricoAgendamento[]
+
+  @@map("agendamentos")
+}
+
+// =========================================================================================
+// TABELA: historico_agendamentos
+// =========================================================================================
+// Histórico de alterações em agendamentos.
+// Mantém um log de todas as mudanças de status e ações.
+// 
+// Útil para:
+// - Auditoria
+// - Resolução de disputas
+// - Informações ao cliente
+// 
+// Registros atuais: 6
+// =========================================================================================
+model HistoricoAgendamento {
+  id              Int        @id @default(autoincrement())
+  agendamentoId   Int
+  usuarioId       Int
+  acao            String     @db.VarChar(50)
+  status_anterior String?    @db.VarChar(30)
+  status_novo     String?    @db.VarChar(30)
+  descricao       String?
+  createdAt       DateTime   @default(now())
+  agendamento     Agendamento @relation(fields: [agendamentoId], references: [id], onDelete: Cascade)
+  usuario         Usuario    @relation(fields: [usuarioId], references: [id])
+
+  @@map("historico_agendamentos")
+}
+
+// =========================================================================================
+// TABELA: carteiras
+// =========================================================================================
+// Carteira digital de cada usuário (especialmente prestadores).
+// Armazena saldos e histórico financeiro.
+// 
+// Campos importantes:
+// - saldo: Saldo disponível para saque
+// - saldo_pendente: Valores em processamento
+// - total_ganho: Total ganho historicamente
+// - total_gasto: Total gasto em serviços
+// 
+// Registros atuais: 11
+// =========================================================================================
+model Carteira {
+  id             Int         @id @default(autoincrement())
+  usuario_id     Int         @unique
+  saldo          Decimal     @default(0) @db.Decimal(12, 2)
+  saldo_pendente Decimal     @default(0) @db.Decimal(12, 2)
+  total_ganho    Decimal     @default(0) @db.Decimal(12, 2)
+  total_gasto    Decimal     @default(0) @db.Decimal(12, 2)
+  updated_at     DateTime    @updatedAt
+  created_at     DateTime    @default(now())
+  usuario        Usuario     @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  transacoes     Transacao[]
+
+  @@map("carteiras")
+}
+
+// =========================================================================================
+// TABELA: transacoes
+// =========================================================================================
+// Transações financeiras da plataforma.
+// Registra pagamentos, saques, etc.
+// 
+// Campos importantes:
+// - tipo:debito, credito, saque, reembolso
+// - status: pendente, processado, falhou
+// - metodo_pagamento: pix, cartao, transferencia
+// 
+// Registros atuais: 3
+// =========================================================================================
+model Transacao {
+  id                 Int          @id @default(autoincrement())
+  carteira_id        Int
+  agendamento_id     Int?
+  tipo               String       @db.VarChar(30)
+  valor              Decimal      @db.Decimal(12, 2)
+  status             String       @default("pendente") @db.VarChar(30)
+  data_solicitacao   DateTime     @default(now())
+  data_processamento DateTime?
+  descricao          String?
+  chave_pix          String?      @db.VarChar(255)
+  banco_agencia      String?      @db.VarChar(50)
+  banco_conta        String?      @db.VarChar(50)
+  tipo_conta         String?      @db.VarChar(30)
+  metodo_pagamento   String?      @db.VarChar(30)
+  comprovante_url    String?      @db.VarChar(255)
+  updated_at         DateTime     @updatedAt
+  agendamento        Agendamento? @relation(fields: [agendamento_id], references: [id])
+  carteira           Carteira     @relation(fields: [carteira_id], references: [id], onDelete: Cascade)
+
+  @@map("transacoes")
+}
+
+// =========================================================================================
+// TABELA: dados_bancarios
+// =========================================================================================
+// Dados bancários dos usuários para recebimento de pagamentos.
+// 
+// Campos importantes:
+// - chave_pix: Chave PIX para transferência
+// - verificado: Indica se os dados foram verificados
+// 
+// Registros atuais: 1
+// =========================================================================================
+model DadosBancarios {
+  id           Int      @id @default(autoincrement())
+  usuario_id   Int      @unique
+  chave_pix    String?  @db.VarChar(255)
+  banco_nome   String?  @db.VarChar(100)
+  banco_codigo String?  @db.VarChar(10)
+  agencia      String?  @db.VarChar(20)
+  conta        String?  @db.VarChar(20)
+  tipo_conta   String?  @db.VarChar(30)
+  titular_nome String?  @db.VarChar(255)
+  cpf_cnpj     String?  @db.VarChar(20)
+  verificado   Boolean  @default(false)
+  updated_at   DateTime @updatedAt
+  created_at   DateTime @default(now())
+  usuario      Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("dados_bancarios")
+}
+
+// =========================================================================================
+// TABELA: accounts
+// =========================================================================================
+// Armazena contas de autenticação OAuth (NextAuth).
+// Usado para login via Google, Facebook, etc.
+// 
+// OBSERVAÇÃO: Tabela VAZIA (0 registros)
+// 可能 o login social não está sendo utilizado.
+// =========================================================================================
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// =========================================================================================
+// TABELA: sessions
+// =========================================================================================
+// Armazena sessões de usuários (NextAuth).
+// 
+// OBSERVAÇÃO: Tabela VAZIA (0 registros)
+// Sessões podem estar expiradas ou o sistema usa outro método.
+// =========================================================================================
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// =========================================================================================
+// TABELA: verification_tokens
+// =========================================================================================
+// Tokens para verificação de email e recuperação de senha (NextAuth).
+// 
+// OBSERVAÇÃO: Tabela VAZIA (0 registros)
+// 可能 tokens expirados ou sistema usa outro método.
+// =========================================================================================
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// =========================================================================================
+// TABELA: seguidores
+// =========================================================================================
+// Sistema de seguidores entre usuários (como redes sociais).
+// Permite que usuários sigam prestadores de serviço.
+// 
+// Campos únicos: [seguidor_id, seguido_id] - evita duplicação
+// 
+// Registros atuais: 36
+// =========================================================================================
+model Seguidor {
+  id          Int      @id @default(autoincrement())
+  seguidor_id Int
+  seguido_id  Int
+  created_at  DateTime @default(now())
+  seguido     Usuario  @relation("SeguidoresUsuario", fields: [seguido_id], references: [id], onDelete: Cascade)
+  seguidor    Usuario  @relation("SeguindoUsuario", fields: [seguidor_id], references: [id], onDelete: Cascade)
+
+  @@unique([seguidor_id, seguido_id])
+  @@map("seguidores")
+}
+
+// =========================================================================================
+// TABELA: portfolio_comentarios
+// =========================================================================================
+// Comentários em mídias do portfólio dos prestadores.
+// 
+// OBSERVAÇÃO: Tabela VAZIA (0 registros)
+// 可能 não há comentários em portfólios ainda.
+// =========================================================================================
+model PortfolioComentario {
+  id         Int            @id @default(autoincrement())
+  texto      String
+  usuario_id Int
+  media_id   Int
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+  media      PortfolioMedia @relation("MediaComentarios", fields: [media_id], references: [id], onDelete: Cascade)
+  usuario    Usuario        @relation("UsuarioComentarios", fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_comentarios")
+}
+
+// =========================================================================================
+// TABELA: postagens
+// =========================================================================================
+// Sistema de postagens/feed da plataforma (tipo rede social).
+// Permite que prestadores compartilhem conteúdo.
+// 
+// Campos importantes:
+// - videoYoutubeId: ID do vídeo do YouTube (se embedado)
+// - visualizacoes: Contador de visualizações
+// - publico: Se a postagem é visível publicamente
+// 
+// Registros atuais: 6
+// =========================================================================================
+model Postagem {
+  id                Int                       @id @default(autoincrement())
+  autorId           Int
+  titulo            String?                   @db.VarChar(200)
+  conteudo          String
+  imagens           String[]
+  videoUrl          String?                   @db.VarChar(500)
+  videoYoutubeId    String?                   @db.VarChar(50)
+  visualizacoes     Int                       @default(0)
+  publico            Boolean                   @default(true)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  autor             Usuario                   @relation("PostagemAutor", fields: [autorId], references: [id], onDelete: Cascade)
+  curtidas          PostagemCurtida[]
+  comentarios       PostagemComentario[]
+  compartilhamentos PostagemCompartilhamento[]
+  salva             PostagemSalva[]
+
+  @@map("postagens")
+}
+
+// =========================================================================================
+// TABELA: postagem_curtidas
+// =========================================================================================
+// Curtidas em postagens.
+// 
+// Campos únicos: [postagemId, usuarioId] - evita duplicação
+// 
+// OBSERVAÇÃO: Tabela VAZIA (0 registros)
+// 可能 as postagens não têm curtidas ainda.
+// =========================================================================================
+model PostagemCurtida {
+  id        Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([postagemId, usuarioId])
+  @@map("postagem_curtidas")
+}
+
+// =========================================================================================
+// TABELA: postagem_comentarios
+// =========================================================================================
+// Comentários em postagens.
+// 
+// Registros atuais: 6
+// =========================================================================================
+model PostagemComentario {
+  id         Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  conteudo   String
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("postagem_comentarios")
+}
+
+// =========================================================================================
+// TABELA: postagem_compartilhamentos
+// =========================================================================================
+// Compartilhamentos de postagens.
+// 
+// Registros atuais: 1
+// =========================================================================================
+model PostagemCompartilhamento {
+  id         Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([postagemId, usuarioId])
+  @@map("postagem_compartilhamentos")
+}
+
+// =========================================================================================
+// TABELA: postagens_salvas
+// =========================================================================================
+// Postagens salvas/favoritas por usuários.
+// 
+// Registros atuais: 2
+// =========================================================================================
+model PostagemSalva {
+  id        Int      @id @default(autoincrement())
+  postagemId Int
+  usuarioId  Int
+  createdAt  DateTime @default(now())
+  postagem   Postagem @relation(fields: [postagemId], references: [id], onDelete: Cascade)
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([postagemId, usuarioId])
+  @@map("postagens_salvas")
+}

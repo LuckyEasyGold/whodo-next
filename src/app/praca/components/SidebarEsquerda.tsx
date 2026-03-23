@@ -13,9 +13,10 @@ import CriarPostagemModal from './CriarPostagemModal'
 type Props = {
     usuario: any
     onNovaPostagem: (post: any) => void
+    grupos?: any[]
 }
 
-export default function SidebarEsquerda({ usuario, onNovaPostagem }: Props) {
+export default function SidebarEsquerda({ usuario, onNovaPostagem, grupos = [] }: Props) {
     const [showCriarPost, setShowCriarPost] = useState(false)
     const [showMoreLinks, setShowMoreLinks] = useState(false)
 

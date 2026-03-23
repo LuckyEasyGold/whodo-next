@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama do Banco de Dados - Whodo</title>
+    
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark', // Mantendo o tema escuro que você prefere
+            securityLevel: 'loose' 
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #eee;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+        
+        .instructions {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .instructions code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #ffc107;
+        }
+        
+        .legend {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .legend h2 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #00d9ff;
+        }
+        
+        .legend-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .box-pk { background: #ff6b6b; }
+        .box-fk { background: #4ecdc4; }
+        
+        .diagram-container {
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow-x: auto;
+            min-height: 400px;
+        }
+        
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .info-section {
+            margin-top: 40px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .info-card h3 {
+            color: #00d9ff;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .table-list {
+            list-style: none;
+        }
+        
+        .table-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .table-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .count {
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .empty {
+            color: #ff6b6b;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗄️ Diagrama do Banco de Dados</h1>
+            <p class="subtitle">Whodo - Plataforma de Serviços</p>
+        </header>
+        
+        <div class="instructions">
+            <strong>⚠️ Para visualizar o diagrama:</strong> Execute o servidor local com 
+            <code>npm run dev</code> e abra <code>http://localhost:3000/diagrama-banco-dados.html</code>
+            <br>Ou use a extensão "Mermaid Preview" no VS Code para ver o arquivo .md
+        </div>
+        
+        <div class="legend">
+            <h2>📋 Legenda</h2>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-box box-pk"></div>
+                    <span>PK - Chave Primária</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box box-fk"></div>
+                    <span>FK - Chave Estrangeira</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="diagram-container" id="diagram">
+            <pre class="mermaid">
+erDiagram
+    USUARIO {
+        int id PK
+        string nome
+        string email UK
+        string tipo
+    }
+
+    SERVICO {
+        int id PK
+        int usuario_id FK
+        int categoria_id FK
+        string titulo
+    }
+
+    CATEGORIA {
+        int id PK
+        string nome
+    }
+
+    AGENDAMENTO {
+        int id PK
+        int cliente_id FK
+        int prestador_id FK
+        int servico_id FK
+        string status
+    }
+
+    AVALIACAO {
+        int id PK
+        int cliente_id FK
+        int prestador_id FK
+        int servico_id FK
+        decimal nota
+    }
+
+    SOLICITACAO {
+        int id PK
+        int cliente_id FK
+        int servico_id FK
+        int prestador_id FK
+        string status
+    }
+
+    ORCAMENTO {
+        int id PK
+        int solicitacao_id FK
+        int prestador_id FK
+        decimal valor
+    }
+
+    MENSAGEM {
+        int id PK
+        int remetente_id FK
+        int destinatario_id FK
+        bool lida
+    }
+
+    NOTIFICACAO {
+        int id PK
+        int usuario_id FK
+        string tipo
+        bool lida
+    }
+
+    CARTEIRA {
+        int id PK
+        int usuario_id FK UK
+        decimal saldo
+    }
+
+    TRANSACAO {
+        int id PK
+        int carteira_id FK
+        int agendamento_id FK
+        string tipo
+        string status
+    }
+
+    DADOS_BANCARIOS {
+        int id PK
+        int usuario_id FK UK
+        string chave_pix
+    }
+
+    PORTFOLIO_MEDIA {
+        int id PK
+        int usuario_id FK
+        int album_id FK
+    }
+
+    PORTFOLIO_ALBUM {
+        int id PK
+        int usuario_id FK
+    }
+
+    POSTAGEM {
+        int id PK
+        int autorId FK
+        int visualizacoes
+    }
+
+    SEGUIDOR {
+        int id PK
+        int seguidor_id FK
+        int seguido_id FK
+    }
+
+    HISTORICO_AGENDAMENTO {
+        int id PK
+        int agendamentoId FK
+        int usuarioId FK
+    }
+
+    POSTAGEM_CURTIDA {
+        int id PK
+        int postagemId FK
+        int usuarioId FK
+    }
+
+    POSTAGEM_COMENTARIO {
+        int id PK
+        int postagemId FK
+        int usuarioId FK
+    }
+
+    POSTAGEM_COMPARTILHAMENTO {
+        int id PK
+        int postagemId FK
+        int usuarioId FK
+    }
+
+    POSTAGEM_SALVA {
+        int id PK
+        int postagemId FK
+        int usuarioId FK
+    }
+
+    PORTFOLIO_COMENTARIO {
+        int id PK
+        int media_id FK
+        int usuario_id FK
+    }
+
+    USUARIO ||--o{ SERVICO : "oferece"
+    USUARIO ||--o{ AVALIACAO : "recebe"
+    USUARIO ||--o{ AGENDAMENTO : "cliente"
+    USUARIO ||--o{ AGENDAMENTO : "prestador"
+    USUARIO ||--o{ SOLICITACAO : "cliente"
+    USUARIO ||--o{ SOLICITACAO : "prestador"
+    USUARIO ||--o{ MENSAGEM : "envia"
+    USUARIO ||--o{ MENSAGEM : "recebe"
+    USUARIO ||--o{ NOTIFICACAO : "recebe"
+    USUARIO ||--o{ CARTEIRA : "possui"
+    USUARIO ||--o{ DADOS_BANCARIOS : "possui"
+    USUARIO ||--o{ PORTFOLIO_MEDIA : "possui"
+    USUARIO ||--o{ PORTFOLIO_ALBUM : "possui"
+    USUARIO ||--o{ POSTAGEM : "cria"
+    USUARIO ||--o{ SEGUIDOR : "segue"
+    CATEGORIA ||--o{ SERVICO : "categoriza"
+    SERVICO ||--o{ AGENDAMENTO : "agendado"
+    SERVICO ||--o{ AVALIACAO : "avaliado"
+    SERVICO ||--o{ SOLICITACAO : "solicitado"
+    AGENDAMENTO ||--o{ TRANSACAO : "pagamento"
+    AGENDAMENTO ||--o{ HISTORICO_AGENDAMENTO : "log"
+    SOLICITACAO ||--o{ ORCAMENTO : "recebe"
+    SOLICITACAO ||--o{ MENSAGEM : "conversa"
+    CARTEIRA ||--o{ TRANSACAO : "registra"
+    PORTFOLIO_ALBUM ||--o{ PORTFOLIO_MEDIA : "contém"
+    POSTAGEM ||--o{ POSTAGEM_COMENTARIO : "comentários"
+    POSTAGEM ||--o{ POSTAGEM_CURTIDA : "curtidas"
+    POSTAGEM ||--o{ POSTAGEM_COMPARTILHAMENTO : "compartilhamentos"
+    POSTAGEM ||--o{ POSTAGEM_SALVA : "salva"
+            </pre>
+        </div>
+        
+        <div class="info-section">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>📊 Tabelas com Dados</h3>
+                    <ul class="table-list">
+                        <li><span>usuarios</span><span class="count">76</span></li>
+                        <li><span>notificacoes</span><span class="count">100</span></li>
+                        <li><span>mensagens</span><span class="count">58</span></li>
+                        <li><span>servicos</span><span class="count">54</span></li>
+                        <li><span>solicitacoes</span><span class="count">37</span></li>
+                        <li><span>seguidores</span><span class="count">36</span></li>
+                        <li><span>portfolio_media</span><span class="count">30</span></li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>📊 Mais Tabelas</h3>
+                    <ul class="table-list">
+                        <li><span>categorias</span><span class="count">15</span></li>
+                        <li><span>portfolio_albums</span><span class="count">10</span></li>
+                        <li><span>carteiras</span><span class="count">11</span></li>
+                        <li><span>avaliacoes</span><span class="count">8</span></li>
+                        <li><span>postagens</span><span class="count">6</span></li>
+                        <li><span>historico_agendamentos</span><span class="count">6</span></li>
+                        <li><span>postagem_comentarios</span><span class="count">6</span></li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>⚠️ Tabelas Vazias</h3>
+                    <ul class="table-list">
+                        <li><span>orcamentos</span><span class="empty">0</span></li>
+                        <li><span>accounts</span><span class="empty">0</span></li>
+                        <li><span>sessions</span><span class="empty">0</span></li>
+                        <li><span>verification_tokens</span><span class="empty">0</span></li>
+                        <li><span>portfolio_comentarios</span><span class="empty">0</span></li>
+                        <li><span>postagem_curtidas</span><span class="empty">0</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Banco: Neon (PostgreSQL) | Storage: Supabase | Total: 25 tabelas</p>
+        </div>
+    </div>
+    
+    <script>
+        // Inicialização segura
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            er: {
+                useMaxWidth: true,
+                layoutDirection: 'TB'
+            }
+        });
+    </script>
+</body>
+</html>
