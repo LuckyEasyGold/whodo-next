@@ -16,10 +16,7 @@
   <img src="https://github.com/LuckyEasyGold/whodo-next/blob/main/public/uploads/profile/whodo2.jpeg" alt="WhoDo! Preview" width="100" />
   <img src="https://github.com/LuckyEasyGold/whodo-next/blob/main/public/uploads/profile/whodo1.jpeg" alt="WhoDo! Preview" width="100" />
   <img src="https://github.com/LuckyEasyGold/whodo-next/blob/main/public/uploads/profile/whodo3.jpeg" alt="WhoDo! Preview" width="100" />
-  <img src="https://github.com/LuckyEasyGold/whodo-next/blob/main/public/uploads/profile/whodo1.png" alt="WhoDo! Preview" width="100" />
-  <img src="https://github.com/LuckyEasyGold/whodo-next/blob/main/public/uploads/profile/whodo2.png" alt="WhoDo! Preview" width="100" />
-  
-</div>
+  </div>
 
 ---
 
