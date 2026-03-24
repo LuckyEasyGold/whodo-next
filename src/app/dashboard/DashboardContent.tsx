@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Calendar, Wallet, Star, Users, Briefcase, UserCircle, Image, Settings, MessageSquare, Bell, LogOut, BarChart3, TrendingUp, Clock, ChevronRight, Plus } from 'lucide-react'
+import OnboardingCard from '@/components/OnboardingCard'
+import { getOnboardingData } from '@/data/onboardingTelas'
 
 type Props = {
     usuario: {
@@ -32,6 +34,9 @@ const sidebarItems = [
 ]
 
 export default function DashboardContent({ usuario, stats }: Props) {
+    // Obter dados de onboarding
+    const onboardingData = getOnboardingData('dashboard');
+
     const kpiCards = [
         { label: 'Serviços Ativos', value: String(stats.totalServicos), icon: Briefcase, color: 'from-blue-500 to-indigo-600', bgLight: 'bg-blue-50', textColor: 'text-blue-600', href: '/dashboard/servicos' },
         { label: 'Avaliação Média', value: stats.mediaAvaliacao.toFixed(1), icon: Star, color: 'from-amber-500 to-orange-600', bgLight: 'bg-amber-50', textColor: 'text-amber-600', href: `/perfil/${usuario.id}?tab=avaliacoes` },
@@ -41,6 +46,16 @@ export default function DashboardContent({ usuario, stats }: Props) {
 
     return (
         <div className="max-w-6xl mx-auto w-full">
+            {/* Card de Onboarding */}
+            {onboardingData && (
+                <OnboardingCard
+                    rota="/dashboard"
+                    nomeChave={onboardingData.chave}
+                    titulo={onboardingData.titulo}
+                    descricao={onboardingData.descricao}
+                    links={onboardingData.links}
+                />
+            )}
 
             {/* Header */}
             <div className="flex items-center justify-between mb-8">

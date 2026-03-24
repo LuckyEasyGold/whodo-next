@@ -15,6 +15,8 @@ import {
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
 import CheckoutModal from "@/components/CheckoutModal";
+import OnboardingCard from "@/components/OnboardingCard";
+import { getOnboardingData } from "@/data/onboardingTelas";
 
 interface Agendamento {
   id: number;
@@ -66,6 +68,9 @@ interface Usuario {
 }
 
 export default function AgendamentosContent() {
+  // Obter dados de onboarding
+  const onboardingData = getOnboardingData('agendamentos');
+
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [tipoView, setTipoView] = useState<"cliente" | "prestador">(
@@ -294,6 +299,17 @@ export default function AgendamentosContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Card de Onboarding */}
+      {onboardingData && (
+        <OnboardingCard
+          rota="/dashboard/agendamentos"
+          nomeChave={onboardingData.chave}
+          titulo={onboardingData.titulo}
+          descricao={onboardingData.descricao}
+          links={onboardingData.links}
+        />
+      )}
+
       {erro && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {erro}
