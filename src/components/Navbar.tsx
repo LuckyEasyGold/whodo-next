@@ -223,12 +223,12 @@ export default function Navbar() {
                                 <div ref={userMenuRef} className="relative">
                                     <button
                                         onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                        className="flex items-center p-1 rounded-full hover:bg-white/10 transition-all"
+                                        className="flex items-center p-1 rounded-full hover:bg-white/10 transition-all flex-shrink-0"
                                     >
                                         <img
                                             src={user.foto || 'https://randomuser.me/api/portraits/men/1.jpg'}
                                             alt={user.nome}
-                                            className="w-8 h-8 rounded-full object-cover ring-2 ring-white/30"
+                                            className="w-8 h-8 min-w-[32px] min-h-[32px] flex-shrink-0 rounded-full object-cover ring-2 ring-white/30"
                                         />
                                     </button>
 
