@@ -133,6 +133,7 @@ model Servico {
   updated_at     DateTime      @updatedAt
   cobranca_tipo  String        @default("FIXO") @db.VarChar(20)
   tempo_estimado String?       @db.VarChar(50)
+  duracao_minutos Int          @default(30)
   agendamentos   Agendamento[]
   avaliacoes     Avaliacao[]
   categoria      Categoria     @relation(fields: [categoria_id], references: [id])
@@ -246,6 +247,8 @@ model Agendamento {
   valor_orcamento     Decimal?    @db.Decimal(10, 2)
   descricao_orcamento String?
   condicoes_orcamento String?
+  duracao_minutos     Int         @default(30)
+  arquivado           Boolean     @default(false)
   created_at          DateTime    @default(now())
   updated_at          DateTime    @updatedAt
   cliente             Usuario     @relation("AgendamentoCliente", fields: [cliente_id], references: [id])

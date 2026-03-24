@@ -30,6 +30,7 @@ interface Agendamento {
   valor_pago: boolean;
   avaliacao_feita: boolean;
   motivo_cancelamento: string | null;
+  arquivado: boolean;
   // Novos campos do Prisma
   orcamento_aprovado?: boolean;
   concluido_prestador?: boolean;
@@ -192,6 +193,21 @@ export default function AgendamentosContent() {
       setMotivoCancelamento("");
       carregarDados();
       showToast("Agendamento cancelado!", "success");
+    } catch (err: any) {
+      showToast(err.message, "error");
+    }
+  };
+
+  const handleArquivar = async (agendamentoId: number) => {
+    try {
+      const res = await fetch(`/api/agendamento/${agendamentoId}/acoes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acao: "arquivar" }),
+      });
+      if (!res.ok) throw new Error("Erro ao arquivar");
+      carregarDados();
+      showToast("Agendamento arquivado!", "success");
     } catch (err: any) {
       showToast(err.message, "error");
     }
@@ -538,6 +554,16 @@ export default function AgendamentosContent() {
                         <X size={16} /> Cancelar
                       </button>
                     )}
+
+                  {/* ARQUIVAR (Qualquer um, desde que terminal) */}
+                  {['concluido', 'cancelado', 'recusado', 'conclusao_recusada', 'avaliado', 'disputa'].includes(agendamento.status) && (
+                    <button
+                      onClick={() => handleArquivar(agendamento.id)}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ml-auto"
+                    >
+                      Arquivar
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

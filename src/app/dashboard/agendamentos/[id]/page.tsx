@@ -97,6 +97,7 @@ const AgendamentoDetalhePage = async ({ params }: AgendamentoDetalhePageProps) =
             concluido_prestador: agendamento.concluido_prestador,
             concluido_cliente: agendamento.concluido_cliente,
             valor_pago: agendamento.valor_pago,
+            arquivado: agendamento.arquivado,
             servico: { titulo: agendamento.servico.titulo, tipo: agendamento.servico.cobranca_tipo },
             solicitacao_id: agendamento.solicitacao_id,
           }}

@@ -23,7 +23,9 @@ type AcaoAgendamento =
   | "concluir_servico"
   | "confirmar_conclusao"
   | "recusar_conclusao"
-  | "cancelar";
+  | "cancelar"
+  | "arquivar"
+  | "desarquivar";
 
 interface BodyAcao {
   acao: AcaoAgendamento;
@@ -736,6 +738,28 @@ async function handleCancelar(
   return ok("Agendamento cancelado com sucesso", atualizado);
 }
 
+/** ARQUIVAR / DESARQUIVAR — Ocultar da lista (apenas status terminais) */
+async function handleArquivamento(agendamentoId: number, userId: number, acao: "arquivar" | "desarquivar") {
+  const ag = await prisma.agendamento.findUniqueOrThrow({
+    where: { id: agendamentoId },
+  });
+
+  if (ag.cliente_id !== userId && ag.prestador_id !== userId)
+    return err(403, "Sem permissão para alterar este agendamento");
+
+  const isTerminal = ["concluido", "cancelado", "recusado", "conclusao_recusada", "avaliado", "disputa"].includes(ag.status);
+
+  if (acao === "arquivar" && !isTerminal)
+    return err(400, "Apenas agendamentos finalizados podem ser arquivados");
+
+  const atualizado = await prisma.agendamento.update({
+    where: { id: agendamentoId },
+    data: { arquivado: acao === "arquivar" },
+  });
+
+  return ok(`Agendamento ${acao === "arquivar" ? "arquivado" : "desarquivado"} com sucesso`, atualizado);
+}
+
 // =============================================================================
 // HELPERS DE RESPOSTA
 // =============================================================================
@@ -792,6 +816,9 @@ export async function POST(
         return await handleRecusarConclusao(agendamentoId, userId, body);
       case "cancelar":
         return await handleCancelar(agendamentoId, userId, body);
+      case "arquivar":
+      case "desarquivar":
+        return await handleArquivamento(agendamentoId, userId, body.acao);
       default:
         return err(400, `Ação desconhecida: ${(body as BodyAcao).acao}`);
     }

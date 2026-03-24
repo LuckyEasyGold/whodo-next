@@ -21,6 +21,7 @@ type Agendamento = {
   servico: { id: number; titulo: string }
   cliente: { id: number; nome: string; foto_perfil: string | null }
   prestador: { id: number; nome: string; foto_perfil: string | null; especialidade: string | null }
+  arquivado: boolean
 }
 
 type Solicitacao = {
@@ -56,7 +57,7 @@ export default function AgendaPage() {
         setUserId(session?.user?.id)
 
         // Buscar agendamentos
-        const agRes = await fetch('/api/agendamento')
+        const agRes = await fetch('/api/agendamento?incluir_arquivados=true')
         if (agRes.ok) {
           const data = await agRes.json()
           setAgendamentos(data)
@@ -135,6 +136,26 @@ export default function AgendaPage() {
   ]
 
   const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+
+  const [loadingAction, setLoadingAction] = useState<number | null>(null)
+
+  const handleDesarquivar = async (id: number) => {
+    setLoadingAction(id)
+    try {
+      const res = await fetch(`/api/agendamento/${id}/acoes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acao: 'desarquivar' })
+      })
+      if (res.ok) {
+        setAgendamentos(prev => prev.map(ag => ag.id === id ? { ...ag, arquivado: false } : ag))
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoadingAction(null)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -283,8 +304,8 @@ export default function AgendaPage() {
                       {dayAgendamentos.slice(0, 2).map(ag => (
                         <div
                           key={`ag-${ag.id}`}
-                          className={`text-[10px] px-1 py-0.5 rounded text-white truncate ${getStatusColor(ag.status)}`}
-                          title={`${ag.servico?.titulo} - ${getStatusLabel(ag.status)}`}
+                          className={`text-[10px] px-1 py-0.5 rounded text-white truncate ${ag.arquivado ? 'bg-gray-400' : getStatusColor(ag.status)}`}
+                          title={`${ag.servico?.titulo} - ${getStatusLabel(ag.status)}${ag.arquivado ? ' (Arquivado)' : ''}`}
                         >
                           {ag.servico?.titulo}
                         </div>
@@ -335,33 +356,45 @@ export default function AgendaPage() {
                     const outraPessoa = isPrestador ? ag.cliente : ag.prestador
                     
                     return (
-                      <div key={ag.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                        <div className={`w-2 h-12 rounded-full ${getStatusColor(ag.status)}`}></div>
+                      <div key={ag.id} className={`flex items-center gap-3 p-3 rounded-xl ${ag.arquivado ? 'bg-gray-100 opacity-75' : 'bg-slate-50'}`}>
+                        <div className={`w-2 h-12 rounded-full ${ag.arquivado ? 'bg-gray-400' : getStatusColor(ag.status)}`}></div>
                         <img
                           src={outraPessoa?.foto_perfil || 'https://randomuser.me/api/portraits/lego/1.jpg'}
                           alt={outraPessoa?.nome}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className={`w-10 h-10 rounded-full object-cover ${ag.arquivado ? 'grayscale' : ''}`}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">{ag.servico?.titulo}</p>
+                          <p className={`font-semibold truncate ${ag.arquivado ? 'text-gray-600 line-through' : 'text-slate-900'}`}>
+                            {ag.servico?.titulo} {ag.arquivado && '(Arquivado)'}
+                          </p>
                           <p className="text-sm text-slate-500">
                             {isPrestador ? 'Cliente: ' : 'Profissional: '} {outraPessoa?.nome}
                           </p>
                         </div>
                         <div className="text-right">
-                          <span className={`text-xs px-2 py-1 rounded-full text-white ${getStatusColor(ag.status)}`}>
+                          <span className={`text-xs px-2 py-1 rounded-full text-white ${ag.arquivado ? 'bg-gray-400' : getStatusColor(ag.status)}`}>
                             {getStatusLabel(ag.status)}
                           </span>
                           <p className="text-xs text-slate-500 mt-1">
                             {new Date(ag.data_agendamento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
-                        <Link
-                          href={`/dashboard/agendamentos/${ag.id}`}
-                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
-                        >
-                          →
-                        </Link>
+                        {ag.arquivado ? (
+                          <button
+                            onClick={() => handleDesarquivar(ag.id)}
+                            disabled={loadingAction === ag.id}
+                            className="text-xs font-semibold px-2 py-1 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            {loadingAction === ag.id ? '...' : 'Desarquivar'}
+                          </button>
+                        ) : (
+                          <Link
+                            href={`/dashboard/agendamentos/${ag.id}`}
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                          >
+                            →
+                          </Link>
+                        )}
                       </div>
                     )
                   })}

@@ -35,6 +35,7 @@ type Agendamento = {
   valor_pago?: boolean;
   servico?: { titulo: string; tipo?: string | null };
   solicitacao_id?: number | null;
+  arquivado?: boolean;
 };
 
 type AgendamentoActionButtonsProps = {
@@ -54,7 +55,9 @@ type AcaoAgendamento =
   | 'concluir_servico'
   | 'confirmar_conclusao'
   | 'recusar_conclusao'
-  | 'cancelar';
+  | 'cancelar'
+  | 'arquivar'
+  | 'desarquivar';
 
 // =============================================================================
 // COMPONENTE
@@ -319,6 +322,20 @@ const AgendamentoActionButtons = ({
     }
   };
 
+  const handleArquivamento = async (acao: 'arquivar' | 'desarquivar') => {
+    try {
+      await chamarAcao(acao);
+      showToast(`Agendamento ${acao === 'arquivar' ? 'arquivado' : 'desarquivado'} com sucesso!`, 'success');
+      router.refresh();
+      // Opcional: redirecionar para a lista após arquivar, se estiver no detalhe
+      if (acao === 'arquivar') {
+        router.push('/dashboard/agendamentos');
+      }
+    } catch (e) {
+      showToast(`Erro ao ${acao}: ${e instanceof Error ? e.message : 'Desconhecido'}`, 'error');
+    }
+  };
+
   // ===========================================================================
   // CONDIÇÕES DE VISIBILIDADE (máquina de estados)
   // ===========================================================================
@@ -351,6 +368,9 @@ const AgendamentoActionButtons = ({
     'aguardando_pagamento', 'negociacao', 'confirmado',
   ];
   const canCancel = statusCancelavel.includes(status);
+
+  const statusTerminal = ['concluido', 'cancelado', 'recusado', 'conclusao_recusada', 'avaliado', 'disputa'];
+  const canArchive = statusTerminal.includes(status);
 
   const agendamentoParaModal = { ...agendamento, valor_total: valor };
 
@@ -593,6 +613,22 @@ const AgendamentoActionButtons = ({
       {/* ===================================================================== */}
       {/* BOTÕES PRINCIPAIS                                                      */}
       {/* ===================================================================== */}
+
+      {agendamento.arquivado && (
+        <div className="w-full flex items-center justify-between bg-gray-100 border border-gray-300 rounded-md p-4 mb-4">
+          <div className="flex items-center gap-2 text-gray-700">
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-semibold">Este agendamento está arquivado.</span>
+            <span className="text-sm">Ele não aparece na sua lista principal, apenas no calendário.</span>
+          </div>
+          <button onClick={() => handleArquivamento('desarquivar')} disabled={isLoading === 'desarquivar'}
+            className="bg-gray-600 hover:bg-gray-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
+            {isLoading === 'desarquivar' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            Desarquivar
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-4 items-center">
 
         {/* ==================== PRESTADOR — PENDENTE ==================== */}
@@ -793,6 +829,15 @@ const AgendamentoActionButtons = ({
               <MessageCircle className="w-4 h-4" /> Abrir Chat
             </button>
           )}
+
+        {/* ==================== BOTÃO ARQUIVAR (status terminais) ==================== */}
+        {canArchive && !agendamento.arquivado && (
+          <button onClick={() => handleArquivamento('arquivar')} disabled={isLoading === 'arquivar'}
+            className="bg-gray-500 hover:bg-gray-600 disabled:opacity-50 text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
+            {isLoading === 'arquivar' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            Arquivar
+          </button>
+        )}
       </div>
     </>
   );
