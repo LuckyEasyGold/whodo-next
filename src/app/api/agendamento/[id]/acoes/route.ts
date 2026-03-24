@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { Decimal } from "decimal.js";
+import { Prisma } from "@prisma/client";
 
 // =============================================================================
 // TIPOS
@@ -51,7 +52,7 @@ const TAXA_PROVEDOR = 0.96;
  * Registra uma entrada no histórico do agendamento.
  */
 async function registrarHistorico(
-  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+  tx: Prisma.TransactionClient,
   agendamentoId: number,
   usuarioId: number,
   acao: string,
