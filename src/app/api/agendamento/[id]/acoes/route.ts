@@ -19,6 +19,7 @@ type AcaoAgendamento =
   | "enviar_orcamento"
   | "aprovar_orcamento"
   | "recusar_orcamento"
+  | "responder_negociacao"
   | "iniciar_servico"
   | "concluir_servico"
   | "confirmar_conclusao"
@@ -31,10 +32,10 @@ type AcaoAgendamento =
 
 interface BodyAcao {
   acao: AcaoAgendamento;
-  // sugerir_data
+  // sugerir_data / responder_negociacao
   novaData?: string;
   mensagem?: string;
-  // enviar_orcamento
+  // enviar_orcamento / responder_negociacao
   valor_orcamento?: number;
   descricao_orcamento?: string;
   condicoes_orcamento?: string;
@@ -396,6 +397,61 @@ async function handleRecusarOrcamento(
   return ok("Orçamento recusado com sucesso", atualizado);
 }
 
+/** RESPONDER_NEGOCIACAO — Prestador envia nova proposta após negociação */
+async function handleResponderNegociacao(
+  agendamentoId: number,
+  userId: number,
+  body: BodyAcao
+) {
+  if (!body.valor_orcamento || body.valor_orcamento <= 0)
+    return err(400, "Valor do orçamento é obrigatório e deve ser maior que zero");
+
+  const ag = await prisma.agendamento.findUniqueOrThrow({
+    where: { id: agendamentoId },
+  });
+
+  if (ag.prestador_id !== userId)
+    return err(403, "Apenas o prestador pode responder à negociação");
+  if (ag.status !== "negociacao")
+    return err(400, "Este agendamento não está em negociação");
+
+  const [atualizado, prestador, servico] = await Promise.all([
+    prisma.agendamento.update({
+      where: { id: agendamentoId },
+      data: {
+        status: "orcamento_enviado",
+        valor_orcamento: body.valor_orcamento,
+        descricao_orcamento: body.descricao_orcamento || null,
+        condicoes_orcamento: body.condicoes_orcamento || null,
+        ...(body.novaData && { data_agendamento: new Date(body.novaData) }),
+      },
+    }),
+    prisma.usuario.findUnique({ where: { id: userId }, select: { nome: true } }),
+    prisma.servico.findUnique({
+      where: { id: ag.servico_id },
+      select: { titulo: true },
+    }),
+  ]);
+
+  await prisma.$transaction(async (tx) => {
+    await registrarHistorico(
+      tx, agendamentoId, userId,
+      "responder_negociacao", ag.status, "orcamento_enviado",
+      `Prestador ${prestador?.nome} enviou nova proposta de R$ ${body.valor_orcamento} após negociação`
+    );
+  });
+
+  await notificar(
+    ag.cliente_id,
+    "nova_proposta_negociacao",
+    "Nova Proposta Recebida",
+    `O prestador ${prestador?.nome} enviou uma nova proposta de R$ ${body.valor_orcamento} para ${servico?.titulo}`,
+    `/dashboard/agendamentos/${agendamentoId}`
+  );
+
+  return ok("Nova proposta enviada com sucesso", atualizado);
+}
+
 /** INICIAR_SERVICO — Prestador inicia a execução (PAGO → EM_ANDAMENTO) */
 async function handleIniciarServico(agendamentoId: number, userId: number) {
   const ag = await prisma.agendamento.findUniqueOrThrow({
@@ -587,21 +643,21 @@ async function handleConfirmarConclusao(agendamentoId: number, userId: number) {
       `/dashboard/agendamentos/${agendamentoId}`
     ),
     !ag.avaliacao_prestador_feita &&
-      notificar(
-        ag.prestador_id,
-        "avaliacao_pendente",
-        "Avalie o Cliente!",
-        "O serviço foi concluído. Por favor, avalie o cliente.",
-        `/dashboard/agendamentos/${agendamentoId}`
-      ),
+    notificar(
+      ag.prestador_id,
+      "avaliacao_pendente",
+      "Avalie o Cliente!",
+      "O serviço foi concluído. Por favor, avalie o cliente.",
+      `/dashboard/agendamentos/${agendamentoId}`
+    ),
     !ag.avaliacao_feita &&
-      notificar(
-        ag.cliente_id,
-        "avaliacao_pendente",
-        "Avalie o Serviço!",
-        "O serviço foi concluído. Por favor, avalie o prestador.",
-        `/dashboard/agendamentos/${agendamentoId}`
-      ),
+    notificar(
+      ag.cliente_id,
+      "avaliacao_pendente",
+      "Avalie o Serviço!",
+      "O serviço foi concluído. Por favor, avalie o prestador.",
+      `/dashboard/agendamentos/${agendamentoId}`
+    ),
   ]);
 
   return NextResponse.json({
@@ -669,14 +725,14 @@ async function handleRecusarConclusao(
       `/dashboard/agendamentos/${agendamentoId}`
     ),
     ag.solicitacao_id &&
-      prisma.mensagem.create({
-        data: {
-          remetente_id: userId,
-          destinatario_id: ag.prestador_id,
-          solicitacao_id: ag.solicitacao_id,
-          conteudo: `⚠️ O cliente recusou a conclusão do serviço.\n\n**Motivo:** ${motivo}`,
-        },
-      }),
+    prisma.mensagem.create({
+      data: {
+        remetente_id: userId,
+        destinatario_id: ag.prestador_id,
+        solicitacao_id: ag.solicitacao_id,
+        conteudo: `⚠️ O cliente recusou a conclusão do serviço.\n\n**Motivo:** ${motivo}`,
+      },
+    }),
   ]);
 
   return ok("Conclusão recusada. O prestador será notificado.", atualizado);
@@ -778,10 +834,10 @@ async function handleAceitarDataSugerida(agendamentoId: number, userId: number) 
   const [atualizado, servico] = await Promise.all([
     prisma.agendamento.update({
       where: { id: agendamentoId },
-      data: { 
-        status: "aceito", 
+      data: {
+        status: "aceito",
         data_agendamento: ag.data_sugerida,
-        data_sugerida: null 
+        data_sugerida: null
       },
     }),
     prisma.servico.findUnique({
@@ -903,6 +959,8 @@ export async function POST(
         return await handleAprovarOrcamento(agendamentoId, userId);
       case "recusar_orcamento":
         return await handleRecusarOrcamento(agendamentoId, userId, body);
+      case "responder_negociacao":
+        return await handleResponderNegociacao(agendamentoId, userId, body);
       case "iniciar_servico":
         return await handleIniciarServico(agendamentoId, userId);
       case "concluir_servico":

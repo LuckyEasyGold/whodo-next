@@ -51,6 +51,7 @@ type AcaoAgendamento =
   | 'enviar_orcamento'
   | 'aprovar_orcamento'
   | 'recusar_orcamento'
+  | 'responder_negociacao'
   | 'iniciar_servico'
   | 'concluir_servico'
   | 'confirmar_conclusao'
@@ -79,6 +80,7 @@ const AgendamentoActionButtons = ({
   const [isSuggestingDate, setIsSuggestingDate] = useState(false);
   const [isNegotiating, setIsNegotiating] = useState(false);
   const [isSendingBudget, setIsSendingBudget] = useState(false);
+  const [isSendingCounterOffer, setIsSendingCounterOffer] = useState(false);
   const [isRefusingCompletion, setIsRefusingCompletion] = useState(false);
   const [refuseReason, setRefuseReason] = useState('');
   const [suggestedDate, setSuggestedDate] = useState('');
@@ -92,6 +94,12 @@ const AgendamentoActionButtons = ({
     valor: '',
     descricao: '',
     condicoes: '',
+  });
+  const [counterOfferValues, setCounterOfferValues] = useState({
+    valor: '',
+    descricao: '',
+    condicoes: '',
+    novaData: '',
   });
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
@@ -232,6 +240,27 @@ const AgendamentoActionButtons = ({
       showToast('Orçamento enviado! O cliente será notificado.', 'success');
       setIsSendingBudget(false);
       setBudgetValues({ valor: '', descricao: '', condicoes: '' });
+      router.refresh();
+    } catch (e) {
+      showToast(`Erro: ${e instanceof Error ? e.message : 'Desconhecido'}`, 'error');
+    }
+  };
+
+  const handleSendCounterOffer = async () => {
+    if (!counterOfferValues.valor || parseFloat(counterOfferValues.valor) <= 0) {
+      showToast('Informe um valor válido para a proposta.', 'error');
+      return;
+    }
+    try {
+      await chamarAcao('responder_negociacao', {
+        valor_orcamento: parseFloat(counterOfferValues.valor),
+        descricao_orcamento: counterOfferValues.descricao || undefined,
+        condicoes_orcamento: counterOfferValues.condicoes || undefined,
+        novaData: counterOfferValues.novaData || undefined,
+      });
+      showToast('Nova proposta enviada! O cliente será notificado.', 'success');
+      setIsSendingCounterOffer(false);
+      setCounterOfferValues({ valor: '', descricao: '', condicoes: '', novaData: '' });
       router.refresh();
     } catch (e) {
       showToast(`Erro: ${e instanceof Error ? e.message : 'Desconhecido'}`, 'error');
@@ -634,10 +663,205 @@ const AgendamentoActionButtons = ({
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* BOTÕES PRINCIPAIS                                                      */}
-      {/* ===================================================================== */}
+      {/* ===== MODAL: Enviar Contraproposta (Prestador responde à negociação) ===== */}
+      {isSendingCounterOffer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-500" />
+                Enviar Nova Proposta
+              </h3>
+              <button onClick={() => setIsSendingCounterOffer(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                <p className="text-sm text-yellow-800">
+                  O cliente propôs novos termos. Envie uma nova proposta para continuar a negociação.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Novo Valor (R$) *</label>
+                <input
+                  type="number" step="0.01" min="0"
+                  value={counterOfferValues.valor}
+                  onChange={(e) => setCounterOfferValues({ ...counterOfferValues, valor: e.target.value })}
+                  placeholder={agendamento.valor_orcamento ? `Atual: R$ ${agendamento.valor_orcamento}` : 'Novo valor'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nova Data (opcional)</label>
+                <input
+                  type="datetime-local"
+                  value={counterOfferValues.novaData}
+                  onChange={(e) => setCounterOfferValues({ ...counterOfferValues, novaData: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Serviço</label>
+                <textarea
+                  value={counterOfferValues.descricao}
+                  onChange={(e) => setCounterOfferValues({ ...counterOfferValues, descricao: e.target.value })}
+                  placeholder="Descreva os serviços inclusos..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Condições e Observações</label>
+                <textarea
+                  value={counterOfferValues.condicoes}
+                  onChange={(e) => setCounterOfferValues({ ...counterOfferValues, condicoes: e.target.value })}
+                  placeholder="Forma de pagamento, garantias, prazos..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setIsSendingCounterOffer(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSendCounterOffer}
+                  disabled={isLoading === 'responder_negociacao' || !counterOfferValues.valor}
+                  className="flex-1 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading === 'responder_negociacao' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Enviar Proposta
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
+      {/* ===== MODAL: Sugerir Nova Data ===== */}
+      {isSuggestingDate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500" />
+                Sugerir Nova Data
+              </h3>
+              <button onClick={() => setIsSuggestingDate(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nova Data *</label>
+                <input
+                  type="datetime-local"
+                  value={suggestedDate}
+                  onChange={(e) => setSuggestedDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mensagem (opcional)</label>
+                <textarea
+                  value={suggestionMessage}
+                  onChange={(e) => setSuggestionMessage(e.target.value)}
+                  placeholder="Explique o motivo..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setIsSuggestingDate(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSuggestDate}
+                  disabled={isLoading === 'sugerir_data' || !suggestedDate}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading === 'sugerir_data' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
+                  Sugerir Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL: Negociar Orçamento (Cliente) ===== */}
+      {isNegotiating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-500" />
+                Negociar Novos Termos
+              </h3>
+              <button onClick={() => setIsNegotiating(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Novo Valor (R$)</label>
+                <input
+                  type="number" step="0.01"
+                  value={negotiationValues.novoValor}
+                  onChange={(e) => setNegotiationValues({ ...negotiationValues, novoValor: e.target.value })}
+                  placeholder={agendamento.valor_orcamento ? `Atual: R$ ${agendamento.valor_orcamento}` : 'Novo valor'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nova Data</label>
+                <input
+                  type="datetime-local"
+                  value={negotiationValues.novaData}
+                  onChange={(e) => setNegotiationValues({ ...negotiationValues, novaData: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Novas Condições</label>
+                <textarea
+                  value={negotiationValues.novasCondicoes}
+                  onChange={(e) => setNegotiationValues({ ...negotiationValues, novasCondicoes: e.target.value })}
+                  placeholder="Descreva os novos termos..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setIsNegotiating(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleNegotiate}
+                  disabled={isLoading === 'recusar_orcamento'}
+                  className="flex-1 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading === 'recusar_orcamento' ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4" />}
+                  Enviar Proposta
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL: Checkout ===== */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        agendamento={agendamentoParaModal}
+      />
+
+      {/* ===== BOTÕES PRINCIPAIS ===== */}
       {agendamento.arquivado && (
         <div className="w-full flex items-center justify-between bg-gray-100 border border-gray-300 rounded-md p-4 mb-4">
           <div className="flex items-center gap-2 text-gray-700">
@@ -740,9 +964,16 @@ const AgendamentoActionButtons = ({
 
         {/* ==================== PRESTADOR — NEGOCIAÇÃO ==================== */}
         {isPrestador && status === 'negociacao' && (
-          <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 px-4 py-2 rounded">
-            <Clock className="w-5 h-5" />
-            <span className="font-medium">Aguardando resposta do cliente</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 px-4 py-2 rounded">
+              <Clock className="w-5 h-5" />
+              <span className="font-medium">Aguardando resposta do cliente</span>
+            </div>
+            <button onClick={() => setIsSendingCounterOffer(true)}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
+              <Send className="w-4 h-4" />
+              Enviar Nova Proposta
+            </button>
           </div>
         )}
 
