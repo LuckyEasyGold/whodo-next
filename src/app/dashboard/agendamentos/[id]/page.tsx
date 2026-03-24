@@ -28,7 +28,7 @@ const AgendamentoDetalhePage = async ({ params }: AgendamentoDetalhePageProps) =
       servico: {
         select: {
           titulo: true,
-          tipo: true,
+          cobranca_tipo: true,
         },
       },
       prestador: {
@@ -97,7 +97,7 @@ const AgendamentoDetalhePage = async ({ params }: AgendamentoDetalhePageProps) =
             concluido_prestador: agendamento.concluido_prestador,
             concluido_cliente: agendamento.concluido_cliente,
             valor_pago: agendamento.valor_pago,
-            servico: { titulo: agendamento.servico.titulo, tipo: agendamento.servico.tipo },
+            servico: { titulo: agendamento.servico.titulo, tipo: agendamento.servico.cobranca_tipo },
             solicitacao_id: agendamento.solicitacao_id,
           }}
           isPrestador={isPrestador}
