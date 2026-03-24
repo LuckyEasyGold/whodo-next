@@ -129,9 +129,10 @@ export default function AgendamentosContent() {
 
   const handleConfirmarAgendamento = async (agendamentoId: number) => {
     try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}/aceitar`, {
+      const res = await fetch(`/api/agendamento/${agendamentoId}/acoes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acao: "aceitar" }),
       });
 
       if (!res.ok) {
@@ -150,9 +151,10 @@ export default function AgendamentosContent() {
 
   const handleConcluirAgendamento = async (agendamentoId: number) => {
     try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}/concluir-servico`, {
+      const res = await fetch(`/api/agendamento/${agendamentoId}/acoes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acao: "concluir_servico" }),
       });
 
       if (!res.ok) {
@@ -171,10 +173,11 @@ export default function AgendamentosContent() {
 
   const handleCancelarAgendamento = async (agendamentoId: number) => {
     try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}/recusar`, {
+      const res = await fetch(`/api/agendamento/${agendamentoId}/acoes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          acao: "cancelar",
           motivo: motivoCancelamento,
         }),
       });
