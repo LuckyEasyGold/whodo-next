@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, LogOut, LayoutDashboard, UserCircle, Menu, Bell, Home, Search } from 'lucide-react'
+import { X, LogOut, LayoutDashboard, UserCircle, Menu, Bell, Home, Search, HelpCircle } from 'lucide-react'
 
 type SessionUser = {
     id: number
@@ -128,6 +128,15 @@ export default function Navbar() {
                     <div className="flex flex-1 md:flex-none justify-end items-center gap-2 flex-shrink-0">
                         {user ? (
                             <div className="flex items-center gap-2">
+
+                                {/* Botão de Ajuda */}
+                                <Link
+                                    href="/ajuda"
+                                    className="p-2 rounded-xl hover:bg-white/10 transition-all text-white/80 hover:text-white mr-1"
+                                    title="Central de Ajuda"
+                                >
+                                    <HelpCircle size={20} />
+                                </Link>
 
                                 {/* Sino de notificações */}
                                 <div ref={notifRef} className="relative">

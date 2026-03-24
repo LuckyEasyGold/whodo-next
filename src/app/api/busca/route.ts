@@ -66,11 +66,11 @@ export async function GET(req: NextRequest) {
         const profissionaisRaw = await prisma.usuario.findMany({
             where,
             include: {
-                servicos: { include: { categoria: true }, take: 3 },
+                servicos: { where: { status: 'ativo' }, include: { categoria: true }, take: 3 },
                 avaliacoesRecebidas: { select: { nota: true } },
                 accounts: { select: { id: true } },
                 _count: {
-                    select: { servicos: true }
+                    select: { servicos: { where: { status: 'ativo' } } }
                 }
             },
             take: 50, // Limite menor para busca rápida

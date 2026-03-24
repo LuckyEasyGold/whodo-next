@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
     // Se filtrar por serviço específico
     if (servicoId) {
-      const servico = servicos.find(s => s.id === parseInt(servicoId));
+      const servico = servicos.find((s: (typeof servicos)[0]) => s.id === parseInt(servicoId));
       if (!servico) {
         return NextResponse.json(
           { error: "Serviço não encontrado" },
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Calcular estatísticas por serviço
-    const servicosComEstatisticas = servicos.map(servico => {
+    const servicosComEstatisticas = servicos.map((servico: (typeof servicos)[0]) => {
       const agendamentos = servico.agendamentos;
       const avaliacoes = servico.avaliacoes;
 
