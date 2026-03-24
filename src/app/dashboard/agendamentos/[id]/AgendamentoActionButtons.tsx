@@ -33,7 +33,7 @@ type Agendamento = {
   concluido_prestador?: boolean;
   concluido_cliente?: boolean;
   valor_pago?: boolean;
-  servico?: { titulo: string };
+  servico?: { titulo: string; tipo?: string | null };
   solicitacao_id?: number | null;
 };
 
@@ -326,11 +326,15 @@ const AgendamentoActionButtons = ({
   const status = agendamento.status;
   const valor = agendamento.valor ?? agendamento.valor_total ?? 0;
   const hasSufficientBalance = saldo >= valor;
+  const tipoServico = agendamento.servico?.tipo ?? 'FIXO'; // padrão FIXO se não informado
+  const isOrcamento = tipoServico === 'ORCAMENTO';
 
-  // CORREÇÃO DO BUG: pagamento só disponível nos status corretos
+  // Pagamento disponível:
+  // - FIXO: status aceito (pagamento imediato, sem etapa de orçamento)
+  // - ORCAMENTO: status aguardando_pagamento (após aprovação do orçamento)
   const canPay =
     status === 'aguardando_pagamento' ||
-    (status === 'aceito' && !agendamento.orcamento_aprovado);
+    (status === 'aceito' && !isOrcamento);
 
   const canHandleBudget = status === 'orcamento_enviado';
 
@@ -618,10 +622,13 @@ const AgendamentoActionButtons = ({
         {/* ==================== PRESTADOR — ACEITO ==================== */}
         {isPrestador && status === 'aceito' && (
           <>
-            <button onClick={() => setIsSendingBudget(true)}
-              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
-              <Send className="w-4 h-4" /> Enviar Orçamento
-            </button>
+            {/* Enviar Orçamento — apenas para serviços do tipo ORCAMENTO */}
+            {isOrcamento && (
+              <button onClick={() => setIsSendingBudget(true)}
+                className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
+                <Send className="w-4 h-4" /> Enviar Orçamento
+              </button>
+            )}
             <button onClick={() => setIsSuggestingDate(true)}
               className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
               <Clock className="w-4 h-4" /> Sugerir Nova Data
