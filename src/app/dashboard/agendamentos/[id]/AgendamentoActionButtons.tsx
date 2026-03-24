@@ -57,7 +57,9 @@ type AcaoAgendamento =
   | 'recusar_conclusao'
   | 'cancelar'
   | 'arquivar'
-  | 'desarquivar';
+  | 'desarquivar'
+  | 'aceitar_data_sugerida'
+  | 'abrir_disputa';
 
 // =============================================================================
 // COMPONENTE
@@ -319,6 +321,28 @@ const AgendamentoActionButtons = ({
       router.push(`/dashboard/mensagens/${agendamento.solicitacao_id}`);
     } else {
       showToast('Chat não disponível para este agendamento.', 'error');
+    }
+  };
+
+  const handleAceitarDataSugerida = async () => {
+    try {
+      await chamarAcao('aceitar_data_sugerida');
+      showToast('A nova data foi aceita! O agendamento está confirmado para esse horário.', 'success');
+      router.refresh();
+    } catch (e) {
+      showToast(`Erro: ${e instanceof Error ? e.message : 'Desconhecido'}`, 'error');
+    }
+  };
+
+  const handleAbrirDisputa = async () => {
+    const motivo = prompt('Por qual motivo você quer acionar a mediação (disputa) com o suporte do WhoDo?');
+    if (!motivo) return;
+    try {
+      await chamarAcao('abrir_disputa', { motivo });
+      showToast('Um ticket de moderação (Disputa) foi aberto e validado!', 'success');
+      router.refresh();
+    } catch (e) {
+      showToast(`Erro: ${e instanceof Error ? e.message : 'Desconhecido'}`, 'error');
     }
   };
 
@@ -780,6 +804,15 @@ const AgendamentoActionButtons = ({
           </>
         )}
 
+        {/* ==================== CLIENTE — AGUARDANDO CLIENTE ==================== */}
+        {!isPrestador && status === 'aguardando_cliente' && (
+          <button onClick={handleAceitarDataSugerida} disabled={isLoading === 'aceitar_data_sugerida'}
+            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
+            {isLoading === 'aceitar_data_sugerida' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Aceitar Nova Data Sugerida
+          </button>
+        )}
+
         {/* ==================== CLIENTE — STATUSES INFORMATIVOS ==================== */}
         {!isPrestador && status === 'aguardando_pagamento' && (
           <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded">
@@ -809,6 +842,21 @@ const AgendamentoActionButtons = ({
           <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded">
             <AlertCircle className="w-5 h-5" />
             <span className="font-medium">Conclusão recusada pelo cliente. Entre em contato para resolver.</span>
+          </div>
+        )}
+
+        {/* ==================== AMBAS AS PARTES — STATUS DE DISPUTA OU RECUSA ==================== */}
+        {status === 'conclusao_recusada' && (
+          <button onClick={handleAbrirDisputa} disabled={isLoading === 'abrir_disputa'}
+            className="bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-colors">
+            {isLoading === 'abrir_disputa' ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertCircle className="w-4 h-4" />}
+            Acionar Suporte (Disputa)
+          </button>
+        )}
+        {status === 'disputa' && (
+          <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded">
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-medium">O agendamento está em mediação pela nossa equipe de suporte. Nenhum pagamento será repassado.</span>
           </div>
         )}
 

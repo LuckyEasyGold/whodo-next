@@ -25,7 +25,9 @@ type AcaoAgendamento =
   | "recusar_conclusao"
   | "cancelar"
   | "arquivar"
-  | "desarquivar";
+  | "desarquivar"
+  | "aceitar_data_sugerida"
+  | "abrir_disputa";
 
 interface BodyAcao {
   acao: AcaoAgendamento;
@@ -760,6 +762,101 @@ async function handleArquivamento(agendamentoId: number, userId: number, acao: "
   return ok(`Agendamento ${acao === "arquivar" ? "arquivado" : "desarquivado"} com sucesso`, atualizado);
 }
 
+/** ACEITAR DATA SUGERIDA — Cliente aceita a nova data proposta pelo prestador */
+async function handleAceitarDataSugerida(agendamentoId: number, userId: number) {
+  const ag = await prisma.agendamento.findUniqueOrThrow({
+    where: { id: agendamentoId },
+  });
+
+  if (ag.cliente_id !== userId)
+    return err(403, "Apenas o cliente pode aceitar a data sugerida");
+  if (ag.status !== "aguardando_cliente")
+    return err(400, "Este agendamento não está aguardando confirmação de data do cliente");
+  if (!ag.data_sugerida)
+    return err(400, "Não há nova data sugerida registrada");
+
+  const [atualizado, servico] = await Promise.all([
+    prisma.agendamento.update({
+      where: { id: agendamentoId },
+      data: { 
+        status: "aceito", 
+        data_agendamento: ag.data_sugerida,
+        data_sugerida: null 
+      },
+    }),
+    prisma.servico.findUnique({
+      where: { id: ag.servico_id },
+      select: { titulo: true },
+    }),
+  ]);
+
+  await prisma.$transaction(async (tx) => {
+    await registrarHistorico(
+      tx, agendamentoId, userId,
+      "aceitar_data_sugerida", ag.status, "aceito",
+      `Cliente aceitou a nova data sugerida e o agendamento foi confirmado para a nova data.`
+    );
+  });
+
+  await notificar(
+    ag.prestador_id,
+    "data_sugerida_aceita",
+    "Sua Data Foi Aceita!",
+    `O cliente concordou com a nova data para "${servico?.titulo}". O agendamento passou para "Aceito".`,
+    `/dashboard/agendamentos/${agendamentoId}`
+  );
+
+  return ok("Data sugerida aceita com sucesso. O agendamento já foi movido para os compromissos confirmados.", atualizado);
+}
+
+/** ABRIR DISPUTA — Aciona moderação/suporte em caso de impasse (ex: apos recusa de conclusao) */
+async function handleAbrirDisputa(agendamentoId: number, userId: number, body: BodyAcao) {
+  const ag = await prisma.agendamento.findUniqueOrThrow({
+    where: { id: agendamentoId },
+  });
+
+  if (ag.cliente_id !== userId && ag.prestador_id !== userId)
+    return err(403, "Sem permissão para alterar este agendamento");
+
+  if (!["conclusao_recusada", "negociacao", "em_andamento", "aguardando_confirmacao_cliente"].includes(ag.status))
+    return err(400, "A abertura de disputa só é permitida em status pendentes de resolução ou andamento/recusa.");
+
+  const motivo = body.motivo || "As partes solicitaram a intervenção do suporte";
+
+  const [atualizado, usuario, servico] = await Promise.all([
+    prisma.agendamento.update({
+      where: { id: agendamentoId },
+      data: { status: "disputa" },
+    }),
+    prisma.usuario.findUnique({ where: { id: userId }, select: { nome: true } }),
+    prisma.servico.findUnique({
+      where: { id: ag.servico_id },
+      select: { titulo: true },
+    }),
+  ]);
+
+  await prisma.$transaction(async (tx) => {
+    await registrarHistorico(
+      tx, agendamentoId, userId,
+      "abrir_disputa", ag.status, "disputa",
+      `${usuario?.nome} abriu disputa via plataforma: ${motivo}`
+    );
+  });
+
+  const isCliente = ag.cliente_id === userId;
+  const notificadoId = isCliente ? ag.prestador_id : ag.cliente_id;
+
+  await notificar(
+    notificadoId,
+    "disputa_aberta",
+    "Ticket de Disputa Iniciado",
+    `${usuario?.nome} acionou a moderação do WhoDo para intervir em "${servico?.titulo}". Nossa equipe analisará e fará a mediação do impasse.`,
+    `/dashboard/agendamentos/${agendamentoId}`
+  );
+
+  return ok("Disputa aberta com sucesso. Aguarde o contato do nosso time na plataforma.", atualizado);
+}
+
 // =============================================================================
 // HELPERS DE RESPOSTA
 // =============================================================================
@@ -819,6 +916,10 @@ export async function POST(
       case "arquivar":
       case "desarquivar":
         return await handleArquivamento(agendamentoId, userId, body.acao);
+      case "aceitar_data_sugerida":
+        return await handleAceitarDataSugerida(agendamentoId, userId);
+      case "abrir_disputa":
+        return await handleAbrirDisputa(agendamentoId, userId, body);
       default:
         return err(400, `Ação desconhecida: ${(body as BodyAcao).acao}`);
     }
