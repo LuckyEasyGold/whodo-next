@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HelpCircle, Book, MessageCircle, Calendar, User, Settings, Briefcase, DollarSign, Image, ChevronRight, Home } from 'lucide-react';
@@ -249,12 +249,14 @@ export default function AjudaPage() {
   const [topicoAtivo, setTopicoAtivo] = useState('dashboard');
 
   // Detectar qual tópico está ativo pela URL hash
-  useState(() => {
-    const hash = window.location.hash.replace('#', '');
-    if (hash) {
-      setTopicoAtivo(hash);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setTopicoAtivo(hash);
+      }
     }
-  });
+  }, []);
 
   const topicoSelecionado = topicosAjuda.find((t) => t.id === topicoAtivo);
 
@@ -303,11 +305,10 @@ export default function AjudaPage() {
                   <button
                     key={topico.id}
                     onClick={() => setTopicoAtivo(topico.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors ${
-                      isActive
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors ${isActive
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
                     {topico.titulo}
