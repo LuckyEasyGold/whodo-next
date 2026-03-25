@@ -1,4 +1,4 @@
-# Fluxograma de Operações - Agendamentos WhoDo
+# Fluxograma de Operações - Agendamentos WhoDo!
 
 Este diagrama mapeia todas as etapas, desde a criação do agendamento pelo cliente, as transações envolvidas e negociações, até a resolução (pagamento liberado e avaliação). 
 
