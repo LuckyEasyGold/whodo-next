@@ -1,24 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  --color-primary: #6366f1;
-  --color-primary-dark: #4f46e5;
-  --color-primary-light: #818cf8;
-  --color-accent: #8b5cf6;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f8fafc;
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-border: #e2e8f0;
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-  --gradient-hero: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4338ca 60%, #6366f1 100%);
-  --shadow-glass: 0 8px 32px rgba(99, 102, 241, 0.12);
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
+    --color-primary: #6366f1;
+    --color-primary-dark: #4f46e5;
+    --color-primary-light: #818cf8;
+    --color-accent: #8b5cf6;
+    --color-surface: #ffffff;
+    --color-surface-alt: #f8fafc;
+    --color-text: #0f172a;
+    --color-text-muted: #64748b;
+    --color-border: #e2e8f0;
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+    --gradient-hero: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4338ca 60%, #6366f1 100%);
+    --shadow-glass: 0 8px 32px rgba(99, 102, 241, 0.12);
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+    
+    /* Cores específicas para componentes */
+    --bg-card: #ffffff;
+    --bg-input: #f8fafc;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-surface: #0f172a;
+      --color-surface-alt: #1e293b;
+      --color-text: #f1f5f9;
+      --color-text-muted: #94a3b8;
+      --color-border: #334155;
+      --gradient-hero: linear-gradient(135deg, #0c0a1d 0%, #1e1b4b 30%, #312e81 60%, #4338ca 100%);
+      --shadow-glass: 0 8px 32px rgba(99, 102, 241, 0.2);
+      
+      /* Cores específicas para componentes em dark mode */
+      --bg-card: #1e293b;
+      --bg-input: #0f172a;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+    }
+  }
+
+  /* Forçar modo escuro via classe .dark (opcional) */
+  .dark {
     --color-surface: #0f172a;
     --color-surface-alt: #1e293b;
     --color-text: #f1f5f9;
@@ -26,6 +53,12 @@
     --color-border: #334155;
     --gradient-hero: linear-gradient(135deg, #0c0a1d 0%, #1e1b4b 30%, #312e81 60%, #4338ca 100%);
     --shadow-glass: 0 8px 32px rgba(99, 102, 241, 0.2);
+    
+    --bg-card: #1e293b;
+    --bg-input: #0f172a;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
   }
 }
 
@@ -44,6 +77,27 @@ body {
   background: var(--color-surface-alt);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Classes utilitárias para uso com variáveis CSS */
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.bg-input {
+  background-color: var(--bg-input);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.border-custom {
+  border-color: var(--border-color);
 }
 
 /* Glass card effect */

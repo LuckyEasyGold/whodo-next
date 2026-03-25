@@ -7,7 +7,7 @@ import {
     UserCircle, Settings, MessageSquare, BarChart3,
     ChevronDown, Globe, Linkedin, Instagram, Facebook, Youtube
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type DashboardSidebarProps = {
     usuario: {
@@ -39,6 +39,46 @@ type DashboardSidebarProps = {
 export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
     const pathname = usePathname()
     const [showMoreLinks, setShowMoreLinks] = useState(false)
+    const [isDark, setIsDark] = useState(false)
+
+    // Detectar modo escuro do navegador
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+        setIsDark(mediaQuery.matches)
+
+        const handler = (e: MediaQueryListEvent) => setIsDark(e.matches)
+        mediaQuery.addEventListener('change', handler)
+        return () => mediaQuery.removeEventListener('change', handler)
+    }, [])
+
+    // Classes base que funcionam em ambos os modos
+    const containerClass = isDark
+        ? 'bg-slate-900 border-slate-700'
+        : 'bg-white border-slate-100'
+
+    const cardPerfilClass = isDark
+        ? 'border-slate-700'
+        : 'border-slate-100'
+
+    const menuItemActiveClass = isDark
+        ? 'bg-indigo-900/50 text-indigo-400'
+        : 'bg-indigo-50 text-indigo-700'
+
+    const menuItemDefaultClass = isDark
+        ? 'hover:bg-slate-800 text-slate-300 hover:text-indigo-400'
+        : 'hover:bg-slate-50 text-slate-700 hover:text-indigo-600'
+
+    const iconDefaultClass = isDark
+        ? 'text-slate-500 group-hover:text-indigo-400'
+        : 'text-slate-400 group-hover:text-indigo-600'
+
+    const iconActiveClass = isDark
+        ? 'text-indigo-400'
+        : 'text-indigo-600'
+
+    const linkTextClass = isDark
+        ? 'text-slate-300'
+        : 'text-slate-700'
 
     // Links sociais baseados nos campos do schema
     const linksSociais = [
@@ -67,9 +107,9 @@ export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
 
     return (
         <div className="hidden lg:block">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-20">
+            <div className={`rounded-2xl shadow-sm border overflow-hidden sticky top-20 ${containerClass}`}>
                 {/* Card do Perfil */}
-                <div className="p-4 border-b border-slate-100">
+                <div className={`p-4 border-b ${cardPerfilClass}`}>
                     <div className="flex items-start gap-3 group">
                         <Link href={`/perfil/${usuario.id}`} className="relative">
                             <img
@@ -80,11 +120,11 @@ export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
                         </Link>
                         <div className="flex-1">
                             <Link href={`/perfil/${usuario.id}`}>
-                                <h2 className="font-bold text-slate-900 hover:text-indigo-600 transition-colors">
+                                <h2 className={`font-bold hover:text-indigo-600 transition-colors ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                                     {usuario.nome}
                                 </h2>
                             </Link>
-                            <p className="text-xs text-slate-500">@{usuario.nome?.toLowerCase().replace(/\s/g, '')}</p>
+                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>@{usuario.nome?.toLowerCase().replace(/\s/g, '')}</p>
                             {usuario.especialidade && (
                                 <span className="text-xs text-indigo-500">{usuario.especialidade}</span>
                             )}
@@ -101,7 +141,7 @@ export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
                                                 href={link.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="p-1.5 bg-slate-100 rounded-lg text-slate-600 hover:bg-indigo-100 hover:text-indigo-600 transition-colors"
+                                                className={`p-1.5 rounded-lg transition-colors ${isDark ? 'bg-slate-800 text-slate-400 hover:bg-indigo-900 hover:text-indigo-400' : 'bg-slate-100 text-slate-600 hover:bg-indigo-100 hover:text-indigo-600'}`}
                                             >
                                                 <IconComponent size={14} />
                                             </a>
@@ -113,16 +153,16 @@ export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
                             {/* Stats */}
                             <div className="grid grid-cols-3 gap-2 mt-3">
                                 <div className="text-center">
-                                    <span className="block font-bold text-slate-900">{usuario._count?.servicos || 0}</span>
-                                    <span className="text-[10px] text-slate-500">Serviços</span>
+                                    <span className={`block font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{usuario._count?.servicos || 0}</span>
+                                    <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Serviços</span>
                                 </div>
                                 <div className="text-center">
-                                    <span className="block font-bold text-slate-900">{usuario._count?.seguidores || 0}</span>
-                                    <span className="text-[10px] text-slate-500">Seguidores</span>
+                                    <span className={`block font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{usuario._count?.seguidores || 0}</span>
+                                    <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Seguidores</span>
                                 </div>
                                 <div className="text-center">
-                                    <span className="block font-bold text-slate-900">{usuario._count?.seguindo || 0}</span>
-                                    <span className="text-[10px] text-slate-500">Seguindo</span>
+                                    <span className={`block font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{usuario._count?.seguindo || 0}</span>
+                                    <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Seguindo</span>
                                 </div>
                             </div>
                         </div>
@@ -138,12 +178,12 @@ export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
                                 key={item.label}
                                 href={item.href}
                                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors group ${isActive
-                                    ? 'bg-indigo-50 text-indigo-700'
-                                    : 'hover:bg-slate-50 text-slate-700 hover:text-indigo-600'
+                                    ? menuItemActiveClass
+                                    : menuItemDefaultClass
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <item.icon size={18} className={isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'} />
+                                    <item.icon size={18} className={isActive ? iconActiveClass : iconDefaultClass} />
                                     <span className="text-sm font-medium">
                                         {item.label}
                                     </span>
@@ -153,10 +193,10 @@ export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
                     })}
 
                     {/* Links Extras (colapsável) */}
-                    <div className="mt-2 pt-2 border-t border-slate-100">
+                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
                         <button
                             onClick={() => setShowMoreLinks(!showMoreLinks)}
-                            className="flex items-center justify-between w-full px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
+                            className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded-xl transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-50'}`}
                         >
                             <span>Mais itens</span>
                             <ChevronDown size={16} className={`transition-transform ${showMoreLinks ? 'rotate-180' : ''}`} />
@@ -171,11 +211,11 @@ export default function DashboardSidebar({ usuario }: DashboardSidebarProps) {
                                             key={item.href}
                                             href={item.href}
                                             className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors group ${isActive
-                                                ? 'bg-indigo-50 text-indigo-700'
-                                                : 'hover:bg-slate-50 text-slate-700 hover:text-indigo-600'
+                                                ? menuItemActiveClass
+                                                : menuItemDefaultClass
                                                 }`}
                                         >
-                                            <item.icon size={18} className={isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'} />
+                                            <item.icon size={18} className={isActive ? iconActiveClass : iconDefaultClass} />
                                             <span className="text-sm font-medium">
                                                 {item.label}
                                             </span>
