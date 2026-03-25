@@ -83,7 +83,7 @@ export default function AgendamentosContent() {
     null
   );
   const [showAcaoModal, setShowAcaoModal] = useState<Agendamento | null>(null);
-  const [acao, setAcao] = useState<"confirmar" | "concluir" | "cancelar" | null>(
+  const [acao, setAcao] = useState<"confirmar" | "concluir" | "cancelar" | "recusar" | "iniciar" | "confirmar_conclusao" | null>(
     null
   );
   const [motivoCancelamento, setMotivoCancelamento] = useState("");
@@ -133,71 +133,27 @@ export default function AgendamentosContent() {
     }
   };
 
-  const handleConfirmarAgendamento = async (agendamentoId: number) => {
-    try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}/acoes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ acao: "aceitar" }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Erro ao confirmar agendamento");
-      }
-
-      setShowAcaoModal(null);
-      setAcao(null);
-      carregarDados();
-      showToast("Agendamento confirmado!", "success");
-    } catch (err: any) {
-      showToast(err.message, "error");
-    }
-  };
-
-  const handleConcluirAgendamento = async (agendamentoId: number) => {
-    try {
-      const res = await fetch(`/api/agendamento/${agendamentoId}/acoes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ acao: "concluir_servico" }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Erro ao concluir agendamento");
-      }
-
-      setShowAcaoModal(null);
-      setAcao(null);
-      carregarDados();
-      showToast("Serviço marcado como concluído! Aguardando confirmação do cliente.", "success");
-    } catch (err: any) {
-      showToast(err.message, "error");
-    }
-  };
-
-  const handleCancelarAgendamento = async (agendamentoId: number) => {
+  const handleAcaoGenerica = async (agendamentoId: number, tipoAcao: string) => {
     try {
       const res = await fetch(`/api/agendamento/${agendamentoId}/acoes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          acao: "cancelar",
+          acao: tipoAcao,
           motivo: motivoCancelamento,
         }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Erro ao cancelar agendamento");
+        throw new Error(data.error || "Erro ao processar a ação");
       }
 
       setShowAcaoModal(null);
       setAcao(null);
       setMotivoCancelamento("");
       carregarDados();
-      showToast("Agendamento cancelado!", "success");
+      showToast("Ação registrada com sucesso!", "success");
     } catch (err: any) {
       showToast(err.message, "error");
     }
@@ -481,7 +437,7 @@ export default function AgendamentosContent() {
                       <button
                         onClick={() => {
                           setShowAcaoModal(agendamento);
-                          setAcao("cancelar");
+                          setAcao("recusar");
                         }}
                         className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
                       >
@@ -497,8 +453,21 @@ export default function AgendamentosContent() {
                     </div>
                   )}
 
-                  {/* PRESTADOR: Status confirmado - pode concluir */}
+                  {/* PRESTADOR: Status confirmado - pode iniciar */}
                   {tipoView === "prestador" && agendamento.status === "confirmado" && (
+                    <button
+                      onClick={() => {
+                        setShowAcaoModal(agendamento);
+                        setAcao("iniciar");
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                      Iniciar Serviço
+                    </button>
+                  )}
+
+                  {/* PRESTADOR: Status em_andamento - pode concluir */}
+                  {tipoView === "prestador" && agendamento.status === "em_andamento" && (
                     <button
                       onClick={() => {
                         setShowAcaoModal(agendamento);
@@ -545,11 +514,11 @@ export default function AgendamentosContent() {
                   )}
 
                   {/* CLIENTE: Status aguardando_confirmacao - confirmar conclusão */}
-                  {tipoView === "cliente" && agendamento.status === "aguardando_confirmacao" && (
+                  {tipoView === "cliente" && (agendamento.status === "aguardando_confirmacao" || agendamento.status === "aguardando_confirmacao_cliente") && (
                     <button
                       onClick={() => {
-                        // Confirmar conclusão
-                        window.location.href = `/dashboard/agendamentos/${agendamento.id}`
+                        setShowAcaoModal(agendamento);
+                        setAcao("confirmar_conclusao");
                       }}
                       className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
                     >
@@ -721,6 +690,43 @@ export default function AgendamentosContent() {
                   />
                 </>
               )}
+              {acao === "recusar" && (
+                <>
+                  <h3 className="text-2xl font-bold mb-2">
+                    Recusar Agendamento?
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    O cliente será notificado sobre a recusa.
+                  </p>
+                  <textarea
+                    placeholder="Motivo (opcional)"
+                    value={motivoCancelamento}
+                    onChange={(e) => setMotivoCancelamento(e.target.value)}
+                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    rows={3}
+                  />
+                </>
+              )}
+              {acao === "iniciar" && (
+                <>
+                  <h3 className="text-2xl font-bold mb-2">
+                    Iniciar Execução do Serviço?
+                  </h3>
+                  <p className="text-gray-600">
+                    Isso sinalizará ao cliente que você começou o trabalho.
+                  </p>
+                </>
+              )}
+              {acao === "confirmar_conclusao" && (
+                <>
+                  <h3 className="text-2xl font-bold mb-2">
+                    Confirmar Recebimento?
+                  </h3>
+                  <p className="text-gray-600">
+                    Você confirma que o serviço foi entregue? O pagamento será liberado ao prestador.
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -736,22 +742,24 @@ export default function AgendamentosContent() {
               </button>
               <button
                 onClick={() => {
-                  if (acao === "confirmar") {
-                    handleConfirmarAgendamento(showAcaoModal.id);
-                  } else if (acao === "concluir") {
-                    handleConcluirAgendamento(showAcaoModal.id);
-                  } else if (acao === "cancelar") {
-                    handleCancelarAgendamento(showAcaoModal.id);
-                  }
+                  if (acao === "confirmar") handleAcaoGenerica(showAcaoModal.id, "aceitar");
+                  else if (acao === "concluir") handleAcaoGenerica(showAcaoModal.id, "concluir_servico");
+                  else if (acao === "cancelar") handleAcaoGenerica(showAcaoModal.id, "cancelar");
+                  else if (acao === "recusar") handleAcaoGenerica(showAcaoModal.id, "recusar");
+                  else if (acao === "iniciar") handleAcaoGenerica(showAcaoModal.id, "iniciar_servico");
+                  else if (acao === "confirmar_conclusao") handleAcaoGenerica(showAcaoModal.id, "confirmar_conclusao");
                 }}
-                className={`flex-1 text-white px-4 py-2 rounded-lg font-medium transition ${acao === "cancelar"
+                className={`flex-1 text-white px-4 py-2 rounded-lg font-medium transition ${acao === "cancelar" || acao === "recusar"
                   ? "bg-red-500 hover:bg-red-600"
                   : "bg-green-500 hover:bg-green-600"
                   }`}
               >
-                {acao === "confirmar" && "Confirmar"}
+                {acao === "confirmar" && "Aceitar"}
                 {acao === "concluir" && "Concluir"}
                 {acao === "cancelar" && "Cancelar"}
+                {acao === "recusar" && "Recusar"}
+                {acao === "iniciar" && "Iniciar"}
+                {acao === "confirmar_conclusao" && "Confirmar"}
               </button>
             </div>
           </div>
