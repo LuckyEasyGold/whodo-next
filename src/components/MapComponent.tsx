@@ -33,6 +33,38 @@ const renderCustomIcon = (color: string) => {
     })
 }
 
+// Função para obter cor baseada no número de markers no cluster
+const getClusterColor = (clusterCount: number): string => {
+    if (clusterCount <= 2) return '#3b82f6'      // Azul
+    if (clusterCount <= 5) return '#8b5cf6'      // Roxo
+    if (clusterCount <= 10) return '#f59e0b'    // Laranja
+    if (clusterCount <= 20) return '#ef4444'     // Vermelho
+    return '#dc2626'                              // Vermelho escuro
+}
+
+// Custom cluster icon
+const createClusterCustomIcon = (cluster: any) => {
+    const markers = cluster.getAllChildMarkers()
+    const count = markers.length
+    const color = getClusterColor(count)
+    const size = Math.min(30 + count * 3, 70) // Cresce com o número, máximo 70px
+
+    return L.divIcon({
+        html: `
+            <div class="relative flex items-center justify-center" style="width: ${size}px; height: ${size}px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="w-full h-full drop-shadow-lg" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+                    <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center text-white font-bold text-xs drop-shadow-md" style="font-size: ${Math.max(10, Math.min(14, count + 8))}px;">${count}</span>
+            </div>
+        `,
+        className: 'bg-transparent',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size],
+        popupAnchor: [0, -size]
+    })
+}
+
 // Map Controller for dynamic center updates and storing location
 function MapController({ center, zoom, bounds }: { center: [number, number], zoom: number, bounds?: L.LatLngBounds }) {
     const map = useMap()
@@ -166,7 +198,11 @@ export default function MapComponent({ profissionais, centerCity }: Props) {
 
                 <MapController center={mapCenter} zoom={zoom} bounds={bounds} />
 
-                <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>
+                <MarkerClusterGroup 
+                    chunkedLoading 
+                    maxClusterRadius={50}
+                    iconCreateFunction={createClusterCustomIcon}
+                >
                     {validMarkers.map((p) => {
                         const rating = Number(p.avaliacao_media || 0)
                         const iconColor = p.verificado ? '#10b981' : '#4f46e5' // Emerald if verified, Indigo otherwise
